@@ -33,6 +33,7 @@ var last = require('can-util/js/last/last');
 
 var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
+require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
 
@@ -153,7 +154,7 @@ var attr = require('can-util/dom/attr/attr');
 		// This is called when an individual data binding attribute is placed on an element.
 		// For example `{^value}="name"`.
 		data: function(el, attrData){
-			if(canData.get.call(el,"preventDataBindings")){
+			if(domData.get.call(el,"preventDataBindings")){
 				return;
 			}
 			var viewModel = canViewModel(el),
@@ -178,7 +179,6 @@ var attr = require('can-util/dom/attr/attr');
 				dataBinding.onCompleteBinding();
 			}
 			teardown = dataBinding.onTeardown;
-
 			canEvent.one.call(el, 'removed', function(){
 				teardown();
 			});
@@ -626,8 +626,9 @@ var attr = require('can-util/dom/attr/attr');
 
 							updater();
 						};
-						if(getMutationObserver()) {
-							observer = new getMutationObserver()(onMutation);
+						var MO = getMutationObserver()
+						if(MO) {
+							observer = new MO(onMutation);
 							observer.observe(el, {
 								childList: true,
 								subtree: true
