@@ -626,7 +626,7 @@ var attr = require('can-util/dom/attr/attr');
 
 							updater();
 						};
-						var MO = getMutationObserver()
+						var MO = getMutationObserver();
 						if(MO) {
 							observer = new MO(onMutation);
 							observer.observe(el, {
