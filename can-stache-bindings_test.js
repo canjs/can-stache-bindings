@@ -1,5 +1,5 @@
-import QUnit from 'steal-qunit';
-import plugin from './can-stache-bindings';
+var QUnit = require('steal-qunit');
+var plugin = require('./can-stache-bindings');
 
 QUnit.module('can-stache-bindings');
 
