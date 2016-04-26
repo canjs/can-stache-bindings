@@ -1,0 +1,14 @@
+{
+  "sites": {
+    "docs": {
+      "dest": "docs",
+      "parent": "can-stache-bindings",
+      "pageConfig": {
+        "page": "docs"
+      },
+      "glob": {
+        "pattern": "./**/*.{js,md}"
+      }
+    }
+  }
+}
