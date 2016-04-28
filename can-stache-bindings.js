@@ -491,7 +491,12 @@ var attr = require('can-util/dom/attr/attr');
 				return compute(function(newVal){
 					var viewModel = bindingData.getViewModel();
 					if(arguments.length) {
-						viewModel.attr(setName,newVal);
+						if( types.isMapLike(viewModel) ) {
+							viewModel.attr(setName,newVal);
+						} else {
+							viewModel[setName] = newVal;
+						}
+
 					} else {
 						return vmName === "." ? viewModel : observeReader.read(viewModel, observeReader.reads(vmName), {}).value;
 					}
