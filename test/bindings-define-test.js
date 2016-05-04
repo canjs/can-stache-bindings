@@ -6,6 +6,7 @@ var DefineMap = require("can-define/map/map");
 var stache = require('can-stache');
 var canViewModel = require('can-view-model');
 var define = require("can-define");
+var canEvent = require('can-event');
 
 var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
@@ -70,15 +71,15 @@ test('one-way - parent to child - viewModel', function(){
 	var frag = template(context);
 	var viewModel = canViewModel(frag.firstChild);
 
-	equal(viewModel.attr('viewModelProp'), 'Venus', 'ViewModel property initially set from scope');
+	equal(viewModel.viewModelProp, 'Venus', 'ViewModel property initially set from scope');
 
-	viewModel.attr('viewModelProp', 'Earth');
+	viewModel.viewModelProp = 'Earth';
 
 	equal(context.scopeProp, 'Venus', 'Scope property unchanged by viewModel set');
 
 	context.scopeProp = 'Mars';
 
-	equal(viewModel.attr('viewModelProp'), 'Mars', 'ViewModel property was set via scope set');
+	equal(viewModel.viewModelProp, 'Mars', 'ViewModel property was set via scope set');
 });
 
 
@@ -123,8 +124,12 @@ test('one-way - child to parent - viewModel', function(){
 test("two-way - DOM - input text (#1700)", function () {
 
 	var template = stache("<input {($value)}='age'/>");
-
-	var map = new DefineMap();
+	var MyMap = define.Constructor({
+		age: {
+			type: "string"
+		}
+	});
+	var map = new MyMap();
 
 	var frag = template(map);
 
@@ -134,11 +139,11 @@ test("two-way - DOM - input text (#1700)", function () {
 	var input = ta.getElementsByTagName("input")[0];
 	equal(input.value, "", "input value set correctly if key does not exist in map");
 
-	map.attr("age", "30");
+	map.age = 30;
 
 	equal(input.value, "30", "input value set correctly");
 
-	map.attr("age", "31");
+	map.age = "31";
 
 	equal(input.value, "31", "input value update correctly");
 
@@ -146,6 +151,6 @@ test("two-way - DOM - input text (#1700)", function () {
 
 	canEvent.trigger.call(input, "change");
 
-	equal(map.attr("age"), "32", "updated from input");
+	equal(map.age, "32", "updated from input");
 
 });
