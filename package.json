@@ -63,7 +63,7 @@
     "can-view-scope": "^3.0.0-pre.2"
   },
   "devDependencies": {
-    "can-define": "^0.3.0",
+    "can-define": "^0.6.0",
     "can-list": "^3.0.0-pre.1",
     "can-map": "^3.0.0-pre.2",
     "can-stache": "canjs/can-stache#master",

@@ -1,8 +1,8 @@
 var stacheBindings = require('can-stache-bindings');
 
 var QUnit = require('steal-qunit');
-var CanList = require('can-list');
-var CanMap = require("can-map");
+var DefineList = require('can-define/list/list');
+var DefineMap = require("can-define/map/map");
 var stache = require('can-stache');
 var canViewModel = require('can-view-model');
 var define = require("can-define");
@@ -15,7 +15,10 @@ var canEach = require('can-util/js/each/each');
 
 var MockComponent = require("./mock-component");
 
-test("two way - viewModel (can-define)", 7, function () {
+QUnit.module("can-view-bindings (can-define)")
+
+
+test("two way - viewModel", 7, function () {
 
 	var ViewModel = define.Constructor({
 		vmProp: {}
@@ -55,7 +58,7 @@ test("two way - viewModel (can-define)", 7, function () {
 
 });
 
-test('one-way - parent to child - viewModel (can-define)', function(){
+test('one-way - parent to child - viewModel', function(){
 
 	var template = stache('<div {view-model-prop}="scopeProp" />');
 	var Context = define.Constructor({
@@ -79,7 +82,7 @@ test('one-way - parent to child - viewModel (can-define)', function(){
 });
 
 
-test('one-way - child to parent - viewModel (can-define)', function(){
+test('one-way - child to parent - viewModel', function(){
 
 	var ViewModel = define.Constructor({
 		viewModelProp: {
@@ -115,4 +118,34 @@ test('one-way - child to parent - viewModel (can-define)', function(){
 	context.scopeProp = 'Mars';
 
 	equal(viewModel.viewModelProp, 'Earth', 'ViewModel property unchanged by scope set');
+});
+
+test("two-way - DOM - input text (#1700)", function () {
+
+	var template = stache("<input {($value)}='age'/>");
+
+	var map = new DefineMap();
+
+	var frag = template(map);
+
+	var ta = document.getElementById("qunit-fixture");
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	map.attr("age", "30");
+
+	equal(input.value, "30", "input value set correctly");
+
+	map.attr("age", "31");
+
+	equal(input.value, "31", "input value update correctly");
+
+	input.value = "32";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(map.attr("age"), "32", "updated from input");
+
 });
