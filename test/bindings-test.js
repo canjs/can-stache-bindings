@@ -1317,7 +1317,33 @@ test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbo
 	equal(input.checked, false, 'checkbox value bound (via attr check)');
 });
 
+var makeArray = require("can-util/js/make-array/make-array");
+function isArguments( item ) {
+    return Object.prototype.toString.call( item ) === '[object Arguments]';
+}
 test('two-way - reference - {(child)}="*ref" (#1700)', function(){
+	var oldApply = Function.prototype.apply;
+	Function.prototype.apply = function(that, args){
+		console.log( Object.prototype.toString.call( args ), args.length );
+		switch(args.length) {
+			case 0:
+				return this.call(that);
+			case 1:
+				return this.call(that, args[0]);
+			case 2:
+				return this.call(that, args[0], args[1]);
+			case 3:
+				return this.call(that, args[0], args[1], args[2]);
+			case 4:
+				return this.call(that, args[0], args[1], args[2], args[3]);
+			case 5:
+				return this.call(that, args[0], args[1], args[2], args[3], args[4]);
+			default:
+				console.log(args.length);
+
+		}
+	}
+
 	var data = new CanMap({person: {name: {}}});
 	MockComponent.extend({
 		tag: 'reference-export',
