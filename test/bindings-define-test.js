@@ -16,7 +16,7 @@ var canEach = require('can-util/js/each/each');
 
 var MockComponent = require("./mock-component");
 
-QUnit.module("can-view-bindings (can-define)")
+QUnit.module("can-stache-bindings (can-define)")
 
 
 test("two way - viewModel", 7, function () {

@@ -23,7 +23,7 @@ var canEach = require('can-util/js/each/each');
 
 var MockComponent = require("./mock-component");
 
-QUnit.module('can-view-bindings', {
+QUnit.module('can-stache-bindings', {
 	setup: function () {
 		this.fixture = document.getElementById("qunit-fixture");
 	}
