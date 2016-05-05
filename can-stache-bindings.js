@@ -503,7 +503,12 @@ var attr = require('can-util/dom/attr/attr');
 				});
 			} else {
 				return function(newVal){
-					bindingData.getViewModel().attr(setName,newVal);
+					var viewModel = bindingData.getViewModel();
+					if( types.isMapLike(viewModel) ) {
+						viewModel.attr(setName,newVal);
+					} else {
+						viewModel[setName] = newVal;
+					}
 				};
 			}
 

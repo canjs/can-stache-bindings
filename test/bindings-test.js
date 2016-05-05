@@ -180,7 +180,7 @@ if(typeof document.getElementsByClassName === 'function') {
 
 		function doSomething(foodType, el, ev) {
 			ok(true, "doSomething called");
-			equal(el[0].nodeName.toLowerCase(), "p", "this is the element");
+			equal(el.nodeName.toLowerCase(), "p", "this is the element");
 			equal(ev.type, "click", "1st argument is the event");
 			equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
 
@@ -233,7 +233,7 @@ if(typeof document.getElementsByClassName === 'function') {
 		canEvent.trigger.call(p0, "click");
 	});
 
-	test("(event) handlers", function () {
+	test("(event) handlers", 12, function () {
 		//expect(12);
 		var ta = document.getElementById("qunit-fixture");
 		var template = stache("<div>" +
@@ -255,7 +255,7 @@ if(typeof document.getElementsByClassName === 'function') {
 
 		function doSomething(foodType, el, ev) {
 			ok(true, "doSomething called");
-			equal(el[0].nodeName.toLowerCase(), "p", "this is the element");
+			equal(el.nodeName.toLowerCase(), "p", "this is the element");
 			equal(ev.type, "click", "1st argument is the event");
 			equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
 
@@ -276,16 +276,17 @@ if(typeof document.getElementsByClassName === 'function') {
 		});
 		MockComponent.extend({
 			tag: "fancy-event-args-tester",
-			scope: scope
+			viewModel: scope
 		});
+
 		template = stache("<div>" +
 		"{{#each foodTypes}}" +
-		"<fancy-event-args-tester class='with-args' (click)='withArgs @event @element @viewModel @viewModel.test . title content=content'/>" +
+		"<fancy-event-args-tester class='with-args' ($click)='withArgs @event @element @viewModel @viewModel.test . title content=content'/>" +
 		"{{/each}}" +
 		"</div>");
 		function withArgs(ev1, el1, compScope, testVal, context, title, hash) {
 			ok(true, "withArgs called");
-			equal(el1[0].nodeName.toLowerCase(), "fancy-event-args-tester", "@element is the event's DOM element");
+			equal(el1.nodeName.toLowerCase(), "fancy-event-args-tester", "@element is the event's DOM element");
 			equal(ev1.type, "click", "@event is the click event");
 			equal(scope, compScope, "Component scope accessible through @viewModel");
 			equal(testVal, scope.attr("test"), "Attributes accessible");
