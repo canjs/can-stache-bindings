@@ -1378,7 +1378,7 @@ test('two-way - reference - {(child)}="*ref" (#1700)', function(){
 	equal(refExport.attr("name"),"v2", "updated ref-export");
 
 	equal( scope.getRefs()._context.attr("*refName"), "v2", "actually put in refs scope");
-
+	Function.prototype.apply = oldApply;
 });
 
 
