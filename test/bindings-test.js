@@ -20,12 +20,19 @@ var domMutate = require('can-util/dom/mutate/mutate');
 
 var dev = require('can-util/js/dev/dev');
 var canEach = require('can-util/js/each/each');
+var types = require('can-util/js/types/types');
 
 var MockComponent = require("./mock-component");
 
+var DefaultMap = types.DefaultMap;
+
 QUnit.module('can-stache-bindings', {
 	setup: function () {
+		types.DefaultMap = CanMap;
 		this.fixture = document.getElementById("qunit-fixture");
+	},
+	teardown: function(){
+		types.DefaultMap = DefaultMap;
 	}
 });
 
