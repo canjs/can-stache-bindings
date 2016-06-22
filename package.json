@@ -69,7 +69,7 @@
     "can-map": "^3.0.0-pre.2",
     "can-view-nodelist": "^3.0.0-pre.2 ",
     "cssify": "^1.0.2",
-    "bit-docs": "0.0.6",
+    "bit-docs": "0.0.7",
     "done-serve": "^0.2.0",
     "donejs-cli": "^0.9.5",
     "generator-donejs": "^0.9.0",
@@ -87,12 +87,12 @@
       "bit-docs-generate-readme": "^0.0.8"
     },
     "glob": {
-      "pattern": "**\/*.{js,md}",
-      "ignore": "node_modules\/**\/*"
+      "pattern": "**/*.{js,md}",
+      "ignore": "node_modules/**/*"
     },
-		"readme": {
-			"apis": "./doc/apis.json"
-		},
+    "readme": {
+      "apis": "./doc/apis.json"
+    },
     "parent": "can-view-live"
   }
 }
