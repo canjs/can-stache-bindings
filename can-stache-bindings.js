@@ -19,7 +19,7 @@ var canViewModel = require('can-view-model');
 var canEvent = require('can-event');
 var canBatch = require('can-event/batch/batch');
 var compute = require('can-compute');
-var observeReader = require('can-observe-info/reader/reader');
+var observeReader = require('can-observation/reader/reader');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
