@@ -1,4 +1,5 @@
 @module can-stache-bindings
+@parent can-core
 @link ../docco/view/bindings/bindings.html docco
 
 Provides template event, one-way, and two-way bindings. 
