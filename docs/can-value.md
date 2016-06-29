@@ -1,9 +1,8 @@
-@function can.view.bindings.can-value can-value
-@parent can.view.bindings
+@function can-stache-bindings.can-value can-value
 
 Sets up two way bindings in a template.
 
-@deprecated {2.3} Use [can.view.bindings.twoWay two way binding] like `{($value)}="KEY"` instead.
+@deprecated {2.3} Use [can-stache-bindings.twoWay two way binding] like `{($value)}="KEY"` instead.
 
 @signature `can-value='KEY'`
 
@@ -12,7 +11,7 @@ key. Example:
 
     <input type='text' can-value='first.name'/>
 
-@param {can.mustache.key} key A named value in the current scope.
+@param {can-mustache.key} key A named value in the current scope.
 
 @body
 
@@ -44,8 +43,7 @@ true and false value can be specified by setting `can-true-value` and
 
 ## input type='radio'
 
-If the radio element is checked, sets the observable specified by `can-value` to match the value of
-`value` attribute.
+If the radio element is checked, sets the observable specified by `can-value` to match the value of `value` attribute.
 
 @demo can/view/bindings/doc/input-radio.html
 
