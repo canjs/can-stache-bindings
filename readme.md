@@ -20,8 +20,8 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{(child-prop)}="key"</code>
 
 
-  Two-way binds `childProp` in the  [can.Component::viewModel viewModel] to 
-  [can.stache.key] in the parent [can.view.Scope scope].  If `childProp` is updated `key` will be updated
+  Two-way binds `childProp` in the  [can-component::viewModel viewModel] to 
+  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
   
   ```
@@ -48,7 +48,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 
 
   Two-way binds the element's `childProp` property or attribute to 
-  [can.stache.key] in the parent [can.view.Scope scope].  If `childProp` is updated `key` will be updated
+  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
   ```
@@ -66,8 +66,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{child-prop}="key"</code>
 
 
-  Imports [can.stache.key] in the [can.view.Scope scope] to `childProp` in [can.Component::viewModel viewModel]. It also updates
-  `childProp` with the value of `key` when `key` changes.
+  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component::viewModel viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```
   <my-component {some-prop}="value"/>
@@ -78,7 +77,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
   The name of the property to set in the 
   component's viewmodel.
   
-1. __key__ <code>{can.stache.expressions}</code>:
+1. __key__ <code>{can-stache.expressions}</code>:
   A KeyLookup or Call expression whose value
   is used to set as `childProp`. 
   
@@ -86,7 +85,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{$child-prop}="key"</code>
 
 
-  Imports [can.stache.key] in the [can.view.Scope scope] to `childProp` property or attribute on the element. 
+  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` property or attribute on the element. 
 
   ```
   <input {$value}="name"/>
@@ -102,7 +101,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{^child-prop}="key"</code>
 
 
-Exports `childProp` in the [can.Component::viewModel viewModel] to [can.stache.key] in the parent [can.view.Scope scope]. It also updates
+Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
 ```
@@ -121,7 +120,7 @@ Exports `childProp` in the [can.Component::viewModel viewModel] to [can.stache.k
 ### <code>{^$child-prop}="key"</code>
 
 
-  Exports the element's `childProp` property or attribute to [can.stache.key] in the parent [can.view.Scope scope]. It also updates
+  Exports the element's `childProp` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
   `key` with the value of `childProp` when `childProp` changes.
 
   ```
@@ -151,7 +150,7 @@ Specify a callback function to be called on a particular DOM event.
   A DOM event name like "click". jQuery custom events can also
   be given. 
   
-1. __CALL_EXPRESSION__ <code>{can.stache.expressions}</code>:
+1. __CALL_EXPRESSION__ <code>{can-stache.expressions}</code>:
   A call expression like `method(key)` that is called when the `DOM_EVENT` 
   is fired. The following key values are also supported:
   
@@ -166,7 +165,7 @@ Specify a callback function to be called on a particular DOM event.
 ### <code>(VIEW_MODEL_EVENT)='CALL_EXPRESSION'</code>
 
 
-Specify a callback function to be called on a particular [can.Component::viewModel viewModel] event.
+Specify a callback function to be called on a particular [can-component::viewModel viewModel] event.
 
 ```
 <my-component (show)="doSomething()"/>
@@ -177,16 +176,16 @@ Specify a callback function to be called on a particular [can.Component::viewMod
   A DOM event name like "click". jQuery custom events can also
   be given. 
   
-1. __CALL_EXPRESSION__ <code>{can.stache.expressions}</code>:
+1. __CALL_EXPRESSION__ <code>{can-stache.expressions}</code>:
   A call expression like `method(key)` that is called when the `DOM_EVENT` 
   is fired. The following key values are also supported:
   
    - `%element` - The element the event happened upon.
    - `$element` - The [can.$] wrapped element the event happened upon.
    - `%event` - The event object.
-   - `%viewModel` - If the element is a [can.Component], the component's [can.Component::viewModel viewModel].
+   - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
    - `%context` - The current context.
-   - `%scope` - The current [can.view.Scope].
+   - `%scope` - The current [can-view-scope].
   
   
 
@@ -198,6 +197,7 @@ Specify a callback function to be called on a particular [can.Component::viewMod
 
 1. __ref-prop__ <code>{String}</code>:
   The name of the property to set in the template's 'references' scope.
+  
   
 ## Contributing
 

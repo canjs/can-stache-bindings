@@ -1,11 +1,11 @@
 @function can-stache-bindings.toParent {^to-parent}
 @parent can-stache-bindings 2
 
-@description One-way bind a value in the current [can.Component::viewModel viewModel] to the parent scope.
+@description One-way bind a value in the current [can-component::viewModel viewModel] to the parent scope.
 
 @signature `{^child-prop}="key"`
 
-Exports `childProp` in the [can.Component::viewModel viewModel] to [can.stache.key] in the parent [can.view.Scope scope]. It also updates
+Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
 ```
@@ -19,7 +19,7 @@ child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewMod
 
 @signature `{^$child-prop}="key"`
 
-  Exports the element's `childProp` property or attribute to [can.stache.key] in the parent [can.view.Scope scope]. It also updates
+  Exports the element's `childProp` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
   `key` with the value of `childProp` when `childProp` changes.
 
   ```

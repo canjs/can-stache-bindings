@@ -1,0 +1,9 @@
+[
+	{"can-stache-bindings": [
+		"can-stache-bindings.twoWay",
+		"can-stache-bindings.toChild",
+		"can-stache-bindings.toParent",
+		"can-stache-bindings.event",
+		"can-stache-bindings.reference"
+	]}
+]

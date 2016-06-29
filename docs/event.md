@@ -1,5 +1,5 @@
 @function can-stache-bindings.event \(event\)
-@parent can.view.bindings 0
+@parent can-stache-bindings 0
 
 @description Listen to events on elements or component view models.
 
@@ -14,19 +14,19 @@ Specify a callback function to be called on a particular DOM event.
 @param {String} DOM_EVENT A DOM event name like "click". jQuery custom events can also
 be given. 
 
-@param {can.stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` 
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` 
 is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
- - `$element` - The [can.$] wrapped element the event happened upon.
+ - `$element` - The element the event happened upon.
  - `%event` - The event object.
- - `%viewModel` - If the element is a [can.Component], the component's [can.Component::viewModel viewModel].
+ - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
  - `%context` - The current context.
- - `%scope` - The current [can.view.Scope].
+ - `%scope` - The current [can-view-scope scope].
 
 @signature `(VIEW_MODEL_EVENT)='CALL_EXPRESSION'`
 
-Specify a callback function to be called on a particular [can.Component::viewModel viewModel] event.
+Specify a callback function to be called on a particular [can-component::viewModel viewModel] event.
 
 ```
 <my-component (show)="doSomething()"/>
@@ -35,15 +35,15 @@ Specify a callback function to be called on a particular [can.Component::viewMod
 @param {String} DOM_EVENT A DOM event name like "click". jQuery custom events can also
 be given. 
 
-@param {can.stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` 
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` 
 is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
  - `$element` - The [can.$] wrapped element the event happened upon.
  - `%event` - The event object.
- - `%viewModel` - If the element is a [can.Component], the component's [can.Component::viewModel viewModel].
+ - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
  - `%context` - The current context.
- - `%scope` - The current [can.view.Scope].
+ - `%scope` - The current [can-view-scope].
 
 
 @body
@@ -73,7 +73,7 @@ item from `items` when that item is clicked on.
 
 ### Special Event Types
 
-can.view.bindings supports creating special event types 
+[can-stache-bindings] supports creating special event types 
 (events that aren't natively triggered by the DOM), which are 
 bound by adding attributes like `($SPECIAL)='KEY'`. This is 
 similar to [$.special](http://benalman.com/news/2010/03/jquery-special-events/).
@@ -86,12 +86,12 @@ key is pressed while focused on the current element. For example:
 	<input type='text' ($enter)='save()' />
 
 The above template snippet would call the save method 
-(in the [can.view.Scope scope]) whenever 
+(in the [can-view-scope scope]) whenever 
 the user hits the enter key on this input.
 
 ## viewModel events
 
-To listen on a can.Component's [can.Component::viewModel viewModel], wrap the event name with `(event)` like:
+To listen on a [can-component Component's] [can-component::viewModel viewModel], wrap the event name with `(event)` like:
 
 ```
 <player-edit 
@@ -103,7 +103,7 @@ ViewModels can publish events on themselves. The following `<player-edit>` compo
  dispatches a `"close"` event on itself when its `close` method is called:
 
 ```
-can.Component.extend({
+Component.extend({
   tag: "player-edit",
   template: can.view('player-edit-stache'),
   viewModel: {
