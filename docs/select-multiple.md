@@ -1,4 +1,4 @@
-@function can.view.bindings.can-value-select-multiple select multiple
+@function can-stache-bindings.can-value-select-multiple select multiple
 @parent can.view.bindings.can-value
 @release 2.1
 
@@ -24,7 +24,7 @@ undefined.
 ## Cross binding to Arrays
 
 `<select>` tags with a multiple attribute cross bind
-a [can.Map] property, [can.compute] or [can.List]
+a [can-map] property, [can-compute.computed] or [can-list]
 in sync with the selected items of the `<select>` element.
 
 For example, the following template:
@@ -37,24 +37,24 @@ For example, the following template:
 
 Could be rendered with one of the following:
 
-    // A can.Map property
+    // A can-map property
     new Map({colors: []})
 
     // A compute
-    { colors: can.compute([]) }
+    { colors: canCompute([]) }
 
     // A can.List
-    { colors: new can.List() }
+    { colors: new List() }
     
 @demo can/view/bindings/doc/select_multiple.html
 
 ## Cross binding Strings
 
-If the [can.Map] property or [can.compute] value is a 
+If the [can-map] property or [can-compute.computed] value is a 
 string like:
 
-    new can.Map({color: "red;green"});
-    { colors: can.compute("red;green") }
+    new Map({color: "red;green"});
+    { colors: canCompute("red;green") }
 
 The string will be split by `";"`. The items in the split
 string are used as values to match against `<option>` tag values.
@@ -63,15 +63,15 @@ string are used as values to match against `<option>` tag values.
 
 ## Cross binding undefined 
 
-If the `KEY` value begins as undefined [can.Map] property like:
+If the `KEY` value begins as undefined [can-map] property like:
 
-    new can.Map({colors: undefined});
+    new Map({colors: undefined});
     
-The property will be converted to a [can.List].
+The property will be converted to a [can-list].
 
-If the `KEY` value begins as an undefined [can.compute] like:
+If the `KEY` value begins as an undefined [can-compute.computed] like:
     
-    {colors: can.compute()}
+    {colors: canCompute()}
 
 The value of the compute will be set to an array.
 
