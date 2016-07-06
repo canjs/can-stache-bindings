@@ -2306,11 +2306,11 @@ test("Multi-select empty string works(#1263)", function(){
         name: "attribute_ 0",
         options: [
             {label: 'empty', value: ""},
-            {label:'zero', value:0},
-            {label:'one', value:1},
-            {label:'two', value:2},
-            {label:'three', value:3},
-            {label:'four', value:4}
+            {label: 'zero', value: 0},
+            {label: 'one', value: 1},
+            {label: 'two', value: 2},
+            {label: 'three', value: 3},
+            {label: 'four', value: 4}
         ],
         value: [1]
     };
@@ -2320,8 +2320,6 @@ test("Multi-select empty string works(#1263)", function(){
 
     frag = template(new CanMap(data));
 
-    //document.body.appendChild(frag);
-
-    equal(frag.firstChild.getElementsByTagName("option")[0].selected, "0");
+    equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
 
 });
