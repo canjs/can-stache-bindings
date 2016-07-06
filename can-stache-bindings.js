@@ -572,7 +572,7 @@ var attr = require('can-util/dom/attr/attr');
 						// Go through each &lt;option/&gt; element, if it has a value property (its a valid option), then
 						// set its selected property if it was in the list of vals that were just set.
 						each(el.childNodes, function (option) {
-							if (option.value) {
+							if (typeof option.value != 'undefined') {
 								option.selected = !! isSelected[option.value];
 							}
 						});
