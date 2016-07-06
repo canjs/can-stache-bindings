@@ -2315,7 +2315,8 @@ test("Multi-select empty string works(#1263)", function(){
         value: [1]
     };
 
-    var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> {{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
+    var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> " +
+        "{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
 
     frag = template(new CanMap(data));
 
