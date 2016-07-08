@@ -568,14 +568,15 @@ var attr = require('can-util/dom/attr/attr');
 						each(newVal, function (val) {
 							isSelected[val] = true;
 						});
-
-						// Go through each &lt;option/&gt; element, if it has a value property (its a valid option), then
+                        
+						// Go through each &lt;option/&gt; element, if it has a value and selected property (its a valid option), then
 						// set its selected property if it was in the list of vals that were just set.
 						each(el.childNodes, function (option) {
-							if (typeof option.value !== 'undefined') {
-								option.selected = !! isSelected[option.value];
+							if (('value' in option) && ('selected' in option)) {
+									option.selected = !! isSelected[option.value];
 							}
 						});
+						
 					} else {
 						if(!bindingData.legacyBindings && hasChildren && ("selectedIndex" in el) && prop === "value" ) {
 							attr.setSelectValue(el, newVal);
