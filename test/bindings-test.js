@@ -2297,3 +2297,29 @@ test("converters work (#2299)", function(){
  	equal(map.attr("age"), 1);
 
 });
+
+test("Multi-select empty string works(#1263)", function(){
+
+    var data = {
+        isMultiple: 1,
+        isSelect: 1,
+        name: "attribute_ 0",
+        options: [
+            {label: 'empty', value: ""},
+            {label: 'zero', value: 0},
+            {label: 'one', value: 1},
+            {label: 'two', value: 2},
+            {label: 'three', value: 3},
+            {label: 'four', value: 4}
+        ],
+        value: [1]
+    };
+
+    var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> " +
+        "{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
+
+    frag = template(new CanMap(data));
+
+    equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
+
+});
