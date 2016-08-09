@@ -42,4 +42,4 @@
 <player-scores {scores}="game.scoresForPlayer('Jeff')"/>
 ```
 
-@demo can/view/bindings/doc/to-child.html
+@demo demos/can-stache-bindings/to-child.html

@@ -16,7 +16,7 @@ bindings on element attributes, component [can-component::viewModel viewModels],
 - `{^prop}="key"` for one-way binding to a parent.
 - `{(prop)}="key"` for two-way binding.
 
-Adding $ to a binding like `($event)="key()"` changes the binding from the `viewModel` to the element's attributes or properties.
+Prepending $ to a binding like `($event)="key()"` changes the binding from the `viewModel` to the element's attributes or properties.
 
 The following are the bindings that should be used with [can-stache] and are compatible with the upcoming 
 3.0 release:

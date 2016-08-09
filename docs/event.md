@@ -1,21 +1,19 @@
 @function can-stache-bindings.event \(event\)
 @parent can-stache-bindings 0
 
-@description Listen to events on elements or component view models.
+@description Response to events on elements or component ViewModels.
 
 @signature `($DOM_EVENT)='CALL_EXPRESSION'`
 
-Specify a callback function to be called on a particular DOM event.
+Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
 ```
 <div ($click)="doSomething()"/>
 ```
 
-@param {String} DOM_EVENT A DOM event name like "click". jQuery custom events can also
-be given. 
+@param {String} DOM_EVENT A DOM event name like "click".
 
-@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` 
-is fired. The following key values are also supported:
+@param {can-stache/expressions/call} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
  - `$element` - The element the event happened upon.
@@ -26,7 +24,7 @@ is fired. The following key values are also supported:
 
 @signature `(VIEW_MODEL_EVENT)='CALL_EXPRESSION'`
 
-Specify a callback function to be called on a particular [can-component::viewModel viewModel] event.
+Listens to an event on the element's [can-component::viewModel viewModel] and calls the [can-stache/expressions/call] when that event occurs.
 
 ```
 <my-component (show)="doSomething()"/>
@@ -69,7 +67,7 @@ handler in the order they were given.
 The following uses `($click)="items.splice(%index,1)"` to remove a
 item from `items` when that item is clicked on.
 
-@demo can/view/bindings/doc/event-args.html
+@demo demos/can-stache-bindings/event-args.html
 
 ### Special Event Types
 
@@ -117,4 +115,4 @@ Component.extend({
 The following demo uses this ability to create a close button that 
 hides the player editor:
 
-@demo can/component/examples/paginate_next_event.html
+@demo demos/can-component/paginate_next_event.html
