@@ -26,7 +26,6 @@ var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var string = require('can-util/js/string/string');
 var dev = require('can-util/js/dev/dev');
-var isEmptyObject = require('can-util/js/is-empty-object/is-empty-object');
 var isArray = require('can-util/js/is-array/is-array');
 var types = require('can-util/js/types/types');
 var last = require('can-util/js/last/last');
@@ -272,7 +271,7 @@ var attr = require('can-util/dom/attr/attr');
 					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
 
 						var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data){
-							return new expression.Literal(data);
+							return new expression.Arg(new expression.Literal(data));
 						});
 						expr = new expression.Call(expr, defaultArgs, {} );
 					}
@@ -323,13 +322,7 @@ var attr = require('can-util/dom/attr/attr');
 					});
 
 
-					var args = expr.args(localScope, null)(),
-						hash = expr.hash(localScope, null)();
-
-					if(!isEmptyObject(hash)) {
-						args.push(hash);
-					}
-
+					var args = expr.args(localScope, null)();
 					return scopeData.value.apply(scopeData.parent, args);
 				};
 
