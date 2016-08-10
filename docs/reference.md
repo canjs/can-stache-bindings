@@ -1,5 +1,5 @@
 @function can-stache-bindings.reference *REFERENCE
-@parent can-stache-bindings 4
+@parent can-stache-bindings.syntaxes 4
 
 @description Export a viewModel into a template's references scope.
 

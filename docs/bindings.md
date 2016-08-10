@@ -1,6 +1,8 @@
 @module can-stache-bindings
 @parent can-core
 @link ../docco/view/bindings/bindings.html docco
+@group can-stache-bindings.converters Converters
+@group can-stache-bindings.syntaxes Syntaxes
 
 Provides template event, one-way, and two-way bindings. 
 

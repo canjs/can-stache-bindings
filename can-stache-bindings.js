@@ -35,6 +35,7 @@ var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
+require('./converters');
 
 	// ## Behaviors
 	var behaviors = {

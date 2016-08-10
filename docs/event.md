@@ -1,5 +1,5 @@
 @function can-stache-bindings.event \(event\)
-@parent can-stache-bindings 0
+@parent can-stache-bindings.syntaxes 0
 
 @description Response to events on elements or component ViewModels.
 

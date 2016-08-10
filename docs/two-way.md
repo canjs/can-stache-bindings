@@ -1,5 +1,5 @@
 @function can-stache-bindings.twoWay {\(two-way\)}
-@parent can-stache-bindings 3
+@parent can-stache-bindings.syntaxes 3
 
 @description Two-way bind a value in the [can-component::viewModel viewModel] or the element to the parent scope.
 
