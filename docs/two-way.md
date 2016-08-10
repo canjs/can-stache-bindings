@@ -50,11 +50,11 @@ The following two-way binds the `<edit-plate>` element's `plateName` to the `edi
 value in the scope.  This allows `plateName` to update if `editing.licensePlate` changes and
 `editing.licensePlate` to update if `plateName` changes.
 
-@demo can/view/bindings/doc/two-way.html
+@demo demos/can-stache-bindings/two-way.html
 
 This demo can be expressed a bit easier with the references scope:
 
-@demo can/view/bindings/doc/reference.html
+@demo demos/can-stache-bindings/reference.html
 
 ## Initialization
 

@@ -21,4 +21,4 @@ hypenated name of the reference scope property:
 ```
 
 
-@demo can/view/bindings/doc/reference-one-way.html
+@demo demos/can-stache-bindings/reference-one-way.html
