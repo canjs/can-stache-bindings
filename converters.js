@@ -1,6 +1,6 @@
 var stache = require("can-stache");
 
-stache.registerConverter("in-list", {
+stache.registerConverter("boolean-to-inList", {
 	get: function(item, list){
 		if(!list) {
 			return false;
