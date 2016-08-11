@@ -6,10 +6,10 @@ var stache = require("can-stache");
 
 var QUnit = require("steal-qunit");
 
-QUnit.module("Converters - in-list");
+QUnit.module("Converters - boolean-to-inList");
 
 QUnit.test("Works with checkboxes", function(){
-	var template = stache("<input type='checkbox' {($checked)}='in-list(item, list)' />");
+	var template = stache("<input type='checkbox' {($checked)}='boolean-to-inList(item, list)' />");
 	var map = new DefineMap({
 		item: 2,
 		list: new DefineList([ 1, 2, 3 ])
@@ -44,7 +44,7 @@ QUnit.test("Works with checkboxes", function(){
 });
 
 QUnit.test("If there is no list, treated as false", function(){
-	var template = stache("<input type='checkbox' {($checked)}='in-list(item, list)' />");
+	var template = stache("<input type='checkbox' {($checked)}='boolean-to-inList(item, list)' />");
 	var map = new DefineMap({
 		item: 2,
 		list: undefined
@@ -61,7 +61,7 @@ QUnit.test("If there is no list, treated as false", function(){
 });
 
 QUnit.test("works with radio buttons", function(){
-	var template = stache("<form><input type='radio' name='name' value='Matthew' {($checked)}='in-list(\"Matthew\", names)' /><input type='radio' name='name' value='Wilbur' {($checked)}='in-list(\"Wilbur\", names)' /></form>");
+	var template = stache("<form><input type='radio' name='name' value='Matthew' {($checked)}='boolean-to-inList(\"Matthew\", names)' /><input type='radio' name='name' value='Wilbur' {($checked)}='boolean-to-inList(\"Wilbur\", names)' /></form>");
 	var map = new DefineMap({
 		names: ['Wilbur']
 	});
