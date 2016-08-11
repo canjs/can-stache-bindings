@@ -1,3 +1,4 @@
+require("./converters-test");
 require("./bindings-define-test");
 
 var stacheBindings = require('can-stache-bindings');
