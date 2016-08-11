@@ -14,8 +14,7 @@
   @param {String} child-prop The name of the property to set in the 
   component's viewmodel.
 
-  @param {can-stache.expressions} key A KeyLookup or Call expression whose value
-  is used to set as `childProp`. 
+  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value is used to set as `childProp`. 
 
 @signature `{$child-prop}="key"`
 
