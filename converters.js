@@ -1,4 +1,5 @@
 var stache = require("can-stache");
+var stringToAny = require("can-util/js/string-to-any/string-to-any");
 
 stache.registerConverter("boolean-to-inList", {
 	get: function(item, list){
@@ -21,5 +22,15 @@ stache.registerConverter("boolean-to-inList", {
 		} else {
 			list.push(item);
 		}
+	}
+});
+
+stache.registerConverter("string-to-any", {
+	get: function(compute){
+		return "" + compute();
+	},
+	set: function(newVal, compute){
+		var converted = stringToAny(newVal);
+		compute(converted);
 	}
 });
