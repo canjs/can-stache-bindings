@@ -15,7 +15,7 @@ Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.k
 @param {String} child-prop The name of the property to export from the 
 child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewModel.
 
-@param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper} key An expression that will be used to set in the parent scope.
+@param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression that will be used to set in the parent scope.
 
 @signature `{^$child-prop}="key"`
 
@@ -28,7 +28,7 @@ child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewMod
 
   @param {String} child-prop The name of the element's property or attribute to export.
 
-  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value with be used to set in the parent scope.
+  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value with be used to set in the parent scope.
 
 
 @body
