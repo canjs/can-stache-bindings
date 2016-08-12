@@ -23,7 +23,7 @@
 
   @param {String} child-prop The name of the property of the viewModel to two-way bind.
 
-  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
+  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
 
 @signature `{($child-prop)}="key"`
 
@@ -37,7 +37,7 @@
 
   @param {String} child-prop The name of the element's property or attribute to two-way bind.
 
-  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
+  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
   
 @body
 
