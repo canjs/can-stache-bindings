@@ -183,3 +183,34 @@ QUnit.test("works with boolean-to-inList", function(){
 	map.list.splice(3, 1);
 	QUnit.equal(input.checked, true, "now it's checked because not in the list");
 });
+
+QUnit.module("Converters - select-by-index");
+
+QUnit.test("chooses select option by the index from a list", function(){
+	var template = stache('<select {($value)}="select-by-index(~person, people)">{{#each people}}<option value="{{%index}}">{{name}}</option>{{/each}}</select>');
+
+	var map = new DefineMap({
+		person: "Anne",
+		people: [
+			"Matthew",
+			"Anne",
+			"Wilbur"
+		]
+	});
+
+	var select = template(map).firstChild;
+
+	// Initial value
+	QUnit.equal(select.value, 1, "initially set to the first value");
+
+	// Select a different thing.
+	select.value = 2;
+	canEvent.trigger.call(select, "change");
+
+	QUnit.equal(map.person, "Wilbur", "now it is me");
+
+	// Change the selected the other way.
+	map.person = map.people.item(0);
+
+	QUnit.equal(select.value, 0, "set back");
+});
