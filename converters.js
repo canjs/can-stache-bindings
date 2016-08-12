@@ -43,3 +43,17 @@ stache.registerConverter("not", {
 		compute(!newVal);
 	}
 });
+
+stache.registerConverter("select-by-index", {
+	get: function(item, list){
+		var val = item.isComputed ? item() : item;
+		var idx = list.indexOf(val);
+		return idx;
+	},
+	set: function(idx, item, list){
+		var newVal = list[idx];
+		if(newVal !== -1 && item.isComputed) {
+			item(newVal);
+		}
+	}
+});
