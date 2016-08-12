@@ -1,6 +1,6 @@
 @function can-stache-bindings.converters.string-to-any string-to-any
 @parent can-stache-bindings.converters
-@description Bind a value to a primitive value, two way converted back to that primitive value when the attribute changes.
+@description A [can-stache.registerConverter converter] that binds a value to a primitive value, two way converted back to that primitive value when the attribute changes.
 
 @signature `string-to-any(~item)`
 
