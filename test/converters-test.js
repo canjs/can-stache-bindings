@@ -187,7 +187,7 @@ QUnit.test("works with boolean-to-inList", function(){
 QUnit.module("Converters - select-by-index");
 
 QUnit.test("chooses select option by the index from a list", function(){
-	var template = stache('<select {($value)}="select-by-index(~person, people)">{{#each people}}<option value="{{%index}}">{{name}}</option>{{/each}}</select>');
+	var template = stache('<select {($value)}="select-by-index(~person, people)"><option value="none"></option>{{#each people}}<option value="{{%index}}">{{name}}</option>{{/each}}</select>');
 
 	var map = new DefineMap({
 		person: "Anne",
@@ -213,4 +213,10 @@ QUnit.test("chooses select option by the index from a list", function(){
 	map.person = map.people.item(0);
 
 	QUnit.equal(select.value, 0, "set back");
+
+	// Can be set to other stuff too
+	select.value = "none";
+	canEvent.trigger.call(select, "change");
+
+	QUnit.equal(map.person, undefined, "now undefined because not in the list");
 });
