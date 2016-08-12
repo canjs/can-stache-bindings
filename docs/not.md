@@ -11,7 +11,7 @@ When the setter is called, sets the compute's value to the negation of the new v
 *Note* that `not` needs a compute so that it can update the scope's value when the setter is called.
 
 ```handlebars
-<input type="checkbox" {($checked)}="not(~val) />
+<input type="checkbox" {($checked)}="not(~val)" />
 ```
 
 @param {can-compute} value A value stored in a [can-compute].
@@ -24,7 +24,7 @@ When the setter is called, sets the compute's value to the negation of the new v
 Use this converter to two-way bind to the negation of some value. For example:
 
 ```handlebars
-<input type="checkbox" {($checked)}="not(~val) />
+<input type="checkbox" {($checked)}="not(~val)" />
 ```
 
 ```js
