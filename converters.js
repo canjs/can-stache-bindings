@@ -34,3 +34,12 @@ stache.registerConverter("string-to-any", {
 		compute(converted);
 	}
 });
+
+stache.registerConverter("not", {
+	get: function(compute){
+		return !compute();
+	},
+	set: function(newVal, compute){
+		compute(!newVal);
+	}
+});
