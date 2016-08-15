@@ -2324,3 +2324,34 @@ test("Multi-select empty string works(#1263)", function(){
     equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
 
 });
+
+test("$element is wrapped with types.wrapElement", function(){
+	var $ = function(element){
+		this.element = element;
+	};
+
+	var wrapElement = types.wrapElement,
+		unwrapElement = types.unwrapElement;
+
+	types.wrapElement = function(element){
+		return new $(element);
+	};
+
+	types.unwrapElement = function(object){
+		return object.element;
+	};
+
+	var template = stache("<button ($click)='doSomething($element)'>Clicky</button>");
+	var MyMap = DefaultMap.extend({
+		doSomething: function(element){
+			types.wrapElement = wrapElement;
+			types.unwrapElement = unwrapElement;
+
+			ok(element instanceof $);
+		}
+
+	});
+	var button = template(new MyMap()).firstChild;
+
+	canEvent.trigger.call(button, "click");
+});
