@@ -313,7 +313,7 @@ require('./converters');
 						"@context": data.scope._context,
 
 						"%element": this,
-						"$element": el,
+						"$element": types.wrapElement(el),
 						"%event": ev,
 						"%viewModel": viewModel,
 						"%scope": data.scope,
