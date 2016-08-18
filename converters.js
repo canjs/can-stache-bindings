@@ -44,7 +44,7 @@ stache.registerConverter("not", {
 	}
 });
 
-stache.registerConverter("select-by-index", {
+stache.registerConverter("index-to-selected", {
 	get: function(item, list){
 		var val = item.isComputed ? item() : item;
 		var idx = list.indexOf(val);

@@ -1,19 +1,19 @@
-@function can-stache-bindings.converters.select-by-index select-by-index
+@function can-stache-bindings.converters.index-to-selected index-to-selected
 @parent can-stache-bindings.converters
 @description A [can-stache.registerConverter converter] that binds to a `<select>` value in order to two-way bind a selected item from a list using the index as the key.
 
-@signature `select-by-index(~item, list)`
+@signature `index-to-selected(~item, list)`
 
 When the getter is called, returns the index of the passed in item (which should be a [can-compute] from the provided list.
 
 When the setter is called, takes the selected index value and finds the item from the list with that index and passes that to set the compute's value.
 
 ```handlebars
-<select {($value)}="select-by-index(~person, people)">
+<select {($value)}="index-to-selected(~person, people)">
 
 	{{#each people}}
 
-		<option value"{{%index}}">{{name}}</option>
+		<option value="{{%index}}">{{name}}</option>
 
 	{{/each}}
 
