@@ -17,6 +17,8 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
   - _converters_
     - <code>[boolean-to-inList(item, list)](#boolean-to-inlistitem-list)</code>
     - <code>[string-to-any(~item)](#string-to-anyitem)</code>
+    - <code>[not(~value)](#notvalue)</code>
+    - <code>[index-to-selected(~item, list)](#index-to-selecteditem-list)</code>
 
 ## API
 
@@ -44,7 +46,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 1. __child-prop__ <code>{String}</code>:
   The name of the property of the viewModel to two-way bind.
   
-1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper}</code>:
+1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
   A call expression whose value will be used to two-way bind in the parent scope.
   
 
@@ -63,7 +65,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 1. __child-prop__ <code>{String}</code>:
   The name of the element's property or attribute to two-way bind.
   
-1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper}</code>:
+1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
   A call expression whose value will be used to two-way bind in the parent scope.
   
 
@@ -81,7 +83,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
   The name of the property to set in the 
   component's viewmodel.
   
-1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper}</code>:
+1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
   An expression whose resulting value is used to set as `childProp`. 
   
 
@@ -116,7 +118,7 @@ Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.k
   The name of the property to export from the 
   child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewModel.
   
-1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper}</code>:
+1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
   An expression that will be used to set in the parent scope.
   
 
@@ -134,7 +136,7 @@ Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.k
 1. __child-prop__ <code>{String}</code>:
   The name of the element's property or attribute to export.
   
-1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/hash|can-stache/expressions/call|can-stache/expressions/helper}</code>:
+1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
   An expression whose resulting value with be used to set in the parent scope.
   
   
@@ -241,7 +243,57 @@ When the setter is called, takes the new value and converts it to the primitive 
 
 - __returns__ <code>{can-compute}</code>:
   A compute that will be used by undefined as a getter/setter when the element's value changes.
-    
+  
+
+### <code>not(~value)</code>
+
+
+When the getter is called, gets the value of the compute and returns the negation.
+
+When the setter is called, sets the compute's value to the negation of the new value derived from the element.
+
+*Note* that `not` needs a compute so that it can update the scope's value when the setter is called.
+
+```handlebars
+<input type="checkbox" {($checked)}="not(~val)" />
+```
+
+
+1. __value__ <code>{can-compute}</code>:
+  A value stored in a [can-compute].
+
+- __returns__ <code>{can-compute}</code>:
+  A compute that will be two-way bound by undefined as a getter/setter on the element.
+  
+
+### <code>index-to-selected(~item, list)</code>
+
+
+When the getter is called, returns the index of the passed in item (which should be a [can-compute] from the provided list.
+
+When the setter is called, takes the selected index value and finds the item from the list with that index and passes that to set the compute's value.
+
+```handlebars
+<select {($value)}="index-to-selected(~person, people)">
+
+	{{#each people}}
+
+		<option value="{{%index}}">{{name}}</option>
+
+	{{/each}}
+
+</select>
+```
+
+
+1. __item__ <code>{can-compute}</code>:
+  A compute whose item is in the list.
+1. __list__ <code>{can-define/list/list|can-list|Array}</code>:
+  A list used to find the `item`.
+
+- __returns__ <code>{can-compute}</code>:
+  A compute that will be two-way bound to the select's value.
+     
   
 ## Contributing
 
