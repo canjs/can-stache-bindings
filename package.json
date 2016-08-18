@@ -76,7 +76,7 @@
     "jshint": "^2.9.1",
     "steal": "^0.16.0",
     "steal-qunit": "^0.1.1",
-    "steal-tools": "^0.16.0",
+    "steal-tools": "^0.16.7",
     "testee": "^0.2.4"
   },
   "bit-docs": {
