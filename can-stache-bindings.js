@@ -499,7 +499,7 @@ require('./converters');
 				return function(newVal){
 					var viewModel = bindingData.getViewModel();
 					if( types.isMapLike(viewModel) ) {
-						viewModel.attr(setName,newVal);
+						observeReader.set(viewModel,setName,newVal);
 					} else {
 						viewModel[setName] = newVal;
 					}
@@ -562,7 +562,7 @@ require('./converters');
 						each(newVal, function (val) {
 							isSelected[val] = true;
 						});
-                        
+
 						// Go through each &lt;option/&gt; element, if it has a value and selected property (its a valid option), then
 						// set its selected property if it was in the list of vals that were just set.
 						each(el.childNodes, function (option) {
@@ -570,7 +570,7 @@ require('./converters');
 									option.selected = !! isSelected[option.value];
 							}
 						});
-						
+
 					} else {
 						if(!bindingData.legacyBindings && hasChildren && ("selectedIndex" in el) && prop === "value" ) {
 							attr.setSelectValue(el, newVal);
