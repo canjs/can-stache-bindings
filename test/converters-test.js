@@ -184,10 +184,10 @@ QUnit.test("works with boolean-to-inList", function(){
 	QUnit.equal(input.checked, true, "now it's checked because not in the list");
 });
 
-QUnit.module("Converters - select-by-index");
+QUnit.module("Converters - index-to-selected");
 
 QUnit.test("chooses select option by the index from a list", function(){
-	var template = stache('<select {($value)}="select-by-index(~person, people)"><option value="none"></option>{{#each people}}<option value="{{%index}}">{{name}}</option>{{/each}}</select>');
+	var template = stache('<select {($value)}="index-to-selected(~person, people)"><option value="none"></option>{{#each people}}<option value="{{%index}}">{{name}}</option>{{/each}}</select>');
 
 	var map = new DefineMap({
 		person: "Anne",
