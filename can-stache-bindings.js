@@ -486,7 +486,7 @@ require('./converters');
 					var viewModel = bindingData.getViewModel();
 					if(arguments.length) {
 						if( types.isMapLike(viewModel) ) {
-							viewModel.attr(setName,newVal);
+							observeReader.set(viewModel,setName,newVal);
 						} else {
 							viewModel[setName] = newVal;
 						}
