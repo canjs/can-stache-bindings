@@ -40,7 +40,7 @@ var str = document.getElementById('select-template').innerHTML;
 var template = stache(str);
 
 var map = new DefineMap({
-	val: "foo"
+	someValue: "foo"
 });
 
 document.body.appendChild(template(map));
