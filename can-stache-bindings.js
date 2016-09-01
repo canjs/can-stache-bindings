@@ -755,7 +755,8 @@ require('./converters');
 
 			//!steal-remove-start
 			// user tried to pass something like id="{foo}", so give them a good warning
-			if(ignoreAttribute) {
+			// Something like id="{{foo}}" is ok, though. (not a binding)
+			if(ignoreAttribute && node.value.replace(/{{/g, "").indexOf("{") > -1) {
 				dev.warn("can-component: looks like you're trying to pass "+attributeName+" as an attribute into a component, "+
 				"but it is not a supported attribute");
 			}
