@@ -2373,6 +2373,7 @@ test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
 		});
 
 		stache("<special-attrs id='{{foo}}' class='{{baz}}'></div>")({foo: "bar", baz: "quux"});
+		stache("<special-attrs id='foo' class='baz'></div>")({foo: "bar", baz: "quux"});
 
 		dev.warn = function() {
 			ok(true, 'dev.warn was called correctly');
