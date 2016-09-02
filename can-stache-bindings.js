@@ -730,6 +730,7 @@ require('./converters');
 		}
 	};
 
+	var DOUBLE_CURLY_BRACE_REGEX = /\{\{/g;
 	// ## getBindingInfo
 	// takes a node object like {name, value} and returns
 	// an object with information about that binding.
@@ -755,7 +756,8 @@ require('./converters');
 
 			//!steal-remove-start
 			// user tried to pass something like id="{foo}", so give them a good warning
-			if(ignoreAttribute) {
+			// Something like id="{{foo}}" is ok, though. (not a binding)
+			if(ignoreAttribute && node.value.replace(DOUBLE_CURLY_BRACE_REGEX, "").indexOf("{") > -1) {
 				dev.warn("can-component: looks like you're trying to pass "+attributeName+" as an attribute into a component, "+
 				"but it is not a supported attribute");
 			}

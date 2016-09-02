@@ -2355,3 +2355,34 @@ test("$element is wrapped with types.wrapElement", function(){
 
 	canEvent.trigger.call(button, "click");
 });
+
+test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
+	var _warn = dev.warn;
+	dev.warn = function() {
+		ok(false, 'dev.warn was called incorrectly');
+		_warn.apply(dev, arguments);
+	};
+	try {
+		expect(2);
+		MockComponent.extend({
+			tag: 'special-attrs',
+			viewModel: {
+				foo: "skippy",
+				baz: "xyzzy"
+			}
+		});
+
+		stache("<special-attrs id='{{foo}}' class='{{baz}}'></div>")({foo: "bar", baz: "quux"});
+		stache("<special-attrs id='foo' class='baz'></div>")({foo: "bar", baz: "quux"});
+
+		dev.warn = function() {
+			ok(true, 'dev.warn was called correctly');
+			_warn.apply(dev, arguments);
+		};
+
+		stache("<special-attrs id='{foo}' class='{baz}'></div>")({foo: "bar", baz: "quux"});
+	} finally {
+		dev.warn = _warn;
+	}
+
+});
