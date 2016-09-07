@@ -31,6 +31,7 @@ module.exports = MockComponent = {
 					.add(viewModel, {
 						viewModel: true
 					});
+				domData.set.call(el, "shadowScope", shadowScope);
 				var nodeList = nodeLists.register([], function(){
 					teardownBindings();
 				}, componentTagData.parentNodeList || true, false);

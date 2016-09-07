@@ -11,7 +11,7 @@ var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
 var canCompute = require('can-compute')
 var canViewModel = require('can-view-model');
-
+require('can-util/dom/events/inserted/');
 
 var stacheExpression = require('can-stache/src/expression');
 
@@ -25,6 +25,8 @@ var types = require('can-util/js/types/types');
 var MockComponent = require("./mock-component");
 
 var DefaultMap = types.DefaultMap;
+
+QUnit.config.testTimeout = 5000;
 
 QUnit.module('can-stache-bindings', {
 	setup: function () {
@@ -2362,4 +2364,31 @@ test("one-way pass computes to components with ~", function(assert) {
 	vm.attr("compute", "notACompute");
 	baseVm.attr("foo", "thud");
 	ok(vm.attr("compute").isComputed, "Back to being a compute");
+});
+
+test("special values get called", function(assert) {
+	assert.expect(2);
+	var done = assert.async(1);
+
+	MockComponent.extend({
+		tag: 'ref-syntax',
+		template: stache("<input ($change)=\"%scope.attr('*foo', $element.value)\">"),
+		viewModel: new CanMap({
+			method: function() {
+				assert.ok(true, "method called");
+				done();
+			}
+		})
+	});
+
+	this.fixture.appendChild(
+		stache("<ref-syntax ($inserted)=\"%viewModel.method()\">" +
+			"</ref-syntax>")({}));
+
+	this.fixture.querySelector("input").value = "bar";
+	canEvent.trigger.call(this.fixture.querySelector("input"), "change");
+
+	// Read from mock component's shadow scope for refs.
+	var scope = domData.get.call(this.fixture.firstChild).shadowScope;
+	assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
 });
