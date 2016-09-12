@@ -93,6 +93,6 @@
     "readme": {
       "apis": "./docs/apis.json"
     },
-    "parent": "can-view-live"
+    "parent": "can-stache-bindings"
   }
 }
