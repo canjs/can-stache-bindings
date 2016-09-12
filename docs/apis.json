@@ -6,12 +6,6 @@
 			"can-stache-bindings.toParent",
 			"can-stache-bindings.event",
 			"can-stache-bindings.reference"
-		]},
-		{"converters": [
-			"can-stache-bindings.converters.boolean-to-inList",
-			"can-stache-bindings.converters.string-to-any",
-			"can-stache-bindings.converters.not",
-			"can-stache-bindings.converters.index-to-selected"
 		]}
 	]}
 ]
