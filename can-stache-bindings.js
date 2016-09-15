@@ -26,7 +26,6 @@ var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var string = require('can-util/js/string/string');
 var dev = require('can-util/js/dev/dev');
-var isArray = require('can-util/js/is-array/is-array');
 var types = require('can-util/js/types/types');
 var last = require('can-util/js/last/last');
 
@@ -513,148 +512,40 @@ var attr = require('can-util/dom/attr/attr');
 			// Determine the event or events we need to listen to
 			// when this value changes.
 			if(!event) {
-				if(prop === "innerHTML") {
-					event = ["blur","change"];
-				}
-				else {
+				if(attr.special[prop] && attr.special[prop].addEventListener) {
+					event = prop;
+				} else {
 					event = "change";
 				}
 			}
-			if(!isArray(event)) {
-				event = [event];
-			}
-
 
 			var hasChildren = el.nodeName.toLowerCase() === "select",
 				isMultiselectValue = prop === "value" && hasChildren && el.multiple,
-				isStringValue,
-				lastSet,
-				scheduledAsyncSet = false,
-				timer,
 				// Sets the element property or attribute.
 				set = function(newVal){
-					// Templates write parent's out before children.  This should probably change.
-					// But it means we don't do a set immediately.
-					if(hasChildren && !scheduledAsyncSet) {
-						clearTimeout(timer);
-						timer = setTimeout(function(){
-							set(newVal);
-						},1);
-					}
-
-					lastSet = newVal;
-
-					if(isMultiselectValue) {
-						if (newVal && typeof newVal === 'string') {
-							newVal = newVal.split(";");
-							isStringValue = true;
-						}
-						// When given something else, try to make it an array and deal with it
-						else if (newVal) {
-							newVal = makeArray(newVal);
-						} else {
-							newVal = [];
-						}
-
-						// Make an object containing all the options passed in for convenient lookup
-						var isSelected = {};
-						each(newVal, function (val) {
-							isSelected[val] = true;
-						});
-
-						// Go through each &lt;option/&gt; element, if it has a value and selected property (its a valid option), then
-						// set its selected property if it was in the list of vals that were just set.
-						each(el.childNodes, function (option) {
-							if (('value' in option) && ('selected' in option)) {
-									option.selected = !! isSelected[option.value];
-							}
-						});
-
+					if(bindingData.legacyBindings && hasChildren &&
+						 ("selectedIndex" in el) && prop === "value") {
+						attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
 					} else {
-						if(!bindingData.legacyBindings && hasChildren && ("selectedIndex" in el) && prop === "value" ) {
-							attr.setSelectValue(el, newVal);
-						} else {
-							attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
-						}
+						attr.setAttrOrProp(el, prop, newVal);
 					}
 
 					return newVal;
-
 				},
-				// Returns the value of the element property or attribute.
 				get = function(){
-					if(isMultiselectValue) {
-
-						var values = [],
-							children = el.childNodes;
-
-						each(children, function (child) {
-							if (child.selected && child.value) {
-								values.push(child.value);
-							}
-						});
-
-						return isStringValue ? values.join(";"): values;
-					} else if(hasChildren && ("selectedIndex" in el) && el.selectedIndex === -1) {
-						return undefined;
-					}
-
 					return attr.get(el, prop);
 				};
 
-			// If the element has children like `<select>`, those
-			// elements are hydrated (by can.view.target) after the select and only then
-			// get their `value`s set. This make sure that when the value is set,
-			// it will happen after the children are setup.
-			if(hasChildren) {
-				// have to set later
-				setTimeout(function(){
-					scheduledAsyncSet = true;
-				},1);
-				// The following would allow a select's value
-				// to be undefined.
-				// el.selectedIndex = -1;
+			if(isMultiselectValue) {
+				prop = "values";
 			}
-			var observer;
 
-			return compute(get(),{
+			return compute(get(), {
 				on: function(updater){
-					each(event, function(eventName){
-						canEvent.on.call(el,eventName, updater);
-					});
-					if(hasChildren) {
-						var onMutation = function (mutations) {
-							if(stickyCompute) {
-								set(stickyCompute());
-							}
-
-							updater();
-						};
-						var MO = getMutationObserver();
-						if(MO) {
-							observer = new MO(onMutation);
-							observer.observe(el, {
-								childList: true,
-								subtree: true
-							});
-						} else {
-							// TODO: Remove in 3.0. Can't store a function b/c Zepto doesn't support it.
-							domData.set.call(el, "canBindingCallback", {onMutation: onMutation});
-						}
-					}
-
+					canEvent.on.call(el,event, updater);
 				},
 				off: function(updater){
-					each(event, function(eventName){
-						canEvent.off.call(el,eventName, updater);
-					});
-					if(hasChildren) {
-						if(getMutationObserver()) {
-							observer.disconnect();
-						} else {
-							domData.clean.call(el, "canBindingCallback");
-						}
-					}
+					canEvent.off.call(el,event, updater);
 				},
 				get: get,
 				set: set

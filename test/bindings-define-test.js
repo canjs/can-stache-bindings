@@ -9,7 +9,9 @@ var define = require("can-define");
 var canEvent = require('can-event');
 var viewCallbacks = require('can-view-callbacks');
 
+var domAttr = require("can-util/dom/attr/attr");
 var domData = require('can-util/dom/data/data');
+var domDispatch = require("can-util/dom/dispatch/dispatch");
 var domMutate = require('can-util/dom/mutate/mutate');
 
 var dev = require('can-util/js/dev/dev');
@@ -197,4 +199,83 @@ test("two-way - DOM - input text (#1700)", function () {
 
 	equal(map.age, "32", "updated from input");
 
+});
+
+test("Binding to a special property - values", function(){
+	var template = stache("<select multiple {($values)}='values'><option value='one'>One</option><option value='two'></option></select>");
+	var map = new DefineMap({
+		values: []
+	});
+	var slice = [].slice;
+	var select = template(map).firstChild;
+	var option1 = select.firstChild;
+	var option2 = option1.nextSibling;
+
+	option2.selected = true;
+	canEvent.trigger.call(select, "change");
+
+	deepEqual(slice.call(map.values), ["two"], "two is chosen");
+
+	map.values = ["one"];
+	equal(option1.selected, true, "option1 selected");
+	equal(option2.selected, false, "option2 not selected");
+});
+
+test("Binding to a special property - option's selected", function(){
+	var template = stache("<select><option {($selected)}='a' value='one'>One</option><option {($selected)}='b' value='two'>Two</option></select>");
+	var map = new DefineMap({
+		a: true,
+		b: false
+	});
+	var select = template(map).firstChild;
+	var option1 = select.firstChild;
+	var option2 = option1.nextSibling;
+
+	option2.selected = true;
+	canEvent.trigger.call(select, "change");
+
+	equal(map.a, false, "map.a false");
+	equal(map.b, true, "map.b true");
+});
+
+test("Can two way bind to focused", function(){
+	var template = stache("<input {($focused)}='show' type='text'/>");
+	var map = new DefineMap({
+		show: false
+	});
+	var ta = document.getElementById("qunit-fixture");
+	var frag = template(map);
+	var input = frag.firstChild;
+	ta.appendChild(frag);
+
+	map.show = true;
+	if(!document.hasFocus()) {
+		domDispatch.call(input, "focus");
+	}
+	ok(input === document.activeElement, "now focused");
+
+	domAttr.set(input, "focused", false);
+	if(!document.hasFocus()) {
+		domDispatch.call(input, "blur");
+	}
+	ok(input !== document.activeElement, "not focused");
+	equal(map.show, false, "set the boolean");
+});
+
+test("Can listed to the 'focused' event", function(){
+	var template = stache("<input ($focused)='changed()' type='text'/>");
+	var map = new DefineMap({
+		changed: function(){
+			ok(true, "this was called");
+		}
+	});
+	var ta = document.getElementById("qunit-fixture");
+	var frag = template(map);
+	var input = frag.firstChild;
+	ta.appendChild(frag);
+	
+	domAttr.set(input, "focused", true);
+	if(!document.hasFocus()) {
+		domDispatch.call(input, "focus");
+	}
 });
