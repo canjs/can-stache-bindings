@@ -885,39 +885,39 @@ test("can-event throws an error when inside #if block (#1182)", function(){
 });
 
 // Temporarily skipped until issue #2292 get's resolved
-// test("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
-// 	var flag = canCompute(true),
-// 		clickHandlerCount = 0;
-// 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
-// 		flag: flag,
-// 		foo: function () {
-// 			console.log("foo handler");
-// 			clickHandlerCount++;
-// 		}
-// 	});
-// 	var trig = function () {
-// 		var div = this.fixture.getElementsByTagName('div')[0];
-// 		canEvent.trigger.call(div, {
-// 			type: "click"
-// 		});
-// 	};
-// 	domMutate.appendChild.call(this.fixture, frag);
-//
-// 	// Attribute mutation observers are called asyncronously,
-// 	// so give some time for the mutation handlers.
-// 	stop();
-// 	var numTrigs = 3;
-// 	var testTimer = setInterval(function () {
-// 		if (numTrigs--) {
-// 			trig();
-// 			flag( !flag() );
-// 		} else {
-// 			clearTimeout(testTimer);
-// 			equal(clickHandlerCount, 2, "click handler called twice");
-// 			start();
-// 		}
-// 	}, 10);
-// });
+test("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
+	var flag = canCompute(true),
+		clickHandlerCount = 0;
+	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
+		flag: flag,
+		foo: function () {
+			clickHandlerCount++;
+		}
+	});
+	var testEnv = this;
+	var trig = function () {
+		var div = testEnv.fixture.getElementsByTagName('div')[0];
+		canEvent.trigger.call(div, {
+			type: "click"
+		});
+	};
+	domMutate.appendChild.call(this.fixture, frag);
+
+	// Attribute mutation observers are called asyncronously,
+	// so give some time for the mutation handlers.
+	stop();
+	var numTrigs = 3;
+	var testTimer = setInterval(function () {
+		if (numTrigs--) {
+			trig();
+			flag( !flag() );
+		} else {
+			clearTimeout(testTimer);
+			equal(clickHandlerCount, 2, "click handler called twice");
+			start();
+		}
+	}, 10);
+});
 
 test("can-value compute rejects new value (#887)", function() {
 	var template = stache("<input can-value='age'/>");
