@@ -594,58 +594,6 @@ test("can-value select single", function () {
 	equal(map.attr("color"), "green", "updated from input");
 });
 
-test("can-value select multiple with values seperated by a ;", function () {
-	var template = stache(
-		"<select can-value='color' multiple>" +
-		"<option value='red'>Red</option>" +
-		"<option value='green'>Green</option>" +
-		"<option value='ultraviolet'>Ultraviolet</option>" +
-		"</select>");
-
-	var map = new CanMap({
-		color: "red"
-	});
-
-	stop();
-	var frag = template(map);
-
-	var ta = document.getElementById("qunit-fixture");
-	ta.appendChild(frag);
-
-	var inputs = ta.getElementsByTagName("select"),
-		options = inputs[0].getElementsByTagName('option');
-
-	// Wait for Multiselect.set() to be called.
-	setTimeout(function() {
-		equal(inputs[0].value, 'red', "default value set");
-
-		map.attr("color", "green");
-		equal(inputs[0].value, 'green', "alternate value set");
-
-		options[0].selected = true;
-
-		equal(map.attr("color"), "green", "not yet updated from input");
-		canEvent.trigger.call(inputs[0], "change");
-		equal(map.attr("color"), "red;green", "updated from input");
-
-		map.removeAttr("color");
-		equal(inputs[0].value, '', "attribute removed from map");
-
-		options[1].selected = true;
-		canEvent.trigger.call(inputs[0], "change");
-		equal(map.attr("color"), "green", "updated from input");
-
-		map.attr("color", "red;green");
-
-		ok(options[0].selected, 'red option selected from map');
-		ok(options[1].selected, 'green option selected from map');
-		ok(!options[2].selected, 'ultraviolet option NOT selected from map');
-
-		ta.removeChild(ta.firstChild);
-		start();
-	}, 1);
-});
-
 test("can-value select multiple with values cross bound to an array", function () {
 	var template = stache(
 		"<select can-value='colors' multiple>" +
@@ -1556,8 +1504,6 @@ test("checkboxes with {($checked)} bind properly", function () {
 });
 
 test("two-way element empty value (1996)", function(){
-
-
 	var template = stache("<input can-value='age'/>");
 
 	var map = new CanMap();
