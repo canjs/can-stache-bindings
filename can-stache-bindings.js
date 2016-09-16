@@ -253,7 +253,6 @@ var attr = require('can-util/dom/attr/attr');
 				onBindElement = true;
 			}
 
-
 			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
 			var handler = function (ev) {
@@ -275,34 +274,7 @@ var attr = require('can-util/dom/attr/attr');
 						expr = new expression.Call(expr, defaultArgs, {} );
 					}
 
-					// We grab the first item and treat it as a method that
-					// we'll call.
-					var scopeData = data.scope.read(expr.methodExpr.key, {
-						isArgument: true
-					});
-
-					// We break out early if the first argument isn't available
-					// anywhere.
-
-					if (!scopeData.value) {
-						scopeData = data.scope.read(expr.methodExpr.key, {
-							isArgument: true
-						});
-
-						//!steal-remove-start
-						dev.warn("can/view/bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
-							element: el,
-							scope: data.scope
-						});
-						//!steal-remove-end
-
-						return null;
-					}
-
-
-
 					// make a scope with these things just under
-
 					var localScope = data.scope.add({
 						"@element": el,
 						"@event": ev,
@@ -320,6 +292,27 @@ var attr = require('can-util/dom/attr/attr');
 						notContext: true
 					});
 
+
+					// We grab the first item and treat it as a method that
+					// we'll call.
+					var scopeData = localScope.read(expr.methodExpr.key, {
+						isArgument: true
+					});
+
+					if (!scopeData.value) {
+						scopeData = localScope.read(expr.methodExpr.key, {
+							isArgument: true
+						});
+
+						//!steal-remove-start
+						dev.warn("can/view/bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
+							element: el,
+							scope: data.scope
+						});
+						//!steal-remove-end
+
+						return null;
+					}
 
 					var args = expr.args(localScope, null)();
 					return scopeData.value.apply(scopeData.parent, args);
