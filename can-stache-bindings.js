@@ -495,11 +495,30 @@ var attr = require('can-util/dom/attr/attr');
 				});
 			} else {
 				return function(newVal){
+					var childCompute;
 					var viewModel = bindingData.getViewModel();
-					if( types.isMapLike(viewModel) ) {
-						observeReader.set(viewModel,setName,newVal);
+
+					function updateViewModel(value, options) {
+						if( types.isMapLike(viewModel) ) {
+							observeReader.set(viewModel, setName, value, options);
+						} else {
+							viewModel[setName] = value;
+						}
+					}
+
+					if(stickyCompute) {
+						childCompute = observeReader.get(viewModel, setName, { readCompute: false });
+						// childCompute is a compute at this point unless it was locally overwritten
+						//  in the child viewModel.
+						if(!childCompute || !childCompute.isComputed) {
+							// If it was locally overwritten, make a new compute for the property.
+							childCompute = compute();
+							updateViewModel(childCompute, { readCompute: false });
+						}
+						// Otherwise update the compute's value.
+						childCompute(newVal);
 					} else {
-						viewModel[setName] = newVal;
+						updateViewModel(newVal);
 					}
 				};
 			}
@@ -635,7 +654,8 @@ var attr = require('can-util/dom/attr/attr');
 	// - `initializeValues` - should parent and child be initialized to their counterpart.
 	// If undefined is return, there is no binding.
 	var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName){
-		var attributeName = node.name,
+		var bindingInfo,
+			attributeName = node.name,
 			attributeValue = node.value || "";
 
 		// Does this match the new binding syntax?
@@ -690,7 +710,7 @@ var attr = require('can-util/dom/attr/attr');
 		var childName = matches[3];
 		var isDOM = childName.charAt(0) === "$";
 		if(isDOM) {
-			var bindingInfo = {
+			bindingInfo = {
 				parent: "scope",
 				child: "attribute",
 				childToParent: childToParent,
@@ -705,7 +725,7 @@ var attr = require('can-util/dom/attr/attr');
 			}
 			return bindingInfo;
 		} else {
-			return {
+			bindingInfo = {
 				parent: "scope",
 				child: "viewModel",
 				childToParent: childToParent,
@@ -715,6 +735,10 @@ var attr = require('can-util/dom/attr/attr');
 				parentName: attributeValue,
 				initializeValues: true
 			};
+			if(attributeValue.trim().charAt(0) === "~") {
+				bindingInfo.stickyParentToChild = true;
+			}
+			return bindingInfo;
 		}
 
 	};
@@ -757,8 +781,20 @@ var attr = require('can-util/dom/attr/attr');
 		}
 
 		// Get computes for the parent and child binding
-		var parentCompute = getComputeFrom[bindingInfo.parent](el, bindingData.scope, bindingInfo.parentName, bindingData, bindingInfo.parentToChild),
-			childCompute = getComputeFrom[bindingInfo.child](el, bindingData.scope, bindingInfo.childName, bindingData, bindingInfo.childToParent, bindingInfo.stickyParentToChild && parentCompute),
+		var parentCompute = getComputeFrom[bindingInfo.parent](
+				el,
+				bindingData.scope,
+				bindingInfo.parentName,
+				bindingData, bindingInfo.parentToChild
+			),
+			childCompute = getComputeFrom[bindingInfo.child](
+				el,
+				bindingData.scope,
+				bindingInfo.childName,
+				bindingData,
+				bindingInfo.childToParent,
+				bindingInfo.stickyParentToChild && parentCompute
+			),
 			// these are the functions bound to one compute that update the other.
 			updateParent,
 			updateChild,
@@ -807,7 +843,7 @@ var attr = require('can-util/dom/attr/attr');
 		// return the function to complete the binding as `onCompleteBinding`.
 		if(bindingInfo.child === "viewModel") {
 			return {
-				value: getValue(parentCompute),
+				value: bindingInfo.stickyParentToChild ? compute(getValue(parentCompute)) : getValue(parentCompute),
 				onCompleteBinding: completeBinding,
 				bindingInfo: bindingInfo,
 				onTeardown: onTeardown

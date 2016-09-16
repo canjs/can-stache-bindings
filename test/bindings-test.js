@@ -2331,3 +2331,35 @@ test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
 	}
 
 });
+
+test("one-way pass computes to components with ~", function(assert) {
+	expect(7);
+	MockComponent.extend({
+		tag: "foo-bar"
+	});
+
+	var baseVm = new CanMap({foo : "bar"})
+
+	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
+
+	var vm = canViewModel(this.fixture.firstChild)
+
+	ok(vm.attr("compute").isComputed, "Compute returned");
+	equal(vm.attr("compute")(), "bar", "Compute has correct value");
+
+	vm.attr("compute").bind("change", function() {
+		// NB: This gets called twice below, once by
+		//  the parent and once directly.
+		ok(true, "Change handler called");
+	});
+
+	baseVm.attr("foo", "quux");
+	equal(vm.attr("compute")(), "quux", "Compute updates");
+
+	vm.attr("compute")("xyzzy");
+	equal(baseVm.attr("foo"), "quux", "Compute does not update the other direction");
+
+	vm.attr("compute", "notACompute");
+	baseVm.attr("foo", "thud");
+	ok(vm.attr("compute").isComputed, "Back to being a compute");
+});
