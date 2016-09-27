@@ -348,9 +348,11 @@ var attr = require('can-util/dom/attr/attr');
 		value: function(el, data) {
 			var propName = "$value",
 				attrValue = removeBrackets(el.getAttribute("can-value")).trim(),
+				nodeName = el.nodeName.toLowerCase(),
+				elType = nodeName === "input" && (el.type || el.getAttribute("type")),
 				getterSetter;
 
-			if (el.nodeName.toLowerCase() === "input" && ( el.type === "checkbox" || el.type === "radio" ) ) {
+			if (nodeName === "input" && (elType === "checkbox" || elType === "radio")) {
 
 				var property = getComputeFrom.scope(el, data.scope, attrValue, {}, true);
 				if (el.type === "checkbox") {
@@ -368,7 +370,7 @@ var attr = require('can-util/dom/attr/attr');
 						}
 					});
 				}
-				else if(el.type === "radio") {
+				else if(elType === "radio") {
 					// radio is two-way bound to if the property value
 					// equals the element value
 
@@ -397,7 +399,7 @@ var attr = require('can-util/dom/attr/attr');
 			}
 
 			var dataBinding = makeDataBinding({
-				name: "{("+propName+"})",
+				name: "{(" + propName + "})",
 				value: attrValue
 			}, el, {
 				templateType: data.templateType,
@@ -408,7 +410,7 @@ var attr = require('can-util/dom/attr/attr');
 				syncChildWithParent: true
 			});
 
-			canEvent.one.call(el, 'removed', function(){
+			canEvent.one.call(el, "removed", function(){
 				dataBinding.onTeardown();
 			});
 
