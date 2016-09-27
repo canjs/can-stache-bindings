@@ -18,6 +18,11 @@ var stacheExpression = require('can-stache/src/expression');
 var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
 
+var makeDocument = require('can-vdom/make-document/make-document');
+var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
+var DOCUMENT = require("can-util/dom/document/document");
+
+
 var dev = require('can-util/js/dev/dev');
 var canEach = require('can-util/js/each/each');
 var types = require('can-util/js/types/types');
@@ -28,15 +33,52 @@ var DefaultMap = types.DefaultMap;
 
 QUnit.config.testTimeout = 5000;
 
-QUnit.module('can-stache-bindings', {
+var DOC = DOCUMENT();
+var MUT_OBS = MUTATION_OBSERVER();
+makeTest("can-stache-bindings - dom", document, MUT_OBS);
+makeTest("can-stache-bindings - vdom", makeDocument(), null);
+
+function makeTest(name, doc, mutObs){
+
+var testIfRealDocument = function(/* args */) {
+	if(doc === document) {
+		test.apply(null, arguments);
+	}
+};
+
+var isRealDocument = function(){
+	return doc === document;
+};
+
+QUnit.module(name, {
 	setup: function () {
+		DOCUMENT(doc);
+		MUTATION_OBSERVER(mutObs);
+
 		types.DefaultMap = CanMap;
-		this.fixture = document.getElementById("qunit-fixture");
+
+		if(doc === document) {
+			this.fixture = document.getElementById("qunit-fixture");
+		} else {
+			this.fixture = doc.createElement("qunit-fixture");
+			doc.body.appendChild(this.fixture);
+		}
 	},
 	teardown: function(){
-		types.DefaultMap = DefaultMap;
+		if(doc !== document) {
+			doc.body.removeChild(this.fixture);
+		}
+
+		stop();
+		setTimeout(function(){
+			types.DefaultMap = DefaultMap;
+			start();
+			DOCUMENT(DOC);
+			MUTATION_OBSERVER(MUT_OBS);
+		},1);
 	}
 });
+	
 
 test("attributeNameInfo", function(){
 	// MUSTACHE BEHAVIOR
@@ -175,10 +217,10 @@ var foodTypes = new CanList([{
 	content: "ice cream, candy"
 }]);
 
-if(typeof document.getElementsByClassName === 'function') {
+if(typeof doc.getElementsByClassName === 'function') {
 	test("can-event handlers", function () {
 		//expect(12);
-		var ta = document.getElementById("qunit-fixture");
+		var ta = this.fixture;
 		var template = stache("<div>" +
 		"{{#each foodTypes}}" +
 		"<p can-click='doSomething'>{{content}}</p>" +
@@ -210,7 +252,7 @@ if(typeof document.getElementsByClassName === 'function') {
 		var scope = new CanMap({
 			test: "testval"
 		});
-		var ta = document.getElementById("qunit-fixture");
+		var ta = this.fixture;
 		MockComponent.extend({
 			tag: "can-event-args-tester",
 			viewModel: scope
@@ -244,7 +286,7 @@ if(typeof document.getElementsByClassName === 'function') {
 
 	test("(event) handlers", 12, function () {
 		//expect(12);
-		var ta = document.getElementById("qunit-fixture");
+		var ta = this.fixture;
 		var template = stache("<div>" +
 		"{{#each foodTypes}}" +
 		"<p ($click)='doSomething'>{{content}}</p>" +
@@ -328,7 +370,7 @@ if (window.jQuery) {
 			}
 		});
 
-		var ta = document.getElementById("qunit-fixture");
+		var ta = this.fixture;
 		ta.appendChild(frag);
 		var p0 = ta.getElementsByTagName("p")[0];
 		canEvent.trigger.call(p0, "myevent", ["myarg1", "myarg2"]);
@@ -344,7 +386,7 @@ test("can-value input text", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -374,7 +416,7 @@ test("can-value with spaces (#1477)", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -397,7 +439,6 @@ test("can-value with spaces (#1477)", function () {
 });
 
 test("can-value input radio", function () {
-
 	var template = stache(
 		"<input type='radio' can-value='color' value='red'/> Red<br/>" +
 		"<input type='radio' can-value='color' value='green'/> Green<br/>");
@@ -408,7 +449,7 @@ test("can-value input radio", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var inputs = ta.getElementsByTagName("input");
@@ -442,7 +483,7 @@ test("can-enter", function () {
 		}
 	});
 
-	var input = frag.childNodes[0];
+	var input = frag.childNodes.item(0);
 
 	canEvent.trigger.call(input, {
 		type: "keyup",
@@ -471,7 +512,7 @@ test("two bindings on one element call back the correct method", function () {
 			ok(callingSecond, "called second");
 		}
 	});
-	var input = frag.childNodes[0];
+	var input = frag.childNodes.item(0);
 
 	callingFirst = true;
 
@@ -495,7 +536,7 @@ asyncTest("can-value select remove from DOM", function () {
 		"<option value='green'>Green</option>" +
 		"</select>"),
 		frag = template(),
-		ta = document.getElementById("qunit-fixture");
+		ta = this.fixture;
 
 	domMutate.appendChild.call(ta,frag);
 	domMutate.removeChild.call(ta, ta.firstChild);
@@ -551,7 +592,7 @@ test("checkboxes with can-true-value bind properly", function () {
 	equal(data.attr('sex'), 'female', 'checkbox value bound (via uncheck)');
 });
 
-test("can-value select single", function () {
+testIfRealDocument("can-value select single", function () {
 
 	var template = stache(
 		"<select can-value='color'>" +
@@ -565,7 +606,7 @@ test("can-value select single", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var inputs = ta.getElementsByTagName("select");
@@ -576,7 +617,7 @@ test("can-value select single", function () {
 	equal(inputs[0].value, 'green', "alternate value set");
 
 
-	canEach(document.getElementsByTagName('option'), function (opt) {
+	canEach(ta.getElementsByTagName('option'), function (opt) {
 		if (opt.value === 'red') {
 			opt.selected = 'selected';
 		}
@@ -586,7 +627,7 @@ test("can-value select single", function () {
 	canEvent.trigger.call(inputs[0], "change");
 	equal(map.attr("color"), "red", "updated from input");
 
-	canEach(document.getElementsByTagName('option'), function (opt) {
+	canEach(ta.getElementsByTagName('option'), function (opt) {
 		if (opt.value === 'green') {
 			opt.selected = 'selected';
 		}
@@ -596,7 +637,7 @@ test("can-value select single", function () {
 	equal(map.attr("color"), "green", "updated from input");
 });
 
-test("can-value select multiple with values cross bound to an array", function () {
+testIfRealDocument("can-value select multiple with values cross bound to an array", function () {
 	var template = stache(
 		"<select can-value='colors' multiple>" +
 		"<option value='red'>Red</option>" +
@@ -609,7 +650,7 @@ test("can-value select multiple with values cross bound to an array", function (
 	stop();
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var select = ta.getElementsByTagName("select")[0],
@@ -650,7 +691,7 @@ test("can-value select multiple with values cross bound to an array", function (
 	}, 1);
 });
 
-test("can-value multiple select with a CanList", function () {
+testIfRealDocument("can-value multiple select with a CanList", function () {
 
 	var template = stache(
 		"<select can-value='colors' multiple>" +
@@ -666,7 +707,7 @@ test("can-value multiple select with a CanList", function () {
 		colors: list
 	});
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var select = ta.getElementsByTagName("select")[0],
@@ -708,10 +749,10 @@ test("can-value contenteditable", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var div = document.getElementById("cdiv");
+	var div = doc.getElementById("cdiv");
 	equal(div.innerHTML, "", "contenteditable set correctly if key does not exist in map");
 
 	map.attr("age", "30");
@@ -761,7 +802,7 @@ test("can-event handlers work with {} (#905)", function () {
 		doSomething: doSomething
 	});
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 	var p0 = ta.getElementsByTagName("p")[0];
 	canEvent.trigger.call(p0, "click");
@@ -776,7 +817,7 @@ test("can-value works with {} (#905)", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -819,12 +860,12 @@ test("can-value select with null or undefined value (#813)", function () {
 	stop();
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var nullInput = document.getElementById("null-select");
+	var nullInput = doc.getElementById("null-select");
 	var nullInputOptions = nullInput.getElementsByTagName('option');
-	var undefinedInput = document.getElementById("undefined-select");
+	var undefinedInput = doc.getElementById("undefined-select");
 	var undefinedInputOptions = undefinedInput.getElementsByTagName('option');
 
 	// wait for set to be called which will change the selects
@@ -885,7 +926,7 @@ test("can-event throws an error when inside #if block (#1182)", function(){
 });
 
 // Temporarily skipped until issue #2292 get's resolved
-test("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
+testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
 	var flag = canCompute(true),
 		clickHandlerCount = 0;
 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
@@ -935,7 +976,7 @@ test("can-value compute rejects new value (#887)", function() {
 		age: compute
 	});
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -948,7 +989,7 @@ test("can-value compute rejects new value (#887)", function() {
 	equal(input.value, "30", "Text input has also not changed");
 });
 
-test("can-value select multiple applies initial value, when options rendered from array (#1414)", function () {
+testIfRealDocument("can-value select multiple applies initial value, when options rendered from array (#1414)", function () {
 	var template = stache(
 		"<select can-value='colors' multiple>" +
 		"{{#each allColors}}<option value='{{value}}'>{{label}}</option>{{/each}}" +
@@ -966,7 +1007,7 @@ test("can-value select multiple applies initial value, when options rendered fro
 	stop();
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var select = ta.getElementsByTagName("select")[0],
@@ -996,7 +1037,7 @@ test('can-value with truthy and falsy values binds to checkbox (#1478)', functio
 });
 
 test("can-EVENT can call intermediate functions before calling the final function (#1474)", function () {
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	var template = stache("<div id='click-me' can-click='{does.some.thing}'></div>");
 	var frag = template({
 		does: function(){
@@ -1015,12 +1056,12 @@ test("can-EVENT can call intermediate functions before calling the final functio
 
 	stop();
 	ta.appendChild(frag);
-	canEvent.trigger.call(document.getElementById("click-me"), "click");
+	canEvent.trigger.call(doc.getElementById("click-me"), "click");
 });
 
 test("by default can-EVENT calls with values, not computes", function(){
 	stop();
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	var template = stache("<div id='click-me' can-click='{map.method one map.two map.three}'></div>");
 
 	var one = canCompute(1);
@@ -1039,7 +1080,7 @@ test("by default can-EVENT calls with values, not computes", function(){
 
 	var frag = template({one: one, map: map});
 	ta.appendChild(frag);
-	canEvent.trigger.call(document.getElementById("click-me"), "click");
+	canEvent.trigger.call(doc.getElementById("click-me"), "click");
 
 });
 
@@ -1054,10 +1095,10 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 	var template = stache('<button id="find-me" {{#if enableClick}}can-click="{clickHandler}"{{/if}}></button>');
 	var frag = template(state);
 
-	var sandbox = document.getElementById("qunit-fixture");
+	var sandbox = this.fixture;
 	sandbox.appendChild(frag);
 
-	var btn = document.getElementById('find-me');
+	var btn = doc.getElementById('find-me');
 
 	canEvent.trigger.call(btn, 'click');
 	state.attr('enableClick', false);
@@ -1074,7 +1115,7 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 	}, 10);
 });
 
-test("<select can-value={value}> with undefined value selects option without value", function () {
+testIfRealDocument("<select can-value={value}> with undefined value selects option without value", function () {
 
 	var template = stache("<select can-value='opt'><option>Loading...</option></select>");
 
@@ -1082,14 +1123,14 @@ test("<select can-value={value}> with undefined value selects option without val
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var select = ta.childNodes[0];
+	var select = ta.childNodes.item(0);
 	QUnit.equal(select.selectedIndex, 0, 'Got selected index');
 });
 
-test("<select can-value> keeps its value as <option>s change with {{#list}} (#1762)", function(){
+testIfRealDocument("<select can-value> keeps its value as <option>s change with {{#list}} (#1762)", function(){
 
 	var template = stache("<select can-value='{id}'>{{#values}}<option value='{{.}}'>{{.}}</option>{{/values}}</select>");
 	var values = canCompute( ["1","2","3","4"]);
@@ -1100,13 +1141,14 @@ test("<select can-value> keeps its value as <option>s change with {{#list}} (#17
 	});
 	stop();
 	var select = frag.firstChild;
+	console.log(frag);
 	// the value is set asynchronously
 	setTimeout(function(){
-		ok(select.childNodes[1].selected, "value is initially selected");
+		ok(select.childNodes.item(1).selected, "value is initially selected");
 
 		values(["7","2","5","4"]);
 
-		ok(select.childNodes[1].selected, "after changing options, value should still be selected");
+		ok(select.childNodes.item(1).selected, "after changing options, value should still be selected");
 
 
 		start();
@@ -1114,7 +1156,7 @@ test("<select can-value> keeps its value as <option>s change with {{#list}} (#17
 
 });
 
-test("<select can-value> keeps its value as <option>s change with {{#each}} (#1762)", function(){
+testIfRealDocument("<select can-value> keeps its value as <option>s change with {{#each}} (#1762)", function(){
 	var template = stache("<select can-value='{id}'>{{#each values}}<option value='{{.}}'>{{.}}</option>{{/values}}</select>");
 	var values = canCompute( ["1","2","3","4"]);
 	var id = canCompute("2");
@@ -1128,11 +1170,11 @@ test("<select can-value> keeps its value as <option>s change with {{#each}} (#17
 
 	// the value is set asynchronously
 	setTimeout(function(){
-		ok(select.childNodes[1].selected, "value is initially selected");
+		ok(select.childNodes.item(1).selected, "value is initially selected");
 
 		values(["7","2","5","4"]);
 
-		ok(select.childNodes[1].selected, "after changing options, value should still be selected");
+		ok(select.childNodes.item(1).selected, "after changing options, value should still be selected");
 
 
 		start();
@@ -1239,7 +1281,7 @@ test("two-way - DOM - input text (#1700)", function () {
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -1400,7 +1442,7 @@ test('one way - child to parent - importing viewModel {^.}="test"', function() {
 	var template = stache('<import-parent></import-parent>');
 	var frag = template({});
 
-	equal(frag.childNodes[0].childNodes[1].innerHTML,
+	equal(frag.childNodes.item(0).childNodes.item(1).innerHTML,
 		'Imported: David 7',
 		'{.} component scope imported into variable');
 });
@@ -1425,7 +1467,7 @@ test('one way - child to parent - importing viewModel {^prop}="test"', function(
 	var template = stache('<import-prop-parent></import-prop-parent>');
 	var frag = template({});
 
-	equal(frag.childNodes[0].childNodes[1].innerHTML,
+	equal(frag.childNodes.item(0).childNodes.item(1).innerHTML,
 		'Imported: David',  '{name} component scope imported into variable');
 });
 
@@ -1511,8 +1553,8 @@ test("two-way element empty value (1996)", function(){
 	var map = new CanMap();
 
 	var frag = template(map);
-
-	var ta = document.getElementById("qunit-fixture");
+	
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -1609,7 +1651,7 @@ if (dev) {
 
 
 
-test("One way binding from a select's value to a parent compute updates the parent with the select's initial value (#2027)", function(){
+testIfRealDocument("One way binding from a select's value to a parent compute updates the parent with the select's initial value (#2027)", function(){
 	var template = stache("<select {^$value}='value'><option value='One'>One</option></select>");
 	var map = new CanMap();
 
@@ -1626,7 +1668,7 @@ test("One way binding from a select's value to a parent compute updates the pare
 
 });
 
-test("two way binding from a select's value to null has no selection (#2027)", function(){
+testIfRealDocument("two way binding from a select's value to null has no selection (#2027)", function(){
 	var template = stache("<select {($value)}='key'><option value='One'>One</option></select>");
 	var map = new CanMap({key: null});
 
@@ -1643,7 +1685,7 @@ test("two way binding from a select's value to null has no selection (#2027)", f
 
 });
 
-test('two-way bound values that do not match a select option set selectedIndex to -1 (#2027)', function() {
+testIfRealDocument('two-way bound values that do not match a select option set selectedIndex to -1 (#2027)', function() {
 	var renderer = stache('<select {($value)}="key"><option value="foo">foo</option><option value="bar">bar</option></select>');
 	var map = new CanMap({ });
 	var frag = renderer(map);
@@ -1666,7 +1708,7 @@ test('two-way bound values that do not match a select option set selectedIndex t
 	strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
 });
 
-test("two way bound select empty string null or undefined value (#2027)", function () {
+testIfRealDocument("two way bound select empty string null or undefined value (#2027)", function () {
 
 	var template = stache(
 		"<select id='null-select' {($value)}='color-1'>" +
@@ -1693,14 +1735,14 @@ test("two way bound select empty string null or undefined value (#2027)", functi
 	stop();
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var nullInput = document.getElementById("null-select");
+	var nullInput = doc.getElementById("null-select");
 	var nullInputOptions = nullInput.getElementsByTagName('option');
-	var undefinedInput = document.getElementById("undefined-select");
+	var undefinedInput = doc.getElementById("undefined-select");
 	var undefinedInputOptions = undefinedInput.getElementsByTagName('option');
-	var stringInput = document.getElementById("string-select");
+	var stringInput = doc.getElementById("string-select");
 	var stringInputOptions = stringInput.getElementsByTagName('option');
 
 	// wait for set to be called which will change the selects
@@ -1721,7 +1763,7 @@ test("dynamic attribute bindings (#2016)", function(){
 
 	var frag = template(map);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	ta.appendChild(frag);
 
 	var input = ta.getElementsByTagName("input")[0];
@@ -1802,7 +1844,7 @@ test("select bindings respond to changes immediately or during insert using can-
 
 });
 
-test("two-way <select> bindings update to `undefined` if options are replaced (#1762)", function(){
+testIfRealDocument("two-way <select> bindings update to `undefined` if options are replaced (#1762)", function(){
 	var countries = [{code: 'MX', countryName:'MEXICO'},
 		{code: 'US', countryName:'USA'}
 	];
@@ -1835,7 +1877,7 @@ test("two-way <select> bindings update to `undefined` if options are replaced (#
 
 });
 
-test("two-way <select> bindings update to `undefined` if options are replaced - each (#1762)", function(){
+testIfRealDocument("two-way <select> bindings update to `undefined` if options are replaced - each (#1762)", function(){
 	var countries = [{code: 'MX', countryName:'MEXICO'},
 		{code: 'US', countryName:'USA'}
 	];
@@ -2105,8 +2147,10 @@ test("two-way binding with empty strings (#2147)", function(){
 	var frag = template(map);
 
 	setTimeout(function(){
-		//map.attr("foo", false);
-		equal( frag.firstChild.selectedIndex, 0, "empty strings are bound");
+		equal(frag.firstChild.value, '', "is an empty string");
+		if(isRealDocument()) {
+			equal( frag.firstChild.selectedIndex, 0, "empty strings are bound");
+		}
 		start();
 	},10);
 	stop();
@@ -2199,7 +2243,7 @@ test("can-value memory leak (#2270)", function () {
 
 	var frag = template(vm);
 
-	var ta = document.getElementById("qunit-fixture");
+	var ta = this.fixture;
 	domMutate.appendChild.call(ta,frag);
 
 	domMutate.removeChild.call(ta, ta.firstChild);
@@ -2310,6 +2354,7 @@ test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
 		_warn.apply(dev, arguments);
 	};
 	try {
+		delete viewCallbacks._tags["special-attrs"];
 		expect(2);
 		MockComponent.extend({
 			tag: 'special-attrs',
@@ -2375,20 +2420,25 @@ test("special values get called", function(assert) {
 		template: stache("<input ($change)=\"%scope.attr('*foo', $element.value)\">"),
 		viewModel: new CanMap({
 			method: function() {
+				console.log("HERE");
 				assert.ok(true, "method called");
+
 				done();
 			}
 		})
 	});
 
-	this.fixture.appendChild(
-		stache("<ref-syntax ($inserted)=\"%viewModel.method()\">" +
-			"</ref-syntax>")({}));
+	var template = stache("<ref-syntax ($inserted)=\"%viewModel.method()\"></ref-syntax>");
+	var frag = template({});
+	domMutate.appendChild.call(this.fixture, frag);
 
-	this.fixture.querySelector("input").value = "bar";
-	canEvent.trigger.call(this.fixture.querySelector("input"), "change");
+	var input = doc.getElementsByTagName("input")[0];
+	input.value = "bar";
+	canEvent.trigger.call(input, "change");
 
 	// Read from mock component's shadow scope for refs.
 	var scope = domData.get.call(this.fixture.firstChild).shadowScope;
 	assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
 });
+
+}
