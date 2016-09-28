@@ -78,7 +78,7 @@ QUnit.module(name, {
 		},1);
 	}
 });
-	
+
 
 test("attributeNameInfo", function(){
 	// MUSTACHE BEHAVIOR
@@ -1141,7 +1141,6 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 	});
 	stop();
 	var select = frag.firstChild;
-	console.log(frag);
 	// the value is set asynchronously
 	setTimeout(function(){
 		ok(select.childNodes.item(1).selected, "value is initially selected");
@@ -1256,9 +1255,9 @@ test("two way - viewModel (#1700)", function(){
 		return oldAttr.apply(this, arguments);
 	};
 
-
 	viewModel.attr("viewModelProp","HELLO");
 	equal(map.attr("scopeProp"), "HELLO", "binding from child to parent");
+
 	equal(attrSetCalled, 1, "set is called once on scope map");
 
 	equal(viewModelAttrSetCalled, 3, "set is called once viewModel");
@@ -1553,7 +1552,7 @@ test("two-way element empty value (1996)", function(){
 	var map = new CanMap();
 
 	var frag = template(map);
-	
+
 	var ta = this.fixture;
 	ta.appendChild(frag);
 
@@ -2420,7 +2419,6 @@ test("special values get called", function(assert) {
 		template: stache("<input ($change)=\"%scope.attr('*foo', $element.value)\">"),
 		viewModel: new CanMap({
 			method: function() {
-				console.log("HERE");
 				assert.ok(true, "method called");
 
 				done();

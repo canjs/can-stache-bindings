@@ -10,7 +10,6 @@
 // - getBindingInfo - A helper that returns the details of a data binding given an attribute.
 // - makeDataBinding - A helper method for setting up a data binding.
 // - initializeValues - A helper that initializes a data binding.
-
 var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
 var live = require('can-view-live');
@@ -20,6 +19,7 @@ var canEvent = require('can-event');
 var canBatch = require('can-event/batch/batch');
 var compute = require('can-compute');
 var observeReader = require('can-observation/reader/reader');
+var Observation = require('can-observation');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
@@ -334,8 +334,6 @@ var attr = require('can-util/dom/attr/attr');
 			// Create a handler that will unbind itself and the event when the attribute is removed from the DOM
 			var attributesHandler = function(ev) {
 				if(ev.attributeName === attributeName && !this.getAttribute(attributeName)) {
-					// console.log("attributesHandler");
-					// throw new Error();
 
 					canEvent.off.call(onBindElement ? el : canViewModel(el), event, handler);
 					canEvent.off.call(el, 'attributes', attributesHandler);
@@ -579,6 +577,7 @@ var attr = require('can-util/dom/attr/attr');
 
 			// Updates the parent if
 			var updateParent = function(ev, newVal){
+
 				if (!bindingsSemaphore[attrName]) {
 					if(parentUpdateIsFunction) {
 						parentCompute(newVal);
@@ -590,7 +589,7 @@ var attr = require('can-util/dom/attr/attr');
 							if(parentCompute() !== childCompute()) {
 								bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0 )+1;
 								childCompute(parentCompute());
-								canBatch.after(function(){
+								Observation.afterUpdateAndNotify(function(){
 									--bindingsSemaphore[attrName];
 								});
 							}
@@ -616,14 +615,18 @@ var attr = require('can-util/dom/attr/attr');
 
 			// setup listening on parent and forwarding to viewModel
 			var updateChild = function(ev, newValue){
+
 				// Save the viewModel property name so it is not updated multiple times.
+				// We listen for when the batch has ended, and all observation updates have ended.
 				bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0 )+1;
+				canBatch.start();
 				childUpdate(newValue);
 
-				// only after the batch has finished, reduce the update counter
-				canBatch.after(function(){
+				// only after computes have been updated, reduce the update counter
+				Observation.afterUpdateAndNotify(function(){
 					--bindingsSemaphore[attrName];
 				});
+				canBatch.stop();
 			};
 
 			if(parentCompute && parentCompute.isComputed) {
