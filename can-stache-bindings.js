@@ -266,11 +266,13 @@ var attr = require('can-util/dom/attr/attr');
 					// get parsed.
 					var expr = expression.parse(removeBrackets(attrVal),{lookupRule: "method", methodRule: "call"});
 
-					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
+					var defaultArgs = [data.scope._context, el].concat(makeArray(arguments));
 
-						var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data){
+					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
+						defaultArgs = defaultArgs.map(function(data){
 							return new expression.Arg(new expression.Literal(data));
 						});
+
 						expr = new expression.Call(expr, defaultArgs, {} );
 					}
 
@@ -287,7 +289,8 @@ var attr = require('can-util/dom/attr/attr');
 						"%event": ev,
 						"%viewModel": viewModel,
 						"%scope": data.scope,
-						"%context": data.scope._context
+						"%context": data.scope._context,
+						"%arguments": defaultArgs
 					},{
 						notContext: true
 					});

@@ -16,11 +16,12 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
 @param {can-stache/expressions/call} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
- - `$element` - The element the event happened upon.
+ - `$element` - The [can-jquery can.$] wrapped element the event happened upon.
  - `%event` - The event object.
  - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
  - `%context` - The current context.
  - `%scope` - The current [can-view-scope scope].
+ - `%arguments` - The default arguments for the event.
 
 @signature `(VIEW_MODEL_EVENT)='CALL_EXPRESSION'`
 
@@ -37,11 +38,12 @@ be given.
 is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
- - `$element` - The [can.$] wrapped element the event happened upon.
+ - `$element` - The [can-jquery can.$] wrapped element the event happened upon.
  - `%event` - The event object.
  - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
  - `%context` - The current context.
  - `%scope` - The current [can-view-scope].
+ - `%arguments` - The default arguments for the event.
 
 
 @body
