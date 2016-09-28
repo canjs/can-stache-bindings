@@ -78,7 +78,7 @@ QUnit.module(name, {
 		},1);
 	}
 });
-	
+
 
 test("attributeNameInfo", function(){
 	// MUSTACHE BEHAVIOR
@@ -1256,9 +1256,10 @@ test("two way - viewModel (#1700)", function(){
 		return oldAttr.apply(this, arguments);
 	};
 
-
+	console.log("setting viewModel to HELLO");
 	viewModel.attr("viewModelProp","HELLO");
 	equal(map.attr("scopeProp"), "HELLO", "binding from child to parent");
+
 	equal(attrSetCalled, 1, "set is called once on scope map");
 
 	equal(viewModelAttrSetCalled, 3, "set is called once viewModel");
@@ -1553,7 +1554,7 @@ test("two-way element empty value (1996)", function(){
 	var map = new CanMap();
 
 	var frag = template(map);
-	
+
 	var ta = this.fixture;
 	ta.appendChild(frag);
 
