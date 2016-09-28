@@ -2439,4 +2439,21 @@ test("special values get called", function(assert) {
 	assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
 });
 
+test("%arguments passes the default arguments", function(){
+	var template = stache("<button ($click)='doSomething(%context, %element, %event, %arguments)'>Default Args</button>");
+
+	var MyMap = DefaultMap.extend({
+		doSomething: function(context, el, ev, args){
+			equal(args[0], context, 'context');
+			equal(args[1], el, 'el');
+			equal(args[2], ev, 'ev');
+		}
+	});
+
+	var frag = template(new MyMap());
+	var button = frag.firstChild;
+
+	canEvent.trigger.call(button, "click");
+});
+
 }
