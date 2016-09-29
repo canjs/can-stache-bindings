@@ -21,7 +21,7 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
  - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
  - `%context` - The current context.
  - `%scope` - The current [can-view-scope scope].
- - `%arguments` - The default arguments for the event.
+ - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
 @signature `(VIEW_MODEL_EVENT)='CALL_EXPRESSION'`
 
@@ -43,7 +43,7 @@ is fired. The following key values are also supported:
  - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
  - `%context` - The current context.
  - `%scope` - The current [can-view-scope].
- - `%arguments` - The default arguments for the event.
+ - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
 
 @body
