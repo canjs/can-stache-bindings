@@ -357,45 +357,6 @@ if(typeof doc.getElementsByClassName === 'function') {
 	});
 }
 
-if (window.jQuery) {
-	test("can-event passes extra args to handler", function () {
-		expect(3);
-		var template = stache("<p can-myevent='handleMyEvent'>{{content}}</p>");
-
-		var frag = template({
-			handleMyEvent: function(context, el, event, arg1, arg2) {
-				ok(true, "handleMyEvent called");
-				equal(arg1, "myarg1", "3rd argument is the extra event args");
-				equal(arg2, "myarg2", "4rd argument is the extra event args");
-			}
-		});
-
-		var ta = this.fixture;
-		ta.appendChild(frag);
-		var p0 = ta.getElementsByTagName("p")[0];
-		canEvent.trigger.call(p0, "myevent", ["myarg1", "myarg2"]);
-	});
-
-	test("extra args to handler can be read using `%arguments`", function () {
-		expect(4);
-		var template = stache("<p can-myevent='handleMyEvent(%arguments)'>{{content}}</p>");
-
-		var frag = template({
-			handleMyEvent: function(args) {
-				ok(true, "handleMyEvent called");
-				ok(args[0] instanceof window.jQuery.Event, "args[0] is a jquery event");
-				equal(args[1], "myarg1", "args[1] is the extra event args");
-				equal(args[2], "myarg2", "args[2] is the extra event args");
-			}
-		});
-
-		var ta = this.fixture;
-		ta.appendChild(frag);
-		var p0 = ta.getElementsByTagName("p")[0];
-		canEvent.trigger.call(p0, "myevent", ["myarg1", "myarg2"]);
-	});
-}
-
 test("can-value input text", function () {
 
 	var template = stache("<input can-value='age'/>");
