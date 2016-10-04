@@ -239,6 +239,7 @@ test("Binding to a special property - option's selected", function(){
 });
 
 test("Can two way bind to focused", function(){
+	stop();
 	var template = stache("<input {($focused)}='show' type='text'/>");
 	var map = new DefineMap({
 		show: false
@@ -252,21 +253,28 @@ test("Can two way bind to focused", function(){
 	if(!document.hasFocus()) {
 		domDispatch.call(input, "focus");
 	}
-	ok(input === document.activeElement, "now focused");
+	setTimeout(function() {
+		ok(input === document.activeElement, "now focused");
 
-	domAttr.set(input, "focused", false);
-	if(!document.hasFocus()) {
-		domDispatch.call(input, "blur");
-	}
-	ok(input !== document.activeElement, "not focused");
-	equal(map.show, false, "set the boolean");
+		domAttr.set(input, "focused", false);
+		if(!document.hasFocus()) {
+			domDispatch.call(input, "blur");
+		}
+		setTimeout(function() {
+			ok(input !== document.activeElement, "not focused");
+			equal(map.show, false, "set the boolean");
+			start();
+		}, 50);
+	}, 50);
 });
 
-test("Can listed to the 'focused' event", function(){
+test("Can listen to the 'focused' event", function(){
+	stop();
 	var template = stache("<input ($focused)='changed()' type='text'/>");
 	var map = new DefineMap({
 		changed: function(){
 			ok(true, "this was called");
+			start();
 		}
 	});
 	var ta = document.getElementById("qunit-fixture");
