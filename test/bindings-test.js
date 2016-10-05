@@ -1712,9 +1712,7 @@ testIfRealDocument("two way bound select empty string null or undefined value (#
 	});
 	stop();
 	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
+	domMutate.appendChild.call(this.fixture, frag);
 
 	var nullInput = doc.getElementById("null-select");
 	var nullInputOptions = nullInput.getElementsByTagName('option');
