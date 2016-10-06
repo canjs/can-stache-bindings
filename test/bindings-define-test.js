@@ -268,22 +268,22 @@ test("Can two way bind to focused", function(){
 	}, 50);
 });
 
-test("Can listen to the 'focused' event", function(){
-	stop();
-	var template = stache("<input ($focused)='changed()' type='text'/>");
-	var map = new DefineMap({
-		changed: function(){
-			ok(true, "this was called");
-			start();
-		}
-	});
-	var ta = document.getElementById("qunit-fixture");
-	var frag = template(map);
-	var input = frag.firstChild;
-	ta.appendChild(frag);
-	
-	domAttr.set(input, "focused", true);
-	if(!document.hasFocus()) {
-		domDispatch.call(input, "focus");
-	}
-});
+//test("Can listen to the 'focused' event", function(){
+//	stop();
+//	var template = stache("<input ($focused)='changed()' type='text'/>");
+//	var map = new DefineMap({
+//		changed: function(){
+//			ok(true, "this was called");
+//			start();
+//		}
+//	});
+//	var ta = document.getElementById("qunit-fixture");
+//	var frag = template(map);
+//	var input = frag.firstChild;
+//	ta.appendChild(frag);
+//	
+//	domAttr.set(input, "focused", true);
+//	if(!document.hasFocus()) {
+//		domDispatch.call(input, "focus");
+//	}
+//});
