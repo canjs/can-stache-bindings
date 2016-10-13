@@ -31,8 +31,6 @@ var MockComponent = require("./mock-component");
 
 var DefaultMap = types.DefaultMap;
 
-QUnit.config.testTimeout = 5000;
-
 var DOC = DOCUMENT();
 var MUT_OBS = MUTATION_OBSERVER();
 makeTest("can-stache-bindings - dom", document, MUT_OBS);
