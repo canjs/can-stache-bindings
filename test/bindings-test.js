@@ -850,7 +850,7 @@ test("can-value select with null or undefined value (#813)", function () {
 		ok(nullInputOptions[0].selected, "default (null) value set");
 		ok(undefinedInputOptions[0].selected, "default (undefined) value set");
 		start();
-	}, 1);
+	}, 50);
 });
 
 test('radio type conversion (#811)', function(){
