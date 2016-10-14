@@ -1638,7 +1638,7 @@ testIfRealDocument("One way binding from a select's value to a parent compute up
 		equal(select.selectedIndex, 0, "selectedIndex is 0 because no value exists on the map");
 		equal(map.attr("value"), "One", "The map's value property is set to the select's value");
 		start();
-	},1);
+	}, 50);
 
 	stop();
 
@@ -1655,7 +1655,7 @@ testIfRealDocument("two way binding from a select's value to null has no selecti
 		equal(select.selectedIndex, -1, "selectedIndex is 0 because no value exists on the map");
 		equal(map.attr("key"), null, "The map's value property is set to the select's value");
 		start();
-	},1);
+	}, 50);
 
 	stop();
 
@@ -1726,7 +1726,7 @@ testIfRealDocument("two way bound select empty string null or undefined value (#
 		ok(undefinedInputOptions[0].selected, "default (undefined) value set");
 		ok(stringInputOptions[0].selected, "default ('') value set");
 		start();
-	}, 1);
+	}, 50);
 });
 
 test("dynamic attribute bindings (#2016)", function(){
