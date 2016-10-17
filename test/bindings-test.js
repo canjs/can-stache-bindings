@@ -934,7 +934,7 @@ testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", 
 			equal(clickHandlerCount, 2, "click handler called twice");
 			start();
 		}
-	}, 10);
+	}, 100);
 });
 
 test("can-value compute rejects new value (#887)", function() {
@@ -1088,8 +1088,8 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 		setTimeout(function() {
 			canEvent.trigger.call(btn, 'click');
 			start();
-		}, 10);
-	}, 10);
+		}, 100);
+	}, 100);
 });
 
 testIfRealDocument("<select can-value={value}> with undefined value selects option without value", function () {
