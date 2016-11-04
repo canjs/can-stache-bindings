@@ -238,35 +238,37 @@ test("Binding to a special property - option's selected", function(){
 	equal(map.b, true, "map.b true");
 });
 
-test("Can two way bind to focused", function(){
-	stop();
-	var template = stache("<input {($focused)}='show' type='text'/>");
-	var map = new DefineMap({
-		show: false
-	});
-	var ta = document.getElementById("qunit-fixture");
-	var frag = template(map);
-	var input = frag.firstChild;
-	ta.appendChild(frag);
+if (System.env !== 'canjs-test') {
+	test("Can two way bind to focused", function(){
+		stop();
+		var template = stache("<input {($focused)}='show' type='text'/>");
+		var map = new DefineMap({
+			show: false
+		});
+		var ta = document.getElementById("qunit-fixture");
+		var frag = template(map);
+		var input = frag.firstChild;
+		ta.appendChild(frag);
 
-	map.show = true;
-	if(!document.hasFocus()) {
-		domDispatch.call(input, "focus");
-	}
-	setTimeout(function() {
-		ok(input === document.activeElement, "now focused");
-
-		domAttr.set(input, "focused", false);
+		map.show = true;
 		if(!document.hasFocus()) {
-			domDispatch.call(input, "blur");
+			domDispatch.call(input, "focus");
 		}
 		setTimeout(function() {
-			ok(input !== document.activeElement, "not focused");
-			equal(map.show, false, "set the boolean");
-			start();
+			ok(input === document.activeElement, "now focused");
+
+			domAttr.set(input, "focused", false);
+			if(!document.hasFocus()) {
+				domDispatch.call(input, "blur");
+			}
+			setTimeout(function() {
+				ok(input !== document.activeElement, "not focused");
+				equal(map.show, false, "set the boolean");
+				start();
+			}, 50);
 		}, 50);
-	}, 50);
-});
+	});
+}
 
 //test("Can listen to the 'focused' event", function(){
 //	stop();
