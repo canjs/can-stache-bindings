@@ -1729,36 +1729,38 @@ testIfRealDocument("two way bound select empty string null or undefined value (#
 	}, 50);
 });
 
-test("dynamic attribute bindings (#2016)", function(){
+if (System.env !== 'canjs-test') {
+	test("dynamic attribute bindings (#2016)", function(){
 
-	var template = stache("<input {($value)}='{{propName}}'/>");
+		var template = stache("<input {($value)}='{{propName}}'/>");
 
-	var map = new CanMap({propName: 'first', first: "Justin", last: "Meyer"});
+		var map = new CanMap({propName: 'first', first: "Justin", last: "Meyer"});
 
-	var frag = template(map);
+		var frag = template(map);
 
-	var ta = this.fixture;
-	ta.appendChild(frag);
+		var ta = this.fixture;
+		ta.appendChild(frag);
 
-	var input = ta.getElementsByTagName("input")[0];
-	equal(input.value, "Justin", "input value set correctly if key does not exist in map");
+		var input = ta.getElementsByTagName("input")[0];
+		equal(input.value, "Justin", "input value set correctly if key does not exist in map");
 
-	stop();
-	map.attr('propName','last');
-	setTimeout(function(){
+		stop();
+		map.attr('propName','last');
+		setTimeout(function(){
 
-		equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
+			equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
-		input.value = "Lueke";
+			input.value = "Lueke";
 
-		canEvent.trigger.call(input, "change");
+			canEvent.trigger.call(input, "change");
 
-		equal(map.attr("last"), "Lueke", "updated from input");
+			equal(map.attr("last"), "Lueke", "updated from input");
 
-		start();
-	},10);
+			start();
+		},10);
 
-});
+	});
+}
 
 test("select bindings respond to changes immediately or during insert (#2134)", function(){
 	var countries = [{code: 'MX', countryName:'MEXICO'},
