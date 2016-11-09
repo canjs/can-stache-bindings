@@ -1597,8 +1597,7 @@ test("renders dynamic custom attributes (#1800)", function () {
 	canEvent.trigger.call(lis[1], "click");
 });
 
-//!steal-remove-start
-if (dev) {
+if (System.env.indexOf('production') < 0) {
 	test("warning on a mismatched quote (#1995)", function () {
 		expect(4);
 		var oldlog = dev.warn,
@@ -1623,9 +1622,6 @@ if (dev) {
 		dev.warn = oldlog;
 	});
 }
-//!steal-remove-end
-
-
 
 testIfRealDocument("One way binding from a select's value to a parent compute updates the parent with the select's initial value (#2027)", function(){
 	var template = stache("<select {^$value}='value'><option value='One'>One</option></select>");
@@ -2323,37 +2319,38 @@ test("$element is wrapped with types.wrapElement", function(){
 	canEvent.trigger.call(button, "click");
 });
 
-test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
-	var _warn = dev.warn;
-	dev.warn = function() {
-		ok(false, 'dev.warn was called incorrectly');
-		_warn.apply(dev, arguments);
-	};
-	try {
-		delete viewCallbacks._tags["special-attrs"];
-		expect(2);
-		MockComponent.extend({
-			tag: 'special-attrs',
-			viewModel: {
-				foo: "skippy",
-				baz: "xyzzy"
-			}
-		});
-
-		stache("<special-attrs id='{{foo}}' class='{{baz}}'></div>")({foo: "bar", baz: "quux"});
-		stache("<special-attrs id='foo' class='baz'></div>")({foo: "bar", baz: "quux"});
-
+if (System.env.indexOf('production') < 0) {
+	test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
+		var _warn = dev.warn;
 		dev.warn = function() {
-			ok(true, 'dev.warn was called correctly');
+			ok(false, 'dev.warn was called incorrectly');
 			_warn.apply(dev, arguments);
 		};
+		try {
+			delete viewCallbacks._tags["special-attrs"];
+			expect(2);
+			MockComponent.extend({
+				tag: 'special-attrs',
+				viewModel: {
+					foo: "skippy",
+					baz: "xyzzy"
+				}
+			});
 
-		stache("<special-attrs id='{foo}' class='{baz}'></div>")({foo: "bar", baz: "quux"});
-	} finally {
-		dev.warn = _warn;
-	}
+			stache("<special-attrs id='{{foo}}' class='{{baz}}'></div>")({foo: "bar", baz: "quux"});
+			stache("<special-attrs id='foo' class='baz'></div>")({foo: "bar", baz: "quux"});
 
-});
+			dev.warn = function() {
+				ok(true, 'dev.warn was called correctly');
+				_warn.apply(dev, arguments);
+			};
+
+			stache("<special-attrs id='{foo}' class='{baz}'></div>")({foo: "bar", baz: "quux"});
+		} finally {
+			dev.warn = _warn;
+		}
+	});
+}
 
 test("one-way pass computes to components with ~", function(assert) {
 	expect(7);
