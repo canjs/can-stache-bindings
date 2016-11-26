@@ -23,7 +23,7 @@
     "document": "bit-docs",
     "develop": "done-serve --static --develop --port 8080"
   },
-  "main": "dist/cjs/can-stache-bindings",
+  "main": "can-stache-bindings",
   "keywords": [
     "canjs",
     "donejs"
