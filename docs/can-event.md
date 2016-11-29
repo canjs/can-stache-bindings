@@ -24,7 +24,7 @@ The following key values are also supported:
 
  - `@element` - The element the event happened upon.
  - `@event` - The event object.
- - `@viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
+ - `@viewModel` - If the element is a [can-component], the component’s [can-component.prototype.view-model viewModel].
  - `@context` - The current context.
  - `@scope` - The current [can-view-scope Scope].
 
@@ -45,7 +45,7 @@ the same key values as `argKey`.
 ## Use
 
 By adding `can-EVENT='methodKey'` to an element, the function pointed to
-by `methodKey` is bound to the element's `EVENT` event. The function can be
+by `methodKey` is bound to the element’s `EVENT` event. The function can be
 passed any number of arguments from the surrounding scope, or `name=value`
 attributes for named arguments. Direct arguments will be provided to the
 handler in the order they were given, except `name=value` arguments, which
@@ -63,7 +63,7 @@ item from `items` when that item is clicked on.
 ## Special Event Types
 
 can.view.bindings supports creating special event types 
-(events that aren't natively triggered by the DOM), which are 
+(events that aren’t natively triggered by the DOM), which are
 bound by adding attributes like `can-SPECIAL='KEY'`. This is 
 similar to [$.special](http://benalman.com/news/2010/03/jquery-special-events/).
 

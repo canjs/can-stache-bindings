@@ -6,7 +6,7 @@ Sets up two way bindings in a template.
 
 @signature `can-value='KEY'`
 
-Binds the element's value or checked property to the value specified by
+Binds the element’s value or checked property to the value specified by
 key. Example:
 
     <input type='text' can-value='first.name'/>
@@ -18,9 +18,9 @@ key. Example:
 ## Use
 
 Add a `can-value="KEY"` attribute to an input or select element and
-the element's value will be cross-bound to an observable value specified by `KEY`.
+the element’s value will be cross-bound to an observable value specified by `KEY`.
 
-Depending on the element and the element's type, `can-value` takes on
+Depending on the element and the element’s type, `can-value` takes on
 different behaviors.  If an input element has a type
 not listed here, the behavior is the same as the `text` type.
 
