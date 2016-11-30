@@ -983,7 +983,7 @@ var attr = require('can-util/dom/attr/attr');
 			return {
 				event: "keyup",
 				handler: function (ev) {
-					if (ev.keyCode === 13) {
+					if (ev.keyCode === 13 || ev.key === "Enter") {
 						return original.call(this, ev);
 					}
 				}
