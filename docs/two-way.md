@@ -1,11 +1,11 @@
 @function can-stache-bindings.twoWay {\(two-way\)}
 @parent can-stache-bindings.syntaxes 3
 
-@description Two-way bind a value in the [can-component::viewModel viewModel] or the element to the parent scope.
+@description Two-way bind a value in the [can-component.prototype.view-model viewModel] or the element to the parent scope.
 
 @signature `{(child-prop)}="key"`
 
-  Two-way binds `childProp` in the  [can-component::viewModel viewModel] to 
+  Two-way binds `childProp` in the  [can-component.prototype.view-model viewModel] to
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
   
@@ -27,7 +27,7 @@
 
 @signature `{($child-prop)}="key"`
 
-  Two-way binds the element's `childProp` property or attribute to 
+  Two-way binds the element’s `childProp` property or attribute to
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
@@ -35,7 +35,7 @@
   <input {($value)}="name"/>
   ```
 
-  @param {String} child-prop The name of the element's property or attribute to two-way bind.
+  @param {String} child-prop The name of the element’s property or attribute to two-way bind.
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
   
@@ -43,10 +43,10 @@
 
 ## Use
 
-`{(child-prop)}="key"` is used to two-way bind a value in a [can-component::viewModel viewModel] to
+`{(child-prop)}="key"` is used to two-way bind a value in a [can-component.prototype.view-model viewModel] to
 a value in the  [can-view-scope scope].  If one value changes, the other value is updated.
 
-The following two-way binds the `<edit-plate>` element's `plateName` to the `editing.licensePlate`
+The following two-way binds the `<edit-plate>` element’s `plateName` to the `editing.licensePlate`
 value in the scope.  This allows `plateName` to update if `editing.licensePlate` changes and
 `editing.licensePlate` to update if `plateName` changes.
 

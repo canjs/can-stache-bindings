@@ -1,11 +1,11 @@
 @function can-stache-bindings.toParent {^to-parent}
 @parent can-stache-bindings.syntaxes 2
 
-@description One-way bind a value in the current [can-component::viewModel viewModel] to the parent scope.
+@description One-way bind a value in the current [can-component.prototype.view-model viewModel] to the parent scope.
 
 @signature `{^child-prop}="key"`
 
-Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
+Exports `childProp` in the [can-component.prototype.view-model viewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
 ```
@@ -19,14 +19,14 @@ child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewMod
 
 @signature `{^$child-prop}="key"`
 
-  Exports the element's `childProp` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
+  Exports the element’s `childProp` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
   `key` with the value of `childProp` when `childProp` changes.
 
   ```
   <input {^$value}="name"/>
   ```
 
-  @param {String} child-prop The name of the element's property or attribute to export.
+  @param {String} child-prop The name of the element’s property or attribute to export.
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value with be used to set in the parent scope.
 
@@ -58,7 +58,7 @@ In the following example, it connects the __selected__ driver in `<drivers-list>
 <input {^$value}="name"/>
 ```
 
-Updates `name` in the scope when the `<input>` element's `value` changes.
+Updates `name` in the scope when the `<input>` element’s `value` changes.
 
 ## Exporting Functions
 

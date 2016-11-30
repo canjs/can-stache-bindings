@@ -1,18 +1,18 @@
 @function can-stache-bindings.toChild {to-child}
 @parent can-stache-bindings.syntaxes 1
 
-@description One-way bind a value in the parent scope to the [can-component::viewModel viewModel].
+@description One-way bind a value in the parent scope to the [can-component.prototype.view-model viewModel].
 
 @signature `{child-prop}="key"`
 
-  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component::viewModel viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
+  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```
   <my-component {some-prop}="value"/>
   ```
 
   @param {String} child-prop The name of the property to set in the 
-  component's viewmodel.
+  component’s viewmodel.
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value is used to set as `childProp`. 
 
