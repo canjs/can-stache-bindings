@@ -6,7 +6,7 @@ var nodeLists = require('can-view-nodelist');
 
 var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
-
+var MockComponent;
 module.exports = MockComponent = {
 	extend: function(proto){
 
@@ -39,6 +39,6 @@ module.exports = MockComponent = {
 
 				domMutate.appendChild.call(el, frag);
 			}
-		})
+		});
 	}
 };

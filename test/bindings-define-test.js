@@ -1,7 +1,6 @@
-var stacheBindings = require('can-stache-bindings');
+require('can-stache-bindings');
 
 var QUnit = require('steal-qunit');
-var DefineList = require('can-define/list/list');
 var DefineMap = require("can-define/map/map");
 var stache = require('can-stache');
 var canViewModel = require('can-view-model');
@@ -12,52 +11,19 @@ var viewCallbacks = require('can-view-callbacks');
 var domAttr = require("can-util/dom/attr/attr");
 var domData = require('can-util/dom/data/data');
 var domDispatch = require("can-util/dom/dispatch/dispatch");
-var domMutate = require('can-util/dom/mutate/mutate');
 
-var dev = require('can-util/js/dev/dev');
-var canEach = require('can-util/js/each/each');
+
+var MockComponent = require("./mock-component");
 
 var viewModelFor = function(tag, viewModel) {
 	viewCallbacks.tag(tag, function(el){
 		domData.set.call(el, "viewModel", viewModel);
 	});
-}
-
-var MockComponent = {
-	extend: function(proto){
-		viewCallbacks.tag(proto.tag, function(el, componentTagData){
-			var viewModel;
-			var teardownBindings = stacheBindings.behaviors.viewModel(el, componentTagData, function(initialViewModelData) {
-				if(typeof proto.viewModel === "function") {
-					return viewModel = new proto.viewModel(initialViewModelData);
-				} else if(proto.viewModel instanceof DefineMap){
-					return viewModel = proto.viewModel;
-				} else {
-					var VM = DefineMap.extend(proto.viewModel);
-					return viewModel = new VM(initialViewModelData);
-				}
-
-			}, {});
-			domData.set.call(el, "viewModel", viewModel);
-			domData.set.call(el, "preventDataBindings", true);
-
-			if(proto.template) {
-				var shadowScope = componentTagData.scope.add(new Scope.Refs())
-					.add(viewModel, {
-						viewModel: true
-					});
-				var nodeList = nodeLists.register([], function(){
-					teardownBindings();
-				}, componentTagData.parentNodeList || true, false);
-				var frag = proto.template(shadowScope, componentTagData.options, nodeList);
-
-				domMutate.appendChild.call(el, frag);
-			}
-		})
-	}
 };
 
-QUnit.module("can-stache-bindings (can-define)")
+
+
+QUnit.module("can-stache-bindings (can-define)");
 
 
 test("two way - viewModel", 7, function () {
@@ -270,6 +236,39 @@ if (System.env !== 'canjs-test') {
 	});
 }
 
+var supportsKeyboardEvents = (function(){
+	if(typeof KeyboardEvent !== "undefined") {
+		var supports = false;
+		var el = document.createElement("div");
+		el.addEventListener("keyup", function(ev){
+			supports = (ev.key === "Enter");
+		});
+		var event = new KeyboardEvent("keyup",{key: "Enter"});
+		el.dispatchEvent(event);
+		return supports;
+	} else {
+		return false;
+	}
+})();
+
+
+if(supportsKeyboardEvents) {
+
+
+	QUnit.test("KeyboardEvent dispatching works with .key (#93)", function(){
+		var template = stache("<input ($enter)='method(%event)' type='text'/>");
+		var frag = template({
+			method: function(event){
+				QUnit.ok(true, "method was called");
+			}
+		});
+		var input = frag.firstChild;
+
+		var event = new KeyboardEvent("keyup",{key: "Enter"});
+		input.dispatchEvent(event);
+	});
+}
+
 //test("Can listen to the 'focused' event", function(){
 //	stop();
 //	var template = stache("<input ($focused)='changed()' type='text'/>");
@@ -283,7 +282,7 @@ if (System.env !== 'canjs-test') {
 //	var frag = template(map);
 //	var input = frag.firstChild;
 //	ta.appendChild(frag);
-//	
+//
 //	domAttr.set(input, "focused", true);
 //	if(!document.hasFocus()) {
 //		domDispatch.call(input, "focus");
