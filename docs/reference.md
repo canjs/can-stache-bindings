@@ -5,7 +5,7 @@
 
 @signature `*ref-prop`
 
-  A shorthand for exporting an element's viewModel to the reference scope.
+  A shorthand for exporting an element’s viewModel to the reference scope.
 
   @param {String} ref-prop The name of the property to set in the template's 'references' scope.
 

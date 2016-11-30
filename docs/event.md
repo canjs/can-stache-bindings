@@ -1,7 +1,7 @@
 @function can-stache-bindings.event \(event\)
 @parent can-stache-bindings.syntaxes 0
 
-@description Response to events on elements or component ViewModels.
+@description Respond to events on elements or component ViewModels.
 
 @signature `($DOM_EVENT)='CALL_EXPRESSION'`
 
@@ -11,20 +11,20 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
 <div ($click)="doSomething()"/>
 ```
 
-@param {String} DOM_EVENT A DOM event name like "click".
+@param {String} DOM_EVENT A DOM event name like `click`.
 
-@param {can-stache/expressions/call} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT` is fired. The following key values are also supported:
+@param {can-stache/expressions/call} CALL_EXPRESSION A call expression (e.g. `method(key)`) that is called when the `DOM_EVENT` is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
  - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
+ - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
  - `%context` - The current context.
  - `%scope` - The current [can-view-scope scope].
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
 @signature `(VIEW_MODEL_EVENT)='CALL_EXPRESSION'`
 
-Listens to an event on the element's [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
 
 ```
 <my-component (show)="doSomething()"/>
@@ -38,7 +38,7 @@ is fired. The following key values are also supported:
 
  - `%element` - The element the event happened upon.
  - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
+ - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
  - `%context` - The current context.
  - `%scope` - The current [can-view-scope].
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
@@ -52,14 +52,14 @@ The use of `(event)` bindings changes between listening on __DOM events__ and __
 
 ## DOM events
 
-To listen on a DOM event, wrap the event name with `($event)` like:
+To listen for a DOM event, wrap the event name with `($event)` like:
 
 ```
 <div ($click)="doSomething()"/>
 ```
 
 By adding `($EVENT)='methodKey()'` to an element, the function pointed to
-by `methodKey` is bound to the element's `EVENT` event. The function can be
+by `methodKey` is bound to the element’s `EVENT` event. The function can be
 passed any number of arguments from the surrounding scope, or `name=value`
 attributes for named arguments. Direct arguments will be provided to the
 handler in the order they were given.
@@ -72,7 +72,7 @@ item from `items` when that item is clicked on.
 ### Special Event Types
 
 [can-stache-bindings] supports creating special event types
-(events that aren't natively triggered by the DOM), which are
+(events that aren’t natively triggered by the DOM), which are
 bound by adding attributes like `($SPECIAL)='KEY'`. This is
 similar to [$.special](http://benalman.com/news/2010/03/jquery-special-events/).
 
@@ -89,7 +89,7 @@ the user hits the enter key on this input.
 
 ## viewModel events
 
-To listen on a [can-component Component's] [can-component::ViewModel ViewModel], wrap the event name with `(event)` like:
+To listen on a [can-component Component’s] [can-component.prototype.ViewModel ViewModel], wrap the event name with `(event)` like:
 
 ```
 <player-edit
@@ -98,7 +98,7 @@ To listen on a [can-component Component's] [can-component::ViewModel ViewModel],
 ```
 
 ViewModels can publish events on themselves. The following `<player-edit>` component
- dispatches a `"close"` event on itself when its `close` method is called:
+dispatches a `"close"` event on itself when its `close` method is called:
 
 ```
 Component.extend({
