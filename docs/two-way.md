@@ -1,11 +1,11 @@
 @function can-stache-bindings.twoWay {\(two-way\)}
 @parent can-stache-bindings.syntaxes 3
 
-@description Two-way bind a value in the [can-component::viewModel viewModel] or the element to the parent scope.
+@description Two-way bind a value in the [can-component::ViewModel ViewModel] or the element to the parent scope.
 
 @signature `{(child-prop)}="key"`
 
-  Two-way binds `childProp` in the  [can-component::viewModel viewModel] to 
+  Two-way binds `childProp` in the  [can-component::ViewModel ViewModel] to 
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
   
@@ -43,7 +43,7 @@
 
 ## Use
 
-`{(child-prop)}="key"` is used to two-way bind a value in a [can-component::viewModel viewModel] to
+`{(child-prop)}="key"` is used to two-way bind a value in a [can-component::ViewModel ViewModel] to
 a value in the  [can-view-scope scope].  If one value changes, the other value is updated.
 
 The following two-way binds the `<edit-plate>` element's `plateName` to the `editing.licensePlate`
