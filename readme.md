@@ -26,7 +26,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{(child-prop)}="key"</code>
 
 
-  Two-way binds `childProp` in the  [can-component::viewModel viewModel] to 
+  Two-way binds `childProp` in the  [can-component::ViewModel ViewModel] to 
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
   
@@ -72,7 +72,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{child-prop}="key"</code>
 
 
-  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component::viewModel viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
+  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component::ViewModel ViewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```
   <my-component {some-prop}="value"/>
@@ -106,7 +106,7 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{^child-prop}="key"</code>
 
 
-Exports `childProp` in the [can-component::viewModel viewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
+Exports `childProp` in the [can-component::ViewModel ViewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
 ```
@@ -160,7 +160,7 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
    - `%element` - The element the event happened upon.
    - `$element` - The element the event happened upon.
    - `%event` - The event object.
-   - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
+   - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
    - `%context` - The current context.
    - `%scope` - The current [can-view-scope scope].
   
@@ -168,7 +168,7 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
 ### <code>(VIEW_MODEL_EVENT)='CALL_EXPRESSION'</code>
 
 
-Listens to an event on the element's [can-component::viewModel viewModel] and calls the [can-stache/expressions/call] when that event occurs.
+Listens to an event on the element's [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
 
 ```
 <my-component (show)="doSomething()"/>
@@ -186,7 +186,7 @@ Listens to an event on the element's [can-component::viewModel viewModel] and ca
    - `%element` - The element the event happened upon.
    - `$element` - The [can.$] wrapped element the event happened upon.
    - `%event` - The event object.
-   - `%viewModel` - If the element is a [can-component], the component's [can-component::viewModel viewModel].
+   - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
    - `%context` - The current context.
    - `%scope` - The current [can-view-scope].
   

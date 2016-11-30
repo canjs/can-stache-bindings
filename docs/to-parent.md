@@ -5,14 +5,14 @@
 
 @signature `{^child-prop}="key"`
 
-Exports `childProp` in the [can-component.prototype.view-model viewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
+Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
 ```
 <my-component {^some-prop}="value"/>
 ```
 
-@param {String} child-prop The name of the property to export from the 
+@param {String} child-prop The name of the property to export from the
 child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewModel.
 
 @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression that will be used to set in the parent scope.
@@ -39,7 +39,7 @@ The use of `{^to-parent}` bindings changes between exporting __viewModel propert
 
 ## Exporting ViewModel properties
 
-`{^child-prop}="key"` can be used to export single values or the complete view model from a 
+`{^child-prop}="key"` can be used to export single values or the complete view model from a
 child component into the parent scope. Typically, the values are exported to the references scope.
 
 In the following example, it connects the __selected__ driver in `<drivers-list>` with an editable __plateName__ in
@@ -49,7 +49,7 @@ In the following example, it connects the __selected__ driver in `<drivers-list>
     <edit-plate {(plate-name)}="*editing.licensePlate"/>
 
 @demo demos/can-stache-bindings/to-parent.html
-	
+
 ## Exporting DOM properties
 
 `{^$child-prop}="key"` can be used to export an attribute value into the scope.  For example:
@@ -79,4 +79,3 @@ Check it out in this demo:
 @demo demos/can-stache-bindings/to-parent-function.html
 
 Notice that `@` is used to prevent reading the function.  
-

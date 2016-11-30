@@ -10,20 +10,23 @@ Provides template event, one-way bindings, and two-way bindings.
 ## Use
 
 The `can-stache-bindings` plugin provides useful [can-view-callbacks.attr custom attributes] for template declarative event, one-way bindings, and two-way
-bindings on element attributes, component [can-component.prototype.view-model viewModels], and the [can-view-scope scope]. Bindings look like:
+bindings on element attributes, component [can-component::ViewModel ViewModels], and the [can-view-scope scope]. Bindings look like:
+
 
 - `(event)="key()"` for event binding.
 - `{prop}="key"` for one-way binding to a child.
 - `{^prop}="key"` for one-way binding to a parent.
 - `{(prop)}="key"` for two-way binding.
 
-Prepending `$` to a binding (e.g. `($event)="key()"`) changes the binding from the `viewModel` to the element’s attributes or properties.
+Prepending `$` to a binding like `($event)="key()"` changes the binding from the `ViewModel` to the element’s attributes or properties.
 
-The following are the bindings that should be used with [can-stache] and are compatible with CanJS 3:
+> __Note:__ DOM attribute names are case-insensitive, use hypens (-) to in the attribute name to setup camelCase bindings.
+
+The following are the bindings that should be used with [can-stache]:
 
 #### [can-stache-bindings.event event]
 
-Binds to `childEvent` on `<my-component>`’s [can-component.prototype.view-model viewModel] and calls
+Binds to `childEvent` on `<my-component>`'s [can-component::ViewModel ViewModel] and calls
 `method` on the [can-view-scope scope] with the specified arguments:
 
 ```
@@ -39,7 +42,7 @@ Binds to `domEvent` on `<my-component>` and calls
 
 #### [can-stache-bindings.toChild one-way to child]
 
-Updates `childProp` in `<my-component>`’s [can-component.prototype.view-model viewModel] with `value` in the [can-view-scope scope]:
+Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope]:
 
 ```
 <my-component {child-prop}="value"/>
@@ -55,7 +58,7 @@ in the [can-view-scope scope]:
 #### [can-stache-bindings.toParent one-way to parent]
 
 Updates `value` in the [can-view-scope scope]  with `childProp`
-in `<my-component>`’s [can-component.prototype.view-model viewModel]:
+in `<my-component>`’s [can-component::ViewModel ViewModel]:
 
 ```
 <my-component {^child-prop}="value"/>
@@ -70,7 +73,7 @@ in the [can-view-scope scope] with the `child-attr` attribute or property on `<m
 
 #### [can-stache-bindings.twoWay two-way]
 
-Updates `childProp` in `<my-component>`’s [can-component.prototype.view-model viewModel] with `value` in the [can-view-scope scope] and vice versa:
+Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope] and vice versa:
 
 ```
 <my-component {(child-prop)}="value"/>

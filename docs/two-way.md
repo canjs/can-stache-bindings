@@ -5,20 +5,20 @@
 
 @signature `{(child-prop)}="key"`
 
-  Two-way binds `childProp` in the  [can-component.prototype.view-model viewModel] to
+  Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
-  
+
   ```
   <my-component {(some-prop)}="value"/>
   ```
-  
+
   When setting up the binding:
-  
+
   - If `childProp` is `undefined`, `key` will be set to `childProp`.
   - If `key` is `undefined`, `childProp` will be set to `key`.
   - If both `childProp` and `key` are defined, `key` will be set to `childProp`.
-  
+
 
 
   @param {String} child-prop The name of the property of the viewModel to two-way bind.
@@ -38,12 +38,12 @@
   @param {String} child-prop The name of the element’s property or attribute to two-way bind.
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
-  
+
 @body
 
 ## Use
 
-`{(child-prop)}="key"` is used to two-way bind a value in a [can-component.prototype.view-model viewModel] to
+`{(child-prop)}="key"` is used to two-way bind a value in a [can-component.prototype.ViewModel ViewModel] to
 a value in the  [can-view-scope scope].  If one value changes, the other value is updated.
 
 The following two-way binds the `<edit-plate>` element’s `plateName` to the `editing.licensePlate`
@@ -66,4 +66,3 @@ If the viewModel value is `not undefined` and the scope is `undefined`, scope wi
 If the viewModel value is `undefined` and the scope is `not undefined`, viewModel will be set to the scope value.
 
 If both the viewModel and scope are `not undefined`, viewModel will be set to the scope value.
-
