@@ -25,7 +25,7 @@ var DOCUMENT = require("can-util/dom/document/document");
 
 var dev = require('can-util/js/dev/dev');
 var canEach = require('can-util/js/each/each');
-var types = require('can-util/js/types/types');
+var types = require('can-types');
 
 var MockComponent = require("./mock-component");
 
