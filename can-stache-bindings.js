@@ -26,7 +26,7 @@ var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var string = require('can-util/js/string/string');
 var dev = require('can-util/js/dev/dev');
-var types = require('can-util/js/types/types');
+var types = require('can-types');
 var last = require('can-util/js/last/last');
 
 var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
