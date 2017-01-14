@@ -405,8 +405,7 @@ var attr = require('can-util/dom/attr/attr');
 				scope: data.scope,
 				semaphore: {},
 				initializeValues: true,
-				legacyBindings: true,
-				syncChildWithParent: true
+				legacyBindings: true
 			});
 
 			canEvent.one.call(el, "removed", function(){
@@ -687,7 +686,8 @@ var attr = require('can-util/dom/attr/attr');
 					child: "viewModel",
 					childName: vmName,
 					parentToChild: true,
-					childToParent: true
+					childToParent: true,
+					syncChildWithParent: true
 				};
 			} else {
 				return {
@@ -697,7 +697,8 @@ var attr = require('can-util/dom/attr/attr');
 					child: "viewModel",
 					childName: vmName,
 					parentToChild: true,
-					childToParent: true
+					childToParent: true,
+					syncChildWithParent: true
 				};
 			}
 		}
@@ -717,7 +718,8 @@ var attr = require('can-util/dom/attr/attr');
 				bindingAttributeName: attributeName,
 				childName: childName.substr(1),
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: true,
+				syncChildWithParent: twoWay
 			};
 			if(tagName === "select") {
 				bindingInfo.stickyParentToChild = true;
@@ -732,7 +734,8 @@ var attr = require('can-util/dom/attr/attr');
 				bindingAttributeName: attributeName,
 				childName: string.camelize(childName),
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: true,
+				syncChildWithParent: twoWay
 			};
 			if(attributeValue.trim().charAt(0) === "~") {
 				bindingInfo.stickyParentToChild = true;
@@ -819,7 +822,7 @@ var attr = require('can-util/dom/attr/attr');
 			if(bindingInfo.childToParent){
 				// setup listening on parent and forwarding to viewModel
 				updateParent = bind.childToParent(el, parentCompute, childCompute, bindingData.semaphore, bindingInfo.bindingAttributeName,
-					bindingData.syncChildWithParent || !!bindingInfo.parentToChild);
+					bindingInfo.syncChildWithParent);
 			}
 			// the child needs to be bound even if
 			else if(bindingInfo.stickyParentToChild) {
