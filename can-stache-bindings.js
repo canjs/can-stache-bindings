@@ -819,7 +819,7 @@ var attr = require('can-util/dom/attr/attr');
 			if(bindingInfo.childToParent){
 				// setup listening on parent and forwarding to viewModel
 				updateParent = bind.childToParent(el, parentCompute, childCompute, bindingData.semaphore, bindingInfo.bindingAttributeName,
-					bindingData.syncChildWithParent);
+					bindingData.syncChildWithParent || !!bindingInfo.parentToChild);
 			}
 			// the child needs to be bound even if
 			else if(bindingInfo.stickyParentToChild) {

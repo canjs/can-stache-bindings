@@ -288,3 +288,30 @@ if(supportsKeyboardEvents) {
 //		domDispatch.call(input, "focus");
 //	}
 //});
+
+QUnit.test("Two way bindings should be sticky (#122)", function(){
+	var template = stache("<input {($value)}='firstName'/>");
+	var MyMap = define.Constructor({
+		firstName: {
+			set: function(newVal){
+				return newVal.toLowerCase();
+			}
+		}
+	});
+	var map = new MyMap({firstName: "matthew"});
+
+	var frag = template(map);
+
+	var ta = document.getElementById("qunit-fixture");
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+	QUnit.equal(input.value, "matthew", "input value set correctly");
+
+	input.value = "MATTHEW";
+
+	canEvent.trigger.call(input, "change");
+
+	QUnit.equal(map.firstName, "matthew", "vm stays the same");
+	QUnit.equal(input.value, "matthew", "input stays the same");
+});
