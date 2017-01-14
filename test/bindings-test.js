@@ -9,7 +9,7 @@ var stache = require('can-stache');
 var canEvent = require('can-event');
 var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
-var canCompute = require('can-compute')
+var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
 require('can-util/dom/events/inserted/');
 
@@ -81,50 +81,18 @@ QUnit.module(name, {
 test("attributeNameInfo", function(){
 	// MUSTACHE BEHAVIOR
 	var info = stacheBindings.getBindingInfo({name: "foo", value: "bar"},{foo: "@"},"legacy");
-	deepEqual(info,{
-		parent: "attribute",
-		child: "viewModel",
-		parentToChild: true,
-		childToParent: true,
-		childName: "foo",
-		parentName: "foo",
-		bindingAttributeName: "foo"
-	}, "legacy with @");
+	deepEqual(info,undefined, "legacy with @");
 
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "bar"},{},"legacy");
-	deepEqual(info, {
-		parent: "scope",
-		child: "viewModel",
-		parentToChild: true,
-		childToParent: true,
-		childName: "fooEd",
-		parentName: "bar",
-		bindingAttributeName: "foo-ed"
-	},"legacy");
+	deepEqual(info, undefined,"legacy");
 
 	// ORIGINAL STACHE BEHAVIOR
 	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "bar"});
-	deepEqual(info, {
-		parent: "attribute",
-		child: "viewModel",
-		parentToChild: true,
-		childToParent: true,
-		childName: "fooEd",
-		parentName: "foo-ed",
-		bindingAttributeName: "foo-ed"
-	}, "OG stache attr binding");
+	deepEqual(info, undefined, "OG stache attr binding");
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "{bar}"});
-	deepEqual(info, {
-		parent: "scope",
-		child: "viewModel",
-		parentToChild: true,
-		childToParent: true,
-		childName: "fooEd",
-		parentName: "bar",
-		bindingAttributeName: "foo-ed"
-	}, "OG stache vm binding");
+	deepEqual(info, undefined, "OG stache vm binding");
 
 	// NEW BINDINGS
 
@@ -138,7 +106,8 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		childName: "foo-ed",
 		bindingAttributeName: "{$foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new el binding");
 
 	info = stacheBindings.getBindingInfo({name: "{($foo-ed)}", value: "bar"});
@@ -150,7 +119,8 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		childName: "foo-ed",
 		bindingAttributeName: "{($foo-ed)}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: true
 	}, "new el binding");
 
 	info = stacheBindings.getBindingInfo({name: "{^$foo-ed}", value: "bar"});
@@ -162,7 +132,8 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		childName: "foo-ed",
 		bindingAttributeName: "{^$foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new el binding");
 
 	// vm based
@@ -175,7 +146,8 @@ test("attributeNameInfo", function(){
 		childName: "fooEd",
 		parentName: "bar",
 		bindingAttributeName: "{foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new vm binding");
 
 	info = stacheBindings.getBindingInfo({name: "{(foo-ed)}", value: "bar"});
@@ -187,7 +159,8 @@ test("attributeNameInfo", function(){
 		childName: "fooEd",
 		parentName: "bar",
 		bindingAttributeName: "{(foo-ed)}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: true
 	}, "new el binding");
 
 	info = stacheBindings.getBindingInfo({name: "{^foo-ed}", value: "bar"});
@@ -199,7 +172,8 @@ test("attributeNameInfo", function(){
 		childName: "fooEd",
 		parentName: "bar",
 		bindingAttributeName: "{^foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new el binding");
 
 });
@@ -216,12 +190,12 @@ var foodTypes = new CanList([{
 }]);
 
 if(typeof doc.getElementsByClassName === 'function') {
-	test("can-event handlers", function () {
+	test("event handlers", function () {
 		//expect(12);
 		var ta = this.fixture;
 		var template = stache("<div>" +
 		"{{#each foodTypes}}" +
-		"<p can-click='doSomething'>{{content}}</p>" +
+		"<p ($click)='doSomething(., %element, %event)'>{{content}}</p>" +
 		"{{/each}}" +
 		"</div>");
 
@@ -246,7 +220,7 @@ if(typeof doc.getElementsByClassName === 'function') {
 
 	});
 
-	test("can-event special keys", function() {
+	test("event special keys", function() {
 		expect( 11 );
 
 		var scope = new CanMap({
@@ -259,7 +233,7 @@ if(typeof doc.getElementsByClassName === 'function') {
 		});
 		var template = stache("<div>" +
 		"{{#each foodTypes}}" +
-		"<can-event-args-tester class='with-args' can-click='{withArgs %event %element %viewModel %viewModel.test . title content=content}'/>" +
+		"<can-event-args-tester class='with-args' ($click)='withArgs(%event, %element, %viewModel, %viewModel.test, ., title, content=content)'/>" +
 		"{{/each}}" +
 		"</div>");
 
@@ -367,39 +341,9 @@ if(typeof doc.getElementsByClassName === 'function') {
 	});
 }
 
-test("can-value input text", function () {
+test("{($value)} input text", function () {
 
-	var template = stache("<input can-value='age'/>");
-
-	var map = new CanMap();
-
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var input = ta.getElementsByTagName("input")[0];
-	equal(input.value, "", "input value set correctly if key does not exist in map");
-
-	map.attr("age", "30");
-
-	equal(input.value, "30", "input value set correctly");
-
-	map.attr("age", "31");
-
-	equal(input.value, "31", "input value update correctly");
-
-	input.value = "32";
-
-	canEvent.trigger.call(input, "change");
-
-	equal(map.attr("age"), "32", "updated from input");
-
-});
-
-test("can-value with spaces (#1477)", function () {
-
-	var template = stache("<input can-value='{ age }'/>");
+	var template = stache("<input {($value)}='age'/>");
 
 	var map = new CanMap();
 
@@ -427,41 +371,38 @@ test("can-value with spaces (#1477)", function () {
 
 });
 
-test("can-value input radio", function () {
-	var template = stache(
-		"<input type='radio' can-value='color' value='red'/> Red<br/>" +
-		"<input type='radio' can-value='color' value='green'/> Green<br/>");
+test("{($value)} with spaces (#1477)", function () {
 
-	var map = new CanMap({
-		color: "red"
-	});
+	var template = stache("<input {($value)}=' age '/>");
+
+	var map = new CanMap();
 
 	var frag = template(map);
 
 	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var inputs = ta.getElementsByTagName("input");
+	var input = ta.getElementsByTagName("input")[0];
+	equal(input.value, "", "input value set correctly if key does not exist in map");
 
-	ok(inputs[0].checked, "first input checked");
-	ok(!inputs[1].checked, "second input not checked");
+	map.attr("age", "30");
 
-	map.attr("color", "green");
+	equal(input.value, "30", "input value set correctly");
 
-	ok(!inputs[0].checked, "first notinput checked");
-	ok(inputs[1].checked, "second input checked");
+	map.attr("age", "31");
 
-	inputs[0].checked = true;
-	inputs[1].checked = false;
+	equal(input.value, "31", "input value update correctly");
 
-	canEvent.trigger.call(inputs[0], "change");
+	input.value = "32";
 
-	equal(map.attr("color"), "red", "updated from input");
+	canEvent.trigger.call(input, "change");
+
+	equal(map.attr("age"), "32", "updated from input");
 
 });
 
-test("can-enter", function () {
-	var template = stache("<input can-enter='update'/>");
+test("($enter)", function () {
+	var template = stache("<input ($enter)='update()'/>");
 
 	var called = 0;
 
@@ -488,7 +429,7 @@ test("can-enter", function () {
 
 test("two bindings on one element call back the correct method", function () {
 	expect(2);
-	var template = stache("<input can-mousemove='first' can-click='second'/>");
+	var template = stache("<input ($mousemove)='first()' ($click)='second()'/>");
 
 	var callingFirst = false,
 		callingSecond = false;
@@ -516,369 +457,8 @@ test("two bindings on one element call back the correct method", function () {
 	});
 });
 
-asyncTest("can-value select remove from DOM", function () {
-	expect(1);
-
-	var template = stache(
-		"<select can-value='color'>" +
-		"<option value='red'>Red</option>" +
-		"<option value='green'>Green</option>" +
-		"</select>"),
-		frag = template(),
-		ta = this.fixture;
-
-	domMutate.appendChild.call(ta,frag);
-	domMutate.removeChild.call(ta, ta.firstChild);
-
-	setTimeout(function () {
-		start();
-		ok(true, 'Nothing should break if we just add and then remove the select');
-	}, 10);
-});
-
-test("checkboxes with can-value bind properly (#628)", function () {
-	var data = new CanMap({
-		completed: true
-	}),
-		frag = stache('<input type="checkbox" can-value="completed"/>')(data);
-	domMutate.appendChild.call(this.fixture, frag);
-
-	var input = this.fixture.getElementsByTagName('input')[0];
-	equal(input.checked, data.attr('completed'), 'checkbox value bound (via attr check)');
-	data.attr('completed', false);
-	equal(input.checked, data.attr('completed'), 'checkbox value bound (via attr uncheck)');
-	input.checked = true;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, true, 'checkbox value bound (via check)');
-	equal(data.attr('completed'), true, 'checkbox value bound (via check)');
-	input.checked = false;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, false, 'checkbox value bound (via uncheck)');
-	equal(data.attr('completed'), false, 'checkbox value bound (via uncheck)');
-});
-
-// TODO: next
-test("checkboxes with can-true-value bind properly", function () {
-	var data = new CanMap({
-		sex: "male"
-	}),
-		frag = stache('<input type="checkbox" can-value="sex" can-true-value="male" can-false-value="female"/>')(data);
-
-	domMutate.appendChild.call(this.fixture, frag);
-
-	var input = this.fixture.getElementsByTagName('input')[0];
-	equal(input.checked, true, 'checkbox value bound (via attr check)');
-
-	data.attr('sex', 'female');
-	equal(input.checked, false, 'checkbox value unbound (via attr uncheck)');
-	input.checked = true;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, true, 'checkbox value bound (via check)');
-	equal(data.attr('sex'), 'male', 'checkbox value bound (via check)');
-	input.checked = false;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, false, 'checkbox value bound (via uncheck)');
-	equal(data.attr('sex'), 'female', 'checkbox value bound (via uncheck)');
-});
-
-testIfRealDocument("can-value select single", function () {
-
-	var template = stache(
-		"<select can-value='color'>" +
-		"<option value='red'>Red</option>" +
-		"<option value='green'>Green</option>" +
-		"</select>");
-
-	var map = new CanMap({
-		color: "red"
-	});
-
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var inputs = ta.getElementsByTagName("select");
-
-	equal(inputs[0].value, 'red', "default value set");
-
-	map.attr("color", "green");
-	equal(inputs[0].value, 'green', "alternate value set");
-
-
-	canEach(ta.getElementsByTagName('option'), function (opt) {
-		if (opt.value === 'red') {
-			opt.selected = 'selected';
-		}
-	});
-
-	equal(map.attr("color"), "green", "not yet updated from input");
-	canEvent.trigger.call(inputs[0], "change");
-	equal(map.attr("color"), "red", "updated from input");
-
-	canEach(ta.getElementsByTagName('option'), function (opt) {
-		if (opt.value === 'green') {
-			opt.selected = 'selected';
-		}
-	});
-	equal(map.attr("color"), "red", "not yet updated from input");
-	canEvent.trigger.call(inputs[0], "change");
-	equal(map.attr("color"), "green", "updated from input");
-});
-
-testIfRealDocument("can-value select multiple with values cross bound to an array", function () {
-	var template = stache(
-		"<select can-value='colors' multiple>" +
-		"<option value='red'>Red</option>" +
-		"<option value='green'>Green</option>" +
-		"<option value='ultraviolet'>Ultraviolet</option>" +
-		"</select>");
-
-	var map = new CanMap({});
-
-	stop();
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var select = ta.getElementsByTagName("select")[0],
-		options = select.getElementsByTagName('option');
-
-	// Wait for Multiselect.set() to be called.
-	setTimeout(function(){
-		// Test updating the DOM changes observable values
-		options[0].selected = true;
-		canEvent.trigger.call(select, "change");
-
-		deepEqual(map.attr("colors")
-			.attr(), ["red"], "A CanList property is set even if none existed");
-
-		options[1].selected = true;
-		canEvent.trigger.call(select, "change");
-
-		deepEqual(map.attr("colors")
-			.attr(), ["red", "green"], "Adds items to the list");
-
-		options[0].selected = false;
-		canEvent.trigger.call(select, "change");
-
-		deepEqual(map.attr("colors")
-			.attr(), ["green"], "Removes items from the list");
-
-		// Test changing observable values changes the DOM
-
-		map.attr("colors")
-			.push("ultraviolet");
-		options[0].selected = false;
-		options[1].selected = true;
-		options[2].selected = true;
-
-		ta.removeChild(select);
-
-		start();
-	}, 1);
-});
-
-testIfRealDocument("can-value multiple select with a CanList", function () {
-
-	var template = stache(
-		"<select can-value='colors' multiple>" +
-		"<option value='red'>Red</option>" +
-		"<option value='green'>Green</option>" +
-		"<option value='ultraviolet'>Ultraviolet</option>" +
-		"</select>");
-
-	var list = new CanList();
-
-	stop();
-	var frag = template({
-		colors: list
-	});
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var select = ta.getElementsByTagName("select")[0],
-		options = select.getElementsByTagName('option');
-
-	// Wait for Multiselect.set() to be called.
-	setTimeout(function(){
-		// Test updating the DOM changes observable values
-		options[0].selected = true;
-		canEvent.trigger.call(select, "change");
-
-		deepEqual(list.attr(), ["red"], "A CanList property is set even if none existed");
-
-		options[1].selected = true;
-		canEvent.trigger.call(select, "change");
-
-		deepEqual(list.attr(), ["red", "green"], "Adds items to the list");
-
-		options[0].selected = false;
-		canEvent.trigger.call(select, "change");
-
-		deepEqual(list.attr(), ["green"], "Removes items from the list");
-
-		// Test changing observable values changes the DOM
-
-		list.push("ultraviolet");
-		options[0].selected = false;
-		options[1].selected = true;
-		options[2].selected = true;
-
-		ta.removeChild(select);
-		start();
-	}, 1);
-});
-
-test("can-value contenteditable", function () {
-	var template = stache("<div id='cdiv' contenteditable can-value='age'></div>");
-	var map = new CanMap();
-
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var div = doc.getElementById("cdiv");
-	equal(div.innerHTML, "", "contenteditable set correctly if key does not exist in map");
-
-	map.attr("age", "30");
-
-	equal(div.innerHTML, "30", "contenteditable set correctly");
-
-	map.attr("age", "31");
-
-	equal(div.innerHTML, "31", "contenteditable update correctly");
-
-	div.innerHTML = "32";
-
-	canEvent.trigger.call(div, "blur");
-
-	equal(map.attr("age"), "32", "updated from contenteditable");
-});
-
-test("can-event handlers work with {} (#905)", function () {
-	expect(4);
-	var template = stache("<div>" +
-		"{{#each foodTypes}}" +
-		"<p can-click='{doSomething}'>{{content}}</p>" +
-		"{{/each}}" +
-		"</div>");
-
-	var foodTypes = new CanList([{
-		title: "Fruits",
-		content: "oranges, apples"
-	}, {
-		title: "Breads",
-		content: "pasta, cereal"
-	}, {
-		title: "Sweets",
-		content: "ice cream, candy"
-	}]);
-
-	var doSomething = function (foodType, el, ev) {
-		ok(true, "doSomething called");
-		equal(el.nodeName.toLowerCase(), "p", "this is the element");
-		equal(ev.type, "click", "1st argument is the event");
-		equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
-
-	};
-
-	var frag = template({
-		foodTypes: foodTypes,
-		doSomething: doSomething
-	});
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-	var p0 = ta.getElementsByTagName("p")[0];
-	canEvent.trigger.call(p0, "click");
-
-});
-
-test("can-value works with {} (#905)", function () {
-
-	var template = stache("<input can-value='{age}'/>");
-
-	var map = new CanMap();
-
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var input = ta.getElementsByTagName("input")[0];
-	equal(input.value, "", "input value set correctly if key does not exist in map");
-
-	map.attr("age", "30");
-
-	equal(input.value, "30", "input value set correctly");
-
-	map.attr("age", "31");
-
-	equal(input.value, "31", "input value update correctly");
-
-	input.value = "32";
-
-	canEvent.trigger.call(input, "change");
-
-	equal(map.attr("age"), "32", "updated from input");
-
-});
-
-test("can-value select with null or undefined value (#813)", function () {
-
-	var template = stache(
-		"<select id='null-select' can-value='color-1'>" +
-			"<option value=''>Choose</option>" +
-			"<option value='red'>Red</option>" +
-			"<option value='green'>Green</option>" +
-		"</select>" +
-		"<select id='undefined-select' can-value='color-2'>" +
-			"<option value=''>Choose</option>" +
-			"<option value='red'>Red</option>" +
-			"<option value='green'>Green</option>" +
-		"</select>");
-
-	var map = new CanMap({
-		'color-1': null,
-		'color-2': undefined
-	});
-	stop();
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var nullInput = doc.getElementById("null-select");
-	var nullInputOptions = nullInput.getElementsByTagName('option');
-	var undefinedInput = doc.getElementById("undefined-select");
-	var undefinedInputOptions = undefinedInput.getElementsByTagName('option');
-
-	// wait for set to be called which will change the selects
-	setTimeout(function(){
-		ok(nullInputOptions[0].selected, "default (null) value set");
-		ok(undefinedInputOptions[0].selected, "default (undefined) value set");
-		start();
-	}, 50);
-});
-
-test('radio type conversion (#811)', function(){
-	var data = new CanMap({
-		id: 1
-	}),
-		frag = stache('<input type="radio" can-value="id" value="1"/>')(data);
-
-	domMutate.appendChild.call(this.fixture, frag);
-	var input = this.fixture.getElementsByTagName('input')[0];
-	ok(input.checked, 'checkbox value bound');
-});
-
-
 test("template with view binding breaks in stache, not in mustache (#966)", function(){
-	var templateString = '<a href="javascript://" can-click="select">'+
+	var templateString = '<a href="javascript://" ($click)="select">'+
 							'{{#if thing}}\n<div />{{/if}}'+
 							'<span>{{name}}</span>'+
 						 '</a>';
@@ -893,10 +473,10 @@ test("template with view binding breaks in stache, not in mustache (#966)", func
 
 });
 
-test("can-event throws an error when inside #if block (#1182)", function(){
+test("event throws an error when inside #if block (#1182)", function(){
 	var flag = canCompute(false),
 		clickHandlerCount = 0;
-	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
+	var frag = stache("<div {{#if flag}}($click)='foo()'{{/if}}>Click</div>")({
 		flag: flag,
 		foo: function () {
 			clickHandlerCount++;
@@ -914,11 +494,10 @@ test("can-event throws an error when inside #if block (#1182)", function(){
 	equal(clickHandlerCount, 0, "click handler not called");
 });
 
-// Temporarily skipped until issue #2292 get's resolved
-testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
+testIfRealDocument("($event) removed in live bindings doesn't unbind (#1112)", function(){
 	var flag = canCompute(true),
 		clickHandlerCount = 0;
-	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
+	var frag = stache("<div {{#if flag}}($click)='foo'{{/if}}>Click</div>")({
 		flag: flag,
 		foo: function () {
 			clickHandlerCount++;
@@ -950,7 +529,7 @@ testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", 
 });
 
 test("can-value compute rejects new value (#887)", function() {
-	var template = stache("<input can-value='age'/>");
+	var template = stache("<input {($value)}='age'/>");
 
 	// Compute only accepts numbers
 	var compute = canCompute(30, function(newVal, oldVal) {
@@ -978,45 +557,12 @@ test("can-value compute rejects new value (#887)", function() {
 	equal(input.value, "30", "Text input has also not changed");
 });
 
-testIfRealDocument("can-value select multiple applies initial value, when options rendered from array (#1414)", function () {
-	var template = stache(
-		"<select can-value='colors' multiple>" +
-		"{{#each allColors}}<option value='{{value}}'>{{label}}</option>{{/each}}" +
-		"</select>");
 
-	var map = new CanMap({
-		colors: ["red", "green"],
-		allColors: [
-			{ value: "red", label: "Red"},
-			{ value: "green", label: "Green"},
-			{ value: "blue", label: "Blue"}
-		]
-	});
-
-	stop();
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var select = ta.getElementsByTagName("select")[0],
-		options = select.getElementsByTagName("option");
-
-	// Wait for Multiselect.set() to be called.
-	setTimeout(function(){
-		ok(options[0].selected, "red should be set initially");
-		ok(options[1].selected, "green should be set initially");
-		ok(!options[2].selected, "blue should not be set initially");
-		start();
-	}, 1);
-
-});
-
-test('can-value with truthy and falsy values binds to checkbox (#1478)', function() {
+test('{($checked)} with truthy and falsy values binds to checkbox (#1478)', function() {
 	var data = new CanMap({
 			completed: 1
 		}),
-		frag = stache('<input type="checkbox" can-value="completed"/>')(data);
+		frag = stache('<input type="checkbox" {($checked)}="completed"/>')(data);
 	domMutate.appendChild.call(this.fixture, frag);
 
 	var input = this.fixture.getElementsByTagName('input')[0];
@@ -1025,9 +571,9 @@ test('can-value with truthy and falsy values binds to checkbox (#1478)', functio
 	equal(input.checked, false, 'checkbox value bound (via attr check)');
 });
 
-test("can-EVENT can call intermediate functions before calling the final function (#1474)", function () {
+test("($event) can call intermediate functions before calling the final function (#1474)", function () {
 	var ta = this.fixture;
-	var template = stache("<div id='click-me' can-click='{does.some.thing}'></div>");
+	var template = stache("<div id='click-me' ($click)='does.some.thing(this)'></div>");
 	var frag = template({
 		does: function(){
 			return {
@@ -1048,32 +594,9 @@ test("can-EVENT can call intermediate functions before calling the final functio
 	canEvent.trigger.call(doc.getElementById("click-me"), "click");
 });
 
-test("by default can-EVENT calls with values, not computes", function(){
-	stop();
-	var ta = this.fixture;
-	var template = stache("<div id='click-me' can-click='{map.method one map.two map.three}'></div>");
 
-	var one = canCompute(1);
-	var three = canCompute(3);
-	var MyMap = CanMap.extend({
-		method: function(ONE, two, three){
-			equal(ONE, 1);
-			equal(two, 2);
-			equal(three, 3);
-			equal(this, map, "this set right");
-			start();
-		}
-	});
 
-	var map = new MyMap({"two": 2, "three": three});
-
-	var frag = template({one: one, map: map});
-	ta.appendChild(frag);
-	canEvent.trigger.call(doc.getElementById("click-me"), "click");
-
-});
-
-test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
+test('Conditional ($event) bindings are bound/unbound', 2, function () {
 	var state = new CanMap({
 		enableClick: true,
 		clickHandler: function () {
@@ -1081,7 +604,7 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 		}
 	});
 
-	var template = stache('<button id="find-me" {{#if enableClick}}can-click="{clickHandler}"{{/if}}></button>');
+	var template = stache('<button id="find-me" {{#if enableClick}}($click)="clickHandler()"{{/if}}></button>');
 	var frag = template(state);
 
 	var sandbox = this.fixture;
@@ -1102,72 +625,6 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 			start();
 		}, 100);
 	}, 100);
-});
-
-testIfRealDocument("<select can-value={value}> with undefined value selects option without value", function () {
-
-	var template = stache("<select can-value='opt'><option>Loading...</option></select>");
-
-	var map = new CanMap();
-
-	var frag = template(map);
-
-	var ta = this.fixture;
-	ta.appendChild(frag);
-
-	var select = ta.childNodes.item(0);
-	QUnit.equal(select.selectedIndex, 0, 'Got selected index');
-});
-
-testIfRealDocument("<select can-value> keeps its value as <option>s change with {{#list}} (#1762)", function(){
-
-	var template = stache("<select can-value='{id}'>{{#values}}<option value='{{.}}'>{{.}}</option>{{/values}}</select>");
-	var values = canCompute( ["1","2","3","4"]);
-	var id = canCompute("2");
-	var frag = template({
-		values: values,
-		id: id
-	});
-	stop();
-	var select = frag.firstChild;
-	// the value is set asynchronously
-	setTimeout(function(){
-		ok(select.childNodes.item(1).selected, "value is initially selected");
-
-		values(["7","2","5","4"]);
-
-		ok(select.childNodes.item(1).selected, "after changing options, value should still be selected");
-
-
-		start();
-	},20);
-
-});
-
-testIfRealDocument("<select can-value> keeps its value as <option>s change with {{#each}} (#1762)", function(){
-	var template = stache("<select can-value='{id}'>{{#each values}}<option value='{{.}}'>{{.}}</option>{{/values}}</select>");
-	var values = canCompute( ["1","2","3","4"]);
-	var id = canCompute("2");
-	var frag = template({
-		values: values,
-		id: id
-	});
-	stop();
-	var select = frag.firstChild;
-
-
-	// the value is set asynchronously
-	setTimeout(function(){
-		ok(select.childNodes.item(1).selected, "value is initially selected");
-
-		values(["7","2","5","4"]);
-
-		ok(select.childNodes.item(1).selected, "after changing options, value should still be selected");
-
-
-		start();
-	},20);
-
 });
 
 test("(event) methods on objects are called (#1839)", function(){
@@ -1536,7 +993,7 @@ test("checkboxes with {($checked)} bind properly", function () {
 });
 
 test("two-way element empty value (1996)", function(){
-	var template = stache("<input can-value='age'/>");
+	var template = stache("<input {($value)}='age'/>");
 
 	var map = new CanMap();
 
@@ -1588,7 +1045,7 @@ test("exporting methods (#2051)", function(){
 
 test("renders dynamic custom attributes (#1800)", function () {
 
-	var template = stache("<ul>{{#actions}}<li can-click='{{.}}'>{{.}}</li>{{/actions}}</ul>");
+	var template = stache("<ul>{{#actions}}<li ($click)='{{.}}'>{{.}}</li>{{/actions}}</ul>");
 
 	var map = new CanMap({
 		actions: ["action1", "action2"],
@@ -1806,7 +1263,7 @@ test("select bindings respond to changes immediately or during insert using can-
 		{code: 'RUS', countryName:'RUSSIA'}
 	];
 
-	var template = stache('<select can-value="{countryCode}">'+
+	var template = stache('<select {($value)}="countryCode">'+
 		'{{#each countries}}'+
 			'<option value="{{code}}">{{countryName}}</option>'+
 		'{{/each}}'+
@@ -2221,7 +1678,7 @@ test("Child bindings updated before parent (#2252)", function(){
 
 test("can-value memory leak (#2270)", function () {
 
-	var template = stache('<div><input can-value="foo"></div>');
+	var template = stache('<div><input {($value)}="foo"></div>');
 
 	var vm = new CanMap({foo: ''});
 
@@ -2274,32 +1731,6 @@ test("converters work (#2299)", function(){
 
 });
 
-test("Multi-select empty string works(#1263)", function(){
-
-    var data = {
-        isMultiple: 1,
-        isSelect: 1,
-        name: "attribute_ 0",
-        options: [
-            {label: 'empty', value: ""},
-            {label: 'zero', value: 0},
-            {label: 'one', value: 1},
-            {label: 'two', value: 2},
-            {label: 'three', value: 3},
-            {label: 'four', value: 4}
-        ],
-        value: [1]
-    };
-
-    var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> " +
-        "{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
-
-    frag = template(new CanMap(data));
-
-    equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
-
-});
-
 test("$element is wrapped with types.wrapElement", function(){
 	var $ = function(element){
 		this.element = element;
@@ -2331,50 +1762,17 @@ test("$element is wrapped with types.wrapElement", function(){
 	canEvent.trigger.call(button, "click");
 });
 
-if (System.env.indexOf('production') < 0) {
-	test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
-		var _warn = dev.warn;
-		dev.warn = function() {
-			ok(false, 'dev.warn was called incorrectly');
-			_warn.apply(dev, arguments);
-		};
-		try {
-			delete viewCallbacks._tags["special-attrs"];
-			expect(2);
-			MockComponent.extend({
-				tag: 'special-attrs',
-				viewModel: {
-					foo: "skippy",
-					baz: "xyzzy"
-				}
-			});
-
-			stache("<special-attrs id='{{foo}}' class='{{baz}}'></div>")({foo: "bar", baz: "quux"});
-			stache("<special-attrs id='foo' class='baz'></div>")({foo: "bar", baz: "quux"});
-
-			dev.warn = function() {
-				ok(true, 'dev.warn was called correctly');
-				_warn.apply(dev, arguments);
-			};
-
-			stache("<special-attrs id='{foo}' class='{baz}'></div>")({foo: "bar", baz: "quux"});
-		} finally {
-			dev.warn = _warn;
-		}
-	});
-}
-
 test("one-way pass computes to components with ~", function(assert) {
 	expect(7);
 	MockComponent.extend({
 		tag: "foo-bar"
 	});
 
-	var baseVm = new CanMap({foo : "bar"})
+	var baseVm = new CanMap({foo : "bar"});
 
 	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
 
-	var vm = canViewModel(this.fixture.firstChild)
+	var vm = canViewModel(this.fixture.firstChild);
 
 	ok(vm.attr("compute").isComputed, "Compute returned");
 	equal(vm.attr("compute")(), "bar", "Compute has correct value");
