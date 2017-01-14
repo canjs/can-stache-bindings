@@ -27,7 +27,6 @@ var each  = require('can-util/js/each/each');
 var string = require('can-util/js/string/string');
 var dev = require('can-util/js/dev/dev');
 var types = require('can-types');
-var last = require('can-util/js/last/last');
 
 var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
@@ -547,7 +546,6 @@ var attr = require('can-util/dom/attr/attr');
 		}
 	};
 
-	var DOUBLE_CURLY_BRACE_REGEX = /\{\{/g;
 	// ## getBindingInfo
 	// takes a node object like {name, value} and returns
 	// an object with information about that binding.
@@ -569,46 +567,7 @@ var attr = require('can-util/dom/attr/attr');
 		// Does this match the new binding syntax?
 		var matches = attributeName.match(bindingsRegExp);
 		if(!matches) {
-			var ignoreAttribute = ignoreAttributesRegExp.test(attributeName);
-			var vmName = string.camelize(attributeName);
-
-			//!steal-remove-start
-			// user tried to pass something like id="{foo}", so give them a good warning
-			// Something like id="{{foo}}" is ok, though. (not a binding)
-			if(ignoreAttribute && node.value.replace(DOUBLE_CURLY_BRACE_REGEX, "").indexOf("{") > -1) {
-				dev.warn("can-component: looks like you're trying to pass "+attributeName+" as an attribute into a component, "+
-				"but it is not a supported attribute");
-			}
-			//!steal-remove-end
-
-			// if this is handled by another binding or a attribute like `id`.
-			if ( ignoreAttribute || viewCallbacks.attr(attributeName) ) {
-				return;
-			}
-			var syntaxRight = attributeValue[0] === "{" && last(attributeValue) === "}";
-			var isAttributeToChild = !syntaxRight;
-			var scopeName = syntaxRight ? attributeValue.substr(1, attributeValue.length - 2 ) : attributeValue;
-			if(isAttributeToChild) {
-				return {
-					bindingAttributeName: attributeName,
-					parent: "attribute",
-					parentName: attributeName,
-					child: "viewModel",
-					childName: vmName,
-					parentToChild: true,
-					childToParent: true
-				};
-			} else {
-				return {
-					bindingAttributeName: attributeName,
-					parent: "scope",
-					parentName: scopeName,
-					child: "viewModel",
-					childName: vmName,
-					parentToChild: true,
-					childToParent: true
-				};
-			}
+			return;
 		}
 
 		var twoWay = !!matches[1],
@@ -626,7 +585,8 @@ var attr = require('can-util/dom/attr/attr');
 				bindingAttributeName: attributeName,
 				childName: childName.substr(1),
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: true,
+				syncChildWithParent: twoWay
 			};
 			if(tagName === "select") {
 				bindingInfo.stickyParentToChild = true;
@@ -641,7 +601,8 @@ var attr = require('can-util/dom/attr/attr');
 				bindingAttributeName: attributeName,
 				childName: string.camelize(childName),
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: true,
+				syncChildWithParent: twoWay
 			};
 			if(attributeValue.trim().charAt(0) === "~") {
 				bindingInfo.stickyParentToChild = true;
@@ -651,8 +612,7 @@ var attr = require('can-util/dom/attr/attr');
 
 	};
 	// Regular expressions for getBindingInfo
-	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
-		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i;
+	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/;
 
 
 	// ## makeDataBinding
@@ -728,7 +688,7 @@ var attr = require('can-util/dom/attr/attr');
 			if(bindingInfo.childToParent){
 				// setup listening on parent and forwarding to viewModel
 				updateParent = bind.childToParent(el, parentCompute, childCompute, bindingData.semaphore, bindingInfo.bindingAttributeName,
-					bindingData.syncChildWithParent);
+					bindingInfo.syncChildWithParent);
 			}
 			// the child needs to be bound even if
 			else if(bindingInfo.stickyParentToChild) {
