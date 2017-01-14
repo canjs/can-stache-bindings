@@ -1,6 +1,6 @@
 {
   "name": "can-stache-bindings",
-  "version": "4.0.0-pre.1",
+  "version": "4.0.0-pre.0",
   "description": "Default binding syntaxes for can-stache",
   "homepage": "http://canjs.com",
   "author": {
@@ -11,7 +11,7 @@
   "scripts": {
     "preversion": "npm test && npm run build",
     "version": "git commit -am \"Update dist for release\" && git checkout -b release && git add -f dist/",
-    "postversion": "git push --tags && git checkout master && git branch -D release && git push",
+    "postversion": "git push --tags && git checkout major && git branch -D release && git push",
     "testee": "testee test/test.html --browsers firefox",
     "test": "npm run jshint && npm run testee",
     "jshint": "jshint ./*.js --config",
