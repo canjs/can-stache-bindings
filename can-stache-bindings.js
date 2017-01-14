@@ -242,11 +242,8 @@ var attr = require('can-util/dom/attr/attr');
 			// The attribute name is the name of the event.
 			var attributeName = data.attributeName,
 			// The old way of binding is can-X
-				legacyBinding = attributeName.indexOf('can-') === 0,
-				event = attributeName.indexOf('can-') === 0 ?
-					attributeName.substr("can-".length) :
-					removeBrackets(attributeName, '(', ')'),
-				onBindElement = legacyBinding;
+				event = removeBrackets(attributeName, '(', ')'),
+				onBindElement;
 
 			if(event.charAt(0) === "$") {
 				event = event.substr(1);
@@ -335,78 +332,6 @@ var attr = require('can-util/dom/attr/attr');
 				}
 			};
 			canEvent.on.call(el, 'attributes', attributesHandler);
-		},
-		// ### bindings.behaviors.value
-		// Behavior for the deprecated can-value
-		value: function(el, data) {
-			var propName = "$value",
-				attrValue = removeBrackets(el.getAttribute("can-value")).trim(),
-				nodeName = el.nodeName.toLowerCase(),
-				elType = nodeName === "input" && (el.type || el.getAttribute("type")),
-				getterSetter;
-
-			if (nodeName === "input" && (elType === "checkbox" || elType === "radio")) {
-
-				var property = getComputeFrom.scope(el, data.scope, attrValue, {}, true);
-				if (el.type === "checkbox") {
-
-					var trueValue = attr.has(el, "can-true-value") ? el.getAttribute("can-true-value") : true,
-						falseValue = attr.has(el, "can-false-value") ? el.getAttribute("can-false-value") : false;
-
-					getterSetter = compute(function(newValue){
-						// jshint eqeqeq: false
-						if(arguments.length) {
-							property(newValue ? trueValue : falseValue);
-						}
-						else {
-							return property() == trueValue;
-						}
-					});
-				}
-				else if(elType === "radio") {
-					// radio is two-way bound to if the property value
-					// equals the element value
-
-					getterSetter = compute(function(newValue){
-						// jshint eqeqeq: false
-						if(arguments.length) {
-							if( newValue ) {
-								property(el.value);
-							}
-						}
-						else {
-							return property() == el.value;
-						}
-					});
-
-				}
-				propName = "$checked";
-				attrValue = "getterSetter";
-				data.scope = new Scope({
-					getterSetter: getterSetter
-				});
-			}
-			// For contenteditable elements, we instantiate a Content control.
-			else if (isContentEditable(el)) {
-				propName = "$innerHTML";
-			}
-
-			var dataBinding = makeDataBinding({
-				name: "{(" + propName + "})",
-				value: attrValue
-			}, el, {
-				templateType: data.templateType,
-				scope: data.scope,
-				semaphore: {},
-				initializeValues: true,
-				legacyBindings: true,
-				syncChildWithParent: true
-			});
-
-			canEvent.one.call(el, "removed", function(){
-				dataBinding.onTeardown();
-			});
-
 		}
 	};
 
@@ -433,11 +358,6 @@ var attr = require('can-util/dom/attr/attr');
 	viewCallbacks.attr(/^\{.+\)$/, syntaxWarning);
 	viewCallbacks.attr(/^\(\{.+\}\)$/, syntaxWarning);
 	//!steal-remove-end
-
-
-	// Legacy bindings.
-	viewCallbacks.attr(/can-[\w\.]+/, behaviors.event);
-	viewCallbacks.attr("can-value", behaviors.value);
 
 
 	// ## getComputeFrom
@@ -530,12 +450,7 @@ var attr = require('can-util/dom/attr/attr');
 				isMultiselectValue = prop === "value" && hasChildren && el.multiple,
 				// Sets the element property or attribute.
 				set = function(newVal){
-					if(bindingData.legacyBindings && hasChildren &&
-						 ("selectedIndex" in el) && prop === "value") {
-						attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
-					} else {
-						attr.setAttrOrProp(el, prop, newVal);
-					}
+					attr.setAttrOrProp(el, prop, newVal);
 
 					return newVal;
 				},
@@ -671,7 +586,7 @@ var attr = require('can-util/dom/attr/attr');
 				return;
 			}
 			var syntaxRight = attributeValue[0] === "{" && last(attributeValue) === "}";
-			var isAttributeToChild = templateType === "legacy" ? attributeViewModelBindings[vmName] : !syntaxRight;
+			var isAttributeToChild = !syntaxRight;
 			var scopeName = syntaxRight ? attributeValue.substr(1, attributeValue.length - 2 ) : attributeValue;
 			if(isAttributeToChild) {
 				return {
@@ -898,44 +813,7 @@ var attr = require('can-util/dom/attr/attr');
 	}
 
 
-	// ## isContentEditable
-	// Determines if an element is contenteditable.
-	// An element is contenteditable if it contains the `contenteditable`
-	// attribute set to either an empty string or "true".
-	// By default an element is also contenteditable if its immediate parent
-	// has a truthy version of the attribute, unless the element is explicitly
-	// set to "false".
-	var isContentEditable = (function(){
-		// A contenteditable element has a value of an empty string or "true"
-		var values = {
-			"": true,
-			"true": true,
-			"false": false
-		};
-
-		// Tests if an element has the appropriate contenteditable attribute
-		var editable = function(el){
-			// DocumentFragments do not have a getAttribute
-			if(!el || !el.getAttribute) {
-				return;
-			}
-
-			var attr = el.getAttribute("contenteditable");
-			return values[attr];
-		};
-
-		return function (el){
-			// First check if the element is explicitly true or false
-			var val = editable(el);
-			if(typeof val === "boolean") {
-				return val;
-			} else {
-				// Otherwise, check the parent
-				return !!editable(el.parentNode);
-			}
-		};
-	})(),
-		removeBrackets = function(value, open, close){
+	var removeBrackets = function(value, open, close){
 			open = open || "{";
 			close = close || "}";
 
