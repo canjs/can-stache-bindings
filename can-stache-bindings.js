@@ -276,12 +276,6 @@ var attr = require('can-util/dom/attr/attr');
 
 					// make a scope with these things just under
 					var localScope = data.scope.add({
-						"@element": el,
-						"@event": ev,
-						"@viewModel": viewModel,
-						"@scope": data.scope,
-						"@context": data.scope._context,
-
 						"%element": this,
 						"$element": types.wrapElement(el),
 						"%event": ev,

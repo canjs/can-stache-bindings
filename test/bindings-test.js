@@ -246,7 +246,9 @@ if(typeof doc.getElementsByClassName === 'function') {
 
 	});
 
-	test("can-event special keys", function(){
+	test("can-event special keys", function() {
+		expect( 11 );
+
 		var scope = new CanMap({
 			test: "testval"
 		});
@@ -257,15 +259,20 @@ if(typeof doc.getElementsByClassName === 'function') {
 		});
 		var template = stache("<div>" +
 		"{{#each foodTypes}}" +
-		"<can-event-args-tester class='with-args' can-click='{withArgs @event @element @viewModel @viewModel.test . title content=content}'/>" +
+		"<can-event-args-tester class='with-args' can-click='{withArgs %event %element %viewModel %viewModel.test . title content=content}'/>" +
 		"{{/each}}" +
 		"</div>");
 
 		function withArgs(ev1, el1, compScope, testVal, context, title, hash) {
 			ok(true, "withArgs called");
-			equal(el1.nodeName.toLowerCase(), "can-event-args-tester", "@element is the event's DOM element");
-			equal(ev1.type, "click", "@event is the click event");
-			equal(scope, compScope, "Component scope accessible through @viewModel");
+
+			ok(ev1);
+			ok(el1);
+			ok(compScope);
+
+			equal(el1.nodeName.toLowerCase(), "can-event-args-tester", "%element is the event's DOM element");
+			equal(ev1.type, "click", "%event is the click event");
+			equal(scope, compScope, "Component scope accessible through %viewModel");
 			equal(testVal, scope.attr("test"), "Attributes accessible");
 			equal(context.title, foodTypes[0].title, "Context passed in");
 			equal(title, foodTypes[0].title, "Title passed in");
@@ -282,8 +289,8 @@ if(typeof doc.getElementsByClassName === 'function') {
 		canEvent.trigger.call(p0, "click");
 	});
 
-	test("(event) handlers", 12, function () {
-		//expect(12);
+	test("(event) handlers", function () {
+		expect(15);
 		var ta = this.fixture;
 		var template = stache("<div>" +
 		"{{#each foodTypes}}" +
@@ -330,14 +337,19 @@ if(typeof doc.getElementsByClassName === 'function') {
 
 		template = stache("<div>" +
 		"{{#each foodTypes}}" +
-		"<fancy-event-args-tester class='with-args' ($click)='withArgs @event @element @viewModel @viewModel.test . title content=content'/>" +
+		"<fancy-event-args-tester class='with-args' ($click)='withArgs %event %element %viewModel %viewModel.test . title content=content'/>" +
 		"{{/each}}" +
 		"</div>");
 		function withArgs(ev1, el1, compScope, testVal, context, title, hash) {
 			ok(true, "withArgs called");
-			equal(el1.nodeName.toLowerCase(), "fancy-event-args-tester", "@element is the event's DOM element");
-			equal(ev1.type, "click", "@event is the click event");
-			equal(scope, compScope, "Component scope accessible through @viewModel");
+
+			ok(ev1);
+			ok(el1);
+			ok(compScope);
+
+			equal(el1.nodeName.toLowerCase(), "fancy-event-args-tester", "%element is the event's DOM element");
+			equal(ev1.type, "click", "%event is the click event");
+			equal(scope, compScope, "Component scope accessible through %viewModel");
 			equal(testVal, scope.attr("test"), "Attributes accessible");
 			equal(context.title, foodTypes[0].title, "Context passed in");
 			equal(title, foodTypes[0].title, "Title passed in");
