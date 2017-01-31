@@ -30,8 +30,7 @@ Listens to an event on the element’s [can-component::ViewModel ViewModel] and 
 <my-component (show)="doSomething()"/>
 ```
 
-@param {String} DOM_EVENT A DOM event name like "click". jQuery custom events can also
-be given.
+@param {String} VIEW_MODEL_EVENT << TODO >> Talk about VIEW_MODEL_EVENT parameter
 
 @param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `DOM_EVENT`
 is fired. The following key values are also supported:
