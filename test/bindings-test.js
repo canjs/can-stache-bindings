@@ -2429,3 +2429,58 @@ test("%arguments gives the event arguments", function(){
 });
 
 }
+
+test("updates happen on two-way even when one binding is satisfied", function() {
+	var template = stache('<input {($value)}="firstName"/>');
+
+	var ViewModel = DefaultMap.extend({
+		set firstName(newValue) {
+			if(newValue) {
+				return newValue.toLowerCase();
+			}
+		}
+	});
+	var viewModel = new ViewModel({ firstName: "jeffrey" });
+
+	var frag = template(viewModel);
+	domMutate.appendChild.call(this.fixture, frag);
+	equal(this.fixture.firstChild.value, "jeffrey");
+
+	this.fixture.firstChild.value = "JEFFREY";
+	canEvent.trigger.call(this.fixture.firstChild, "change");
+	equal(this.fixture.firstChild.value, "jeffrey");
+});
+
+test("updates happen on changed two-way even when one binding is satisfied", function() {
+	stop();
+	var template = stache('<input {($value)}="{{bindValue}}"/>');
+
+	var ViewModel = DefaultMap.extend({
+		set firstName(newValue) {
+			if(newValue) {
+				return newValue.toLowerCase();
+			}
+		},
+		set lastName(newValue) {
+			if(newValue) {
+				return newValue.toLowerCase();
+			}
+		},
+		bindValue: "string"
+	});
+	var viewModel = new ViewModel({ firstName: "Jeffrey", lastName: "King", bindValue: "firstName" });
+
+	var frag = template(viewModel);
+	domMutate.appendChild.call(this.fixture, frag);
+	equal(this.fixture.firstChild.value, "jeffrey");
+
+	viewModel.bindValue = "lastName";
+	setTimeout(function() {
+		equal(this.fixture.firstChild.value, "king");
+
+		this.fixture.firstChild.value = "KING";
+		canEvent.trigger.call(this.fixture.firstChild, "change");
+		equal(this.fixture.firstChild.value, "king");
+		start();
+	}.bind(this), 10);
+});
