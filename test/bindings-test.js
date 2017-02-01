@@ -2482,5 +2482,5 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 		canEvent.trigger.call(this.fixture.firstChild, "change");
 		equal(this.fixture.firstChild.value, "king");
 		start();
-	}.bind(this), 10);
+	}.bind(this), 100);
 });
