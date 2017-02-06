@@ -236,6 +236,18 @@ if (System.env !== 'canjs-test') {
 	});
 }
 
+function makeKeyboardEvent() {
+	try {
+		// IE doesn't support this syntax (Edge does, other evergreen browsers do)
+		var event = new KeyboardEvent("keyup",{key: "Enter"});
+		return event;
+	} catch(e) {
+		event = document.createEvent("KeyboardEvent");
+		event.initKeyboardEvent("keyup", true, false, document.parentWindow, "Enter", 16, "", false, "en-US");
+		return event;
+	}
+}
+
 var supportsKeyboardEvents = (function(){
 	if(typeof KeyboardEvent !== "undefined") {
 		var supports = false;
@@ -243,9 +255,7 @@ var supportsKeyboardEvents = (function(){
 		el.addEventListener("keyup", function(ev){
 			supports = (ev.key === "Enter");
 		});
-		var event = new KeyboardEvent("keyup",{key: "Enter"});
-		el.dispatchEvent(event);
-		return supports;
+		el.dispatchEvent(makeKeyboardEvent());
 	} else {
 		return false;
 	}
@@ -264,7 +274,7 @@ if(supportsKeyboardEvents) {
 		});
 		var input = frag.firstChild;
 
-		var event = new KeyboardEvent("keyup",{key: "Enter"});
+		var event = makeKeyboardEvent();
 		input.dispatchEvent(event);
 	});
 }
