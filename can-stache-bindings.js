@@ -464,7 +464,6 @@ var attr = require('can-util/dom/attr/attr');
 						scope.attr(cleanVMName(scopeProp), newVal);
 					};
 				}
-
 			}
 
 		},
@@ -600,7 +599,15 @@ var attr = require('can-util/dom/attr/attr');
 					// is on a plain JS object. This updates the observable to match whatever the
 					// new value is.
 					else if(types.isMapLike(parentCompute)) {
-						parentCompute.attr(newVal, true);
+						// !steal-dev-start
+						var attrValue = el.getAttribute(attrName);
+						dev.warn("can/view/bindings/bindings.js: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
+						// !steal-dev-end
+						(parentCompute.set || parentCompute.attr).call(
+							parentCompute,
+							newVal.serialize ? newVal.serialize() : newVal,
+							true
+						);
 					}
 				}
 			};
