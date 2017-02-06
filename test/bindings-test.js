@@ -1601,7 +1601,7 @@ if (System.env.indexOf('production') < 0) {
 	test("warning on a mismatched quote (#1995)", function () {
 		expect(4);
 		var oldlog = dev.warn,
-			message = 'can/view/bindings/bindings.js: mismatched binding syntax - (foo}';
+			message = 'can-stache-bindings: mismatched binding syntax - (foo}';
 
 		dev.warn = function (text) {
 			equal(text, message, 'Got expected message logged.');
@@ -1609,13 +1609,13 @@ if (System.env.indexOf('production') < 0) {
 
 		stache("<div (foo}='bar'/>")();
 
-		message = 'can/view/bindings/bindings.js: mismatched binding syntax - {foo)';
+		message = 'can-stache-bindings: mismatched binding syntax - {foo)';
 		stache("<div {foo)='bar'/>")();
 
-		message = 'can/view/bindings/bindings.js: mismatched binding syntax - {(foo})';
+		message = 'can-stache-bindings: mismatched binding syntax - {(foo})';
 		stache("<div {(foo})='bar'/>")();
 
-		message = 'can/view/bindings/bindings.js: mismatched binding syntax - ({foo})';
+		message = 'can-stache-bindings: mismatched binding syntax - ({foo})';
 		stache("<div ({foo})='bar'/>")();
 
 
@@ -2437,7 +2437,7 @@ if (System.env.indexOf('production') < 0) {
 		var useCanMap = true;
 
 		var oldlog = dev.warn,
-			message = 'can/view/bindings/bindings.js: Merging {(foo)} into bar because its parent is non-observable';
+			message = 'can-stache-bindings: Merging {(foo)} into bar because its parent is non-observable';
 
 		dev.warn = function (text) {
 			equal(text, message, 'Got expected message logged.');

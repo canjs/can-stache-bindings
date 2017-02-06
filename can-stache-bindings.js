@@ -1,4 +1,4 @@
-// # can/view/bindings/bindings.js
+// # can-stache-bindings.js
 //
 // This module provides CanJS's default data and event bindings.
 // It's broken up into several parts:
@@ -306,7 +306,7 @@ var attr = require('can-util/dom/attr/attr');
 						});
 
 						//!steal-remove-start
-						dev.warn("can/view/bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
+						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
 							element: el,
 							scope: data.scope
 						});
@@ -433,7 +433,7 @@ var attr = require('can-util/dom/attr/attr');
 
 	//!steal-remove-start
 	function syntaxWarning(el, attrData) {
-		dev.warn('can/view/bindings/bindings.js: mismatched binding syntax - ' + attrData.attributeName);
+		dev.warn('can-stache-bindings: mismatched binding syntax - ' + attrData.attributeName);
 	}
 	viewCallbacks.attr(/^\(.+\}$/, syntaxWarning);
 	viewCallbacks.attr(/^\{.+\)$/, syntaxWarning);
@@ -601,7 +601,7 @@ var attr = require('can-util/dom/attr/attr');
 					else if(types.isMapLike(parentCompute)) {
 						// !steal-dev-start
 						var attrValue = el.getAttribute(attrName);
-						dev.warn("can/view/bindings/bindings.js: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
+						dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
 						// !steal-dev-end
 						(parentCompute.set || parentCompute.attr).call(
 							parentCompute,
