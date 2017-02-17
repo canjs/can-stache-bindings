@@ -1293,6 +1293,18 @@ test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbo
 	equal(input.checked, false, 'checkbox value bound (via attr check)');
 });
 
+test('one-way - DOM - {$checked} with undefined (#135)', function() {
+	var data = new CanMap({
+			completed: undefined
+		}),
+		frag = stache('<input type="checkbox" {$checked}="completed"/>')(data);
+
+	domMutate.appendChild.call(this.fixture, frag);
+
+	var input = this.fixture.getElementsByTagName('input')[0];
+	equal(input.checked, false, 'checkbox value should be false for undefined');
+});
+
 test('two-way - reference - {(child)}="*ref" (#1700)', function(){
 	var data = new CanMap({person: {name: {}}});
 	MockComponent.extend({
