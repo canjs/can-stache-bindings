@@ -73,7 +73,7 @@ QUnit.module(name, {
 			start();
 			DOCUMENT(DOC);
 			MUTATION_OBSERVER(MUT_OBS);
-		},1);
+		}, 50);
 	}
 });
 
