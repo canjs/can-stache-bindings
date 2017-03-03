@@ -67,13 +67,9 @@ QUnit.module(name, {
 			doc.body.removeChild(this.fixture);
 		}
 
-		stop();
-		setTimeout(function(){
-			types.DefaultMap = DefaultMap;
-			start();
-			DOCUMENT(DOC);
-			MUTATION_OBSERVER(MUT_OBS);
-		},1);
+		types.DefaultMap = DefaultMap;
+		DOCUMENT(DOC);
+		MUTATION_OBSERVER(MUT_OBS);
 	}
 });
 
@@ -504,7 +500,8 @@ test("two bindings on one element call back the correct method", function () {
 	});
 });
 
-asyncTest("can-value select remove from DOM", function () {
+test("can-value select remove from DOM", function () {
+	stop();
 	expect(1);
 
 	var template = stache(
@@ -1265,18 +1262,29 @@ test("two-way - DOM - input text (#1700)", function () {
 
 	map.attr("age", "30");
 
-	equal(input.value, "30", "input value set correctly");
+	stop();
+	setTimeout(function() {
+		start();
+		equal(input.value, "30", "input value set correctly");
 
-	map.attr("age", "31");
+		map.attr("age", "31");
 
-	equal(input.value, "31", "input value update correctly");
+		stop();
+		setTimeout(function() {
+			start();
+			equal(input.value, "31", "input value update correctly");
 
-	input.value = "32";
+			input.value = "32";
 
-	canEvent.trigger.call(input, "change");
+			canEvent.trigger.call(input, "change");
 
-	equal(map.attr("age"), "32", "updated from input");
-
+			stop();
+			setTimeout(function() {
+				start();
+				equal(map.attr("age"), "32", "updated from input");
+			}, 10);
+		}, 10);
+	}, 10);
 });
 
 test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbox (#1700)', function() {
@@ -1290,7 +1298,12 @@ test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbo
 	var input = this.fixture.getElementsByTagName('input')[0];
 	equal(input.checked, true, 'checkbox value bound (via attr check)');
 	data.attr('completed', 0);
-	equal(input.checked, false, 'checkbox value bound (via attr check)');
+	stop();
+
+	setTimeout(function() {
+		start();
+		equal(input.checked, false, 'checkbox value bound (via attr check)');
+	}, 10);
 });
 
 test('two-way - reference - {(child)}="*ref" (#1700)', function(){
@@ -1515,12 +1528,24 @@ test("checkboxes with {($checked)} bind properly", function () {
 	equal(input.checked, data.attr('completed'), 'checkbox value bound (via attr uncheck)');
 	input.checked = true;
 	canEvent.trigger.call(input, 'change');
-	equal(input.checked, true, 'checkbox value bound (via check)');
-	equal(data.attr('completed'), true, 'checkbox value bound (via check)');
-	input.checked = false;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, false, 'checkbox value bound (via uncheck)');
-	equal(data.attr('completed'), false, 'checkbox value bound (via uncheck)');
+
+	stop();
+	setTimeout(function() {
+		start();
+
+		equal(input.checked, true, 'checkbox value bound (via check)');
+		equal(data.attr('completed'), true, 'checkbox value bound (via check)');
+		input.checked = false;
+		canEvent.trigger.call(input, 'change');
+
+		stop();
+		setTimeout(function() {
+			start();
+
+			equal(input.checked, false, 'checkbox value bound (via uncheck)');
+			equal(data.attr('completed'), false, 'checkbox value bound (via uncheck)');
+		}, 10);
+	}, 10);
 });
 
 test("two-way element empty value (1996)", function(){
@@ -1743,17 +1768,19 @@ if (System.env !== 'canjs-test') {
 		stop();
 		map.attr('propName','last');
 		setTimeout(function(){
-
+			start();
 			equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
 			input.value = "Lueke";
-
 			canEvent.trigger.call(input, "change");
 
-			equal(map.attr("last"), "Lueke", "updated from input");
+			stop();
 
-			start();
-		},10);
+			setTimeout(function() {
+				start();
+				equal(map.attr("last"), "Lueke", "updated from input");
+			}, 50);
+		}, 50);
 
 	});
 }
@@ -2149,7 +2176,11 @@ test("double render with batched / unbatched events (#2223)", function(){
 	appVM.attr('notAHelper', 'bar');
 
 
-	equal(logCalls, 1, "input rendered the right number of times");
+	stop();
+	setTimeout(function() {
+		start();
+		equal(logCalls, 1, "input rendered the right number of times");
+	}, 10);
 });
 
 
@@ -2257,8 +2288,12 @@ test("converters work (#2299)", function(){
 
  	canEvent.trigger.call(frag.firstChild,"change");
 
- 	equal(frag.firstChild.value, "1");
- 	equal(map.attr("age"), 1);
+	stop();
+	setTimeout(function() {
+		start();
+		equal(frag.firstChild.value, "1");
+		equal(map.attr("age"), 1);
+	}, 10);
 
 });
 
