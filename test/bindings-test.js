@@ -1769,8 +1769,8 @@ testIfRealDocument("two way bound select empty string null or undefined value (#
 });
 
 if (System.env !== 'canjs-test') {
-	test("dynamic attribute bindings (#2016)", function(){
-
+	test("dynamic attribute bindings (#2016)", function(assert){
+		var done = assert.async();
 		var template = stache("<input {($value)}='{{propName}}'/>");
 
 		var map = new CanMap({propName: 'first', first: "Justin", last: "Meyer"});
@@ -1781,25 +1781,21 @@ if (System.env !== 'canjs-test') {
 		ta.appendChild(frag);
 
 		var input = ta.getElementsByTagName("input")[0];
-		equal(input.value, "Justin", "input value set correctly if key does not exist in map");
+		setTimeout(function () {
+			equal(input.value, "Justin", "input value set correctly if key does not exist in map");
+			map.attr('propName','last');
+			setTimeout(function(){
+				equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
-		stop();
-		map.attr('propName','last');
-		setTimeout(function(){
-			start();
-			equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
+				input.value = "Lueke";
+				canEvent.trigger.call(input, "change");
 
-			input.value = "Lueke";
-			canEvent.trigger.call(input, "change");
-
-			stop();
-
-			setTimeout(function() {
-				start();
-				equal(map.attr("last"), "Lueke", "updated from input");
+				setTimeout(function() {
+					equal(map.attr("last"), "Lueke", "updated from input");
+					done();
+				}, 50);
 			}, 50);
 		}, 50);
-
 	});
 }
 
