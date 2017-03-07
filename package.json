@@ -41,7 +41,7 @@
     "can-view-callbacks": "^3.0.0",
     "can-view-live": "^3.0.0",
     "can-view-model": "^3.0.0",
-    "can-view-scope": "^3.0.0"
+    "can-view-scope": "3.1.3"
   },
   "devDependencies": {
     "bit-docs": "0.0.7",
