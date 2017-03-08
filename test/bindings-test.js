@@ -67,9 +67,13 @@ QUnit.module(name, {
 			doc.body.removeChild(this.fixture);
 		}
 
-		types.DefaultMap = DefaultMap;
-		DOCUMENT(DOC);
-		MUTATION_OBSERVER(MUT_OBS);
+		stop();
+		setTimeout(function() {
+			start();
+			types.DefaultMap = DefaultMap;
+			DOCUMENT(DOC);
+			MUTATION_OBSERVER(MUT_OBS);
+		}, 1);
 	}
 });
 
@@ -550,20 +554,24 @@ test("checkboxes with can-true-value bind properly", function () {
 		frag = stache('<input type="checkbox" can-value="sex" can-true-value="male" can-false-value="female"/>')(data);
 
 	domMutate.appendChild.call(this.fixture, frag);
-
 	var input = this.fixture.getElementsByTagName('input')[0];
-	equal(input.checked, true, 'checkbox value bound (via attr check)');
 
-	data.attr('sex', 'female');
-	equal(input.checked, false, 'checkbox value unbound (via attr uncheck)');
-	input.checked = true;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, true, 'checkbox value bound (via check)');
-	equal(data.attr('sex'), 'male', 'checkbox value bound (via check)');
-	input.checked = false;
-	canEvent.trigger.call(input, 'change');
-	equal(input.checked, false, 'checkbox value bound (via uncheck)');
-	equal(data.attr('sex'), 'female', 'checkbox value bound (via uncheck)');
+	stop();
+	setTimeout(function() {
+		start();
+		equal(input.checked, true, 'checkbox value bound (via attr check)');
+
+		data.attr('sex', 'female');
+		equal(input.checked, false, 'checkbox value unbound (via attr uncheck)');
+		input.checked = true;
+		canEvent.trigger.call(input, 'change');
+		equal(input.checked, true, 'checkbox value bound (via check)');
+		equal(data.attr('sex'), 'male', 'checkbox value bound (via check)');
+		input.checked = false;
+		canEvent.trigger.call(input, 'change');
+		equal(input.checked, false, 'checkbox value bound (via uncheck)');
+		equal(data.attr('sex'), 'female', 'checkbox value bound (via uncheck)');
+	}, 10);
 });
 
 testIfRealDocument("can-value select single", function () {
@@ -1690,19 +1698,29 @@ testIfRealDocument('two-way bound values that do not match a select option set s
 	equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
 
 	map.attr('key', 'notfoo');
-	equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
+	stop();
 
-	map.attr('key', 'foo');
-	strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
+	setTimeout(function() {
+		start();
+		equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
 
-	map.attr('key', 'notbar');
-	equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
+		map.attr('key', 'foo');
+		strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
 
-	map.attr('key', 'bar');
-	strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
+		map.attr('key', 'notbar');
+		stop();
 
-	map.attr('key', 'bar');
-	strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
+		setTimeout(function() {
+			start();
+			equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
+
+			map.attr('key', 'bar');
+			strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
+
+			map.attr('key', 'bar');
+			strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
+		}, 10);
+	}, 10);
 });
 
 testIfRealDocument("two way bound select empty string null or undefined value (#2027)", function () {
@@ -1751,8 +1769,8 @@ testIfRealDocument("two way bound select empty string null or undefined value (#
 });
 
 if (System.env !== 'canjs-test') {
-	test("dynamic attribute bindings (#2016)", function(){
-
+	test("dynamic attribute bindings (#2016)", function(assert){
+		var done = assert.async();
 		var template = stache("<input {($value)}='{{propName}}'/>");
 
 		var map = new CanMap({propName: 'first', first: "Justin", last: "Meyer"});
@@ -1763,25 +1781,21 @@ if (System.env !== 'canjs-test') {
 		ta.appendChild(frag);
 
 		var input = ta.getElementsByTagName("input")[0];
-		equal(input.value, "Justin", "input value set correctly if key does not exist in map");
+		setTimeout(function () {
+			equal(input.value, "Justin", "input value set correctly if key does not exist in map");
+			map.attr('propName','last');
+			setTimeout(function(){
+				equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
-		stop();
-		map.attr('propName','last');
-		setTimeout(function(){
-			start();
-			equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
+				input.value = "Lueke";
+				canEvent.trigger.call(input, "change");
 
-			input.value = "Lueke";
-			canEvent.trigger.call(input, "change");
-
-			stop();
-
-			setTimeout(function() {
-				start();
-				equal(map.attr("last"), "Lueke", "updated from input");
+				setTimeout(function() {
+					equal(map.attr("last"), "Lueke", "updated from input");
+					done();
+				}, 50);
 			}, 50);
 		}, 50);
-
 	});
 }
 
