@@ -238,14 +238,18 @@ if (System.env !== 'canjs-test') {
 
 var supportsKeyboardEvents = (function(){
 	if(typeof KeyboardEvent !== "undefined") {
-		var supports = false;
-		var el = document.createElement("div");
-		el.addEventListener("keyup", function(ev){
-			supports = (ev.key === "Enter");
-		});
-		var event = new KeyboardEvent("keyup",{key: "Enter"});
-		el.dispatchEvent(event);
-		return supports;
+		try {
+			var supports = false;
+			var el = document.createElement("div");
+			el.addEventListener("keyup", function(ev){
+				supports = (ev.key === "Enter");
+			});
+			var event = new KeyboardEvent("keyup",{key: "Enter"});
+			el.dispatchEvent(event);
+			return supports;
+		} catch(e) {
+			return false;
+		}
 	} else {
 		return false;
 	}
@@ -253,8 +257,6 @@ var supportsKeyboardEvents = (function(){
 
 
 if(supportsKeyboardEvents) {
-
-
 	QUnit.test("KeyboardEvent dispatching works with .key (#93)", function(){
 		var template = stache("<input ($enter)='method(%event)' type='text'/>");
 		var frag = template({
