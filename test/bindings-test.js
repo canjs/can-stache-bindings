@@ -9,7 +9,7 @@ var stache = require('can-stache');
 var canEvent = require('can-event');
 var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
-var canCompute = require('can-compute')
+var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
 require('can-util/dom/events/inserted/');
 
@@ -2335,7 +2335,7 @@ test("Multi-select empty string works(#1263)", function(){
     var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> " +
         "{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
 
-    frag = template(new CanMap(data));
+    var frag = template(new CanMap(data));
 
     equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
 
@@ -2411,11 +2411,11 @@ test("one-way pass computes to components with ~", function(assert) {
 		tag: "foo-bar"
 	});
 
-	var baseVm = new CanMap({foo : "bar"})
+	var baseVm = new CanMap({foo : "bar"});
 
 	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
 
-	var vm = canViewModel(this.fixture.firstChild)
+	var vm = canViewModel(this.fixture.firstChild);
 
 	ok(vm.attr("compute").isComputed, "Compute returned");
 	equal(vm.attr("compute")(), "bar", "Compute has correct value");
