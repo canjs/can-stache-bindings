@@ -886,7 +886,8 @@ test("template with view binding breaks in stache, not in mustache (#966)", func
 
 });
 
-test("can-event throws an error when inside #if block (#1182)", function(){
+test("can-event throws an error when inside #if block (#1182)", function(assert){
+	var done = assert.async();
 	var flag = canCompute(false),
 		clickHandlerCount = 0;
 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
@@ -904,7 +905,10 @@ test("can-event throws an error when inside #if block (#1182)", function(){
 	};
 	domMutate.appendChild.call(this.fixture, frag);
 	trig();
-	equal(clickHandlerCount, 0, "click handler not called");
+	setTimeout(function() {
+		equal(clickHandlerCount, 0, "click handler not called");
+		done();
+	}, 50);
 });
 
 // Temporarily skipped until issue #2292 get's resolved
