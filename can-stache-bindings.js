@@ -34,6 +34,7 @@ var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
+var canLog = require('can-util/js/log/log');
 
 	// ## Behaviors
 	var behaviors = {
@@ -222,7 +223,7 @@ var attr = require('can-util/dom/attr/attr');
 		// For example `{^value}="name"`.
 		reference: function(el, attrData) {
 			if(el.getAttribute(attrData.attributeName)) {
-				console.warn("*reference attributes can only export the view model.");
+				canLog.warn("*reference attributes can only export the view model.");
 			}
 
 			var name = string.camelize( attrData.attributeName.substr(1).toLowerCase() );
