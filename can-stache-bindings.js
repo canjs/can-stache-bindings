@@ -462,7 +462,7 @@ var canLog = require('can-util/js/log/log');
 					return parentExpression.value(scope, new Scope.Options({}));
 				} else {
 					return function(newVal){
-						scope.attr(cleanVMName(scopeProp), newVal);
+						scope.set(cleanVMName(scopeProp), newVal);
 					};
 				}
 
