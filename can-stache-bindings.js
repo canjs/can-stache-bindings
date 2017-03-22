@@ -109,7 +109,7 @@ var canLog = require('can-util/js/log/log');
 
 			// Listen to attribute changes and re-initialize
 			// the bindings.
-			domEvents.addEventListener.call(el, "attributes", function (ev) {
+			function attributesChanged(ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -141,9 +141,11 @@ var canLog = require('can-util/js/log/log');
 						onTeardowns[attrName] = dataBinding.onTeardown;
 					}
 				}
-			});
+			}
+			domEvents.addEventListener.call(el, "attributes", attributesChanged);
 
 			return function(){
+				domEvents.removeEventListener.call(el, "attributes", attributesChanged);
 				for(var attrName in onTeardowns) {
 					onTeardowns[attrName]();
 				}
@@ -178,12 +180,9 @@ var canLog = require('can-util/js/log/log');
 				dataBinding.onCompleteBinding();
 			}
 			teardown = dataBinding.onTeardown;
-			canEvent.one.call(el, 'removed', function(){
-				teardown();
-			});
 
-			// Listen for changes
-			domEvents.addEventListener.call(el, "attributes", function (ev) {
+
+			function attributesChanged(ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -216,7 +215,19 @@ var canLog = require('can-util/js/log/log');
 					}
 
 				}
+			}
+
+			domEvents.addEventListener.call(el, "attributes", attributesChanged );
+
+			canEvent.one.call(el, 'removed', function(){
+				domEvents.removeEventListener.call(el, "attributes", attributesChanged );
+				teardown();
 			});
+
+
+
+			// Listen for changes
+
 		},
 		// ### bindings.behaviors.reference
 		// Provides the shorthand `*ref` behavior that exports the `viewModel`.
@@ -336,12 +347,17 @@ var canLog = require('can-util/js/log/log');
 			// Create a handler that will unbind itself and the event when the attribute is removed from the DOM
 			var attributesHandler = function(ev) {
 				if(ev.attributeName === attributeName && !this.getAttribute(attributeName)) {
-
-					canEvent.off.call(onBindElement ? el : canViewModel(el), event, handler);
-					canEvent.off.call(el, 'attributes', attributesHandler);
+					removeHandler();
 				}
 			};
+			var removeHandler = function(){
+				canEvent.off.call(onBindElement ? el : canViewModel(el), event, handler);
+				canEvent.off.call(el, 'attributes', attributesHandler);
+				canEvent.off.call(el, 'removed', removeHandler);
+			};
 			canEvent.on.call(el, 'attributes', attributesHandler);
+
+			canEvent.on.call(el, 'removed', removeHandler);
 		},
 		// ### bindings.behaviors.value
 		// Behavior for the deprecated can-value

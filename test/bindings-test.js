@@ -11,6 +11,8 @@ var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
 var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
+var domEvents = require('can-util/dom/events/events');
+var domMutate = require('can-util/dom/mutate/mutate');
 require('can-util/dom/events/inserted/');
 
 var stacheExpression = require('can-stache/src/expression');
@@ -2479,6 +2481,111 @@ test("%arguments gives the event arguments", function(){
 	var button = frag.firstChild;
 
 	canEvent.trigger.call(button, "click");
+});
+
+QUnit.asyncTest("event handlers unbind attributes event (#158)", function(){
+	var addEventListener = domEvents.addEventListener,
+		removeEventListener = domEvents.removeEventListener;
+
+
+	domEvents.addEventListener = function(eventName){
+		if(eventName === "attributes") {
+
+		} else {
+			return addEventListener.apply(this, arguments);
+		}
+	};
+	domEvents.removeEventListener = function(eventName){
+		if(eventName === "attributes") {
+			QUnit.ok(true, "attributes event handler removed");
+
+			domEvents.addEventListener = addEventListener;
+			domEvents.removeEventListener = removeEventListener;
+			QUnit.start();
+		} else {
+			return removeEventListener.apply(this, arguments);
+		}
+	};
+
+	var template = stache("<div ($click)='method()'/>");
+	var frag = template({method: function(){}});
+
+	domMutate.appendChild.call(this.fixture, frag);
+
+	domMutate.removeChild.call(this.fixture, this.fixture.firstChild);
+});
+
+QUnit.asyncTest("viewModel unbinds attributes event (#158)", function(){
+
+	viewCallbacks.tag("attributes-event-test", function(el, componentTagData){
+		var teardownBindings = stacheBindings.behaviors.viewModel(el, componentTagData, function(initialViewModelData) {
+			return new CanMap();
+		}, {});
+
+		teardownBindings();
+	});
+
+	// trap attributes events
+	var addEventListener = domEvents.addEventListener,
+		removeEventListener = domEvents.removeEventListener;
+
+	domEvents.addEventListener = function(eventName){
+		if(eventName === "attributes") {
+
+		} else {
+			return addEventListener.apply(this, arguments);
+		}
+	};
+	domEvents.removeEventListener = function(eventName){
+		if(eventName === "attributes") {
+			QUnit.ok(true, "attributes event handler removed");
+
+			domEvents.addEventListener = addEventListener;
+			domEvents.removeEventListener = removeEventListener;
+			QUnit.start();
+		} else {
+			return removeEventListener.apply(this, arguments);
+		}
+	};
+
+	var template = stache("<attributes-event-test/>");
+	var frag = template({});
+
+	domMutate.appendChild.call(this.fixture, frag);
+
+	domMutate.removeChild.call(this.fixture, this.fixture.firstChild);
+
+});
+
+QUnit.asyncTest("data bindings unbind attributes event (#158)", function(){
+	var addEventListener = domEvents.addEventListener,
+		removeEventListener = domEvents.removeEventListener;
+
+
+	domEvents.addEventListener = function(eventName){
+		if(eventName === "attributes") {
+		} else {
+			return addEventListener.apply(this, arguments);
+		}
+	};
+	domEvents.removeEventListener = function(eventName){
+		if(eventName === "attributes") {
+			QUnit.ok(true, "attributes event handler removed");
+
+			domEvents.addEventListener = addEventListener;
+			domEvents.removeEventListener = removeEventListener;
+			QUnit.start();
+		} else {
+			return removeEventListener.apply(this, arguments);
+		}
+	};
+
+	var template = stache("<input {$value}='key'/>");
+	var frag = template({key: "ABC"});
+
+	domMutate.appendChild.call(this.fixture, frag);
+
+	domMutate.removeChild.call(this.fixture, this.fixture.firstChild);
 });
 
 }
