@@ -1,4 +1,4 @@
-// # can/view/bindings/bindings.js
+// # can-stache-bindings.js
 //
 // This module provides CanJS's default data and event bindings.
 // It's broken up into several parts:
@@ -307,7 +307,7 @@ var canLog = require('can-util/js/log/log');
 						});
 
 						//!steal-remove-start
-						dev.warn("can/view/bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
+						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
 							element: el,
 							scope: data.scope
 						});
@@ -434,7 +434,7 @@ var canLog = require('can-util/js/log/log');
 
 	//!steal-remove-start
 	function syntaxWarning(el, attrData) {
-		dev.warn('can/view/bindings/bindings.js: mismatched binding syntax - ' + attrData.attributeName);
+		dev.warn('can-stache-bindings: mismatched binding syntax - ' + attrData.attributeName);
 	}
 	viewCallbacks.attr(/^\(.+\}$/, syntaxWarning);
 	viewCallbacks.attr(/^\{.+\)$/, syntaxWarning);
@@ -465,7 +465,6 @@ var canLog = require('can-util/js/log/log');
 						scope.set(cleanVMName(scopeProp), newVal);
 					};
 				}
-
 			}
 
 		},
@@ -601,7 +600,15 @@ var canLog = require('can-util/js/log/log');
 					// is on a plain JS object. This updates the observable to match whatever the
 					// new value is.
 					else if(types.isMapLike(parentCompute)) {
-						parentCompute.attr(newVal, true);
+						// !steal-dev-start
+						var attrValue = el.getAttribute(attrName);
+						dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
+						// !steal-dev-end
+						(parentCompute.set || parentCompute.attr).call(
+							parentCompute,
+							newVal.serialize ? newVal.serialize() : newVal,
+							true
+						);
 					}
 				}
 			};

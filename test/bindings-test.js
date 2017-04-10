@@ -1638,7 +1638,7 @@ if (System.env.indexOf('production') < 0) {
 	test("warning on a mismatched quote (#1995)", function () {
 		expect(4);
 		var oldlog = dev.warn,
-			message = 'can/view/bindings/bindings.js: mismatched binding syntax - (foo}';
+			message = 'can-stache-bindings: mismatched binding syntax - (foo}';
 
 		dev.warn = function (text) {
 			equal(text, message, 'Got expected message logged.');
@@ -1646,13 +1646,13 @@ if (System.env.indexOf('production') < 0) {
 
 		stache("<div (foo}='bar'/>")();
 
-		message = 'can/view/bindings/bindings.js: mismatched binding syntax - {foo)';
+		message = 'can-stache-bindings: mismatched binding syntax - {foo)';
 		stache("<div {foo)='bar'/>")();
 
-		message = 'can/view/bindings/bindings.js: mismatched binding syntax - {(foo})';
+		message = 'can-stache-bindings: mismatched binding syntax - {(foo})';
 		stache("<div {(foo})='bar'/>")();
 
-		message = 'can/view/bindings/bindings.js: mismatched binding syntax - ({foo})';
+		message = 'can-stache-bindings: mismatched binding syntax - ({foo})';
 		stache("<div ({foo})='bar'/>")();
 
 
@@ -2480,5 +2480,57 @@ test("%arguments gives the event arguments", function(){
 
 	canEvent.trigger.call(button, "click");
 });
+
+if (System.env.indexOf('production') < 0) {
+	test("Warning happens when changing the map that a to-parent binding points to.", function() {
+		expect(4);
+
+		var step1 = { "baz": "quux" };
+		var overwrite = { "plonk": "waldo" };
+		var useCanMap = true;
+
+		var oldlog = dev.warn,
+			message = 'can-stache-bindings: Merging {(foo)} into bar because its parent is non-observable';
+
+		dev.warn = function (text) {
+			equal(text, message, 'Got expected message logged.');
+		};
+
+		delete viewCallbacks._tags["merge-warn-test"];
+		MockComponent.extend({
+			tag: "merge-warn-test",
+			viewModel: function() {
+
+				if(useCanMap) {
+					return new CanMap({
+						"foo": {}
+					});
+				} else {
+					return new DefaultMap({
+						"foo": {}
+					});
+				}
+			}
+		});
+
+		var template = stache("<merge-warn-test {(foo)}='bar'/>");
+
+		var viewModel = {
+			bar: new DefaultMap(step1)
+		};
+		this.fixture.appendChild(template(viewModel));
+		canViewModel(this.fixture.firstChild).attr("foo", overwrite);
+		deepEqual(viewModel.bar.get(), overwrite, "sanity check: parent binding set (default map -> default map)");
+
+		this.fixture.removeChild(this.fixture.firstChild);
+		useCanMap = false;
+		viewModel.bar = new CanMap(step1);
+		this.fixture.appendChild(template(viewModel));
+		canViewModel(this.fixture.firstChild).set("foo", overwrite);
+		deepEqual(viewModel.bar.attr(), overwrite, "sanity check: parent binding set (can map -> default map)");
+
+		dev.warn = oldlog;
+	});
+}
 
 }
