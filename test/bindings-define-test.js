@@ -237,9 +237,10 @@ if (System.env !== 'canjs-test') {
 }
 
 function makeKeyboardEvent() {
+	var event;
 	try {
 		// IE doesn't support this syntax (Edge does, other evergreen browsers do)
-		var event = new KeyboardEvent("keyup",{key: "Enter"});
+		event = new KeyboardEvent("keyup",{key: "Enter"});
 		return event;
 	} catch(e) {
 		event = document.createEvent("KeyboardEvent");
@@ -250,12 +251,17 @@ function makeKeyboardEvent() {
 
 var supportsKeyboardEvents = (function(){
 	if(typeof KeyboardEvent !== "undefined") {
-		var supports = false;
-		var el = document.createElement("div");
-		el.addEventListener("keyup", function(ev){
-			supports = (ev.key === "Enter");
-		});
-		el.dispatchEvent(makeKeyboardEvent());
+		try {
+			var supports = false;
+			var el = document.createElement("div");
+			el.addEventListener("keyup", function(ev){
+				supports = (ev.key === "Enter");
+			});
+			el.dispatchEvent(makeKeyboardEvent());
+			return supports;
+		} catch(e) {
+			return false;
+		}
 	} else {
 		return false;
 	}
@@ -263,8 +269,6 @@ var supportsKeyboardEvents = (function(){
 
 
 if(supportsKeyboardEvents) {
-
-
 	QUnit.test("KeyboardEvent dispatching works with .key (#93)", function(){
 		var template = stache("<input ($enter)='method(%event)' type='text'/>");
 		var frag = template({
