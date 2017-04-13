@@ -2271,7 +2271,7 @@ test("can-value memory leak (#2270)", function () {
 	stop();
 	setTimeout(function(){
 		// still 1 binding, should be 0
-		equal(vm._bindings,0, "no bindings");
+		equal(vm.__bindEvents._lifecycleBindings,0, "no bindings");
 		start();
 	}, 100);
 
