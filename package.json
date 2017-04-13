@@ -32,10 +32,10 @@
     "main": "can-stache-bindings"
   },
   "dependencies": {
-    "can-compute": "^3.0.0",
-    "can-event": "^3.0.1",
+    "can-compute": "^3.0.8",
+    "can-event": "^3.3.0",
     "can-observation": "^3.0.1",
-    "can-stache": "^3.0.13",
+    "can-stache": "^3.0.22",
     "can-types": "^1.0.1",
     "can-util": "^3.2.2",
     "can-view-callbacks": "^3.0.0",
@@ -47,7 +47,7 @@
     "bit-docs": "0.0.7",
     "can-define": "^1.0.13",
     "can-list": "^3.0.1",
-    "can-map": "^3.0.3",
+    "can-map": "^3.0.7",
     "can-vdom": "^3.0.2",
     "can-view-nodelist": "^3.0.2",
     "done-serve": "^0.2.0",
