@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "can-compute": "^3.0.0",
-    "can-event": "^3.0.1",
+    "can-event": "3.2.0",
     "can-observation": "^3.0.1",
     "can-stache": "^3.0.13",
     "can-types": "^1.0.1",
