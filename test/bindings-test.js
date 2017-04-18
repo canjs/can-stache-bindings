@@ -88,7 +88,8 @@ test("attributeNameInfo", function(){
 		childToParent: true,
 		childName: "foo",
 		parentName: "foo",
-		bindingAttributeName: "foo"
+		bindingAttributeName: "foo",
+		syncChildWithParent: true
 	}, "legacy with @");
 
 
@@ -100,7 +101,8 @@ test("attributeNameInfo", function(){
 		childToParent: true,
 		childName: "fooEd",
 		parentName: "bar",
-		bindingAttributeName: "foo-ed"
+		bindingAttributeName: "foo-ed",
+		syncChildWithParent: true
 	},"legacy");
 
 	// ORIGINAL STACHE BEHAVIOR
@@ -112,7 +114,8 @@ test("attributeNameInfo", function(){
 		childToParent: true,
 		childName: "fooEd",
 		parentName: "foo-ed",
-		bindingAttributeName: "foo-ed"
+		bindingAttributeName: "foo-ed",
+		syncChildWithParent: true
 	}, "OG stache attr binding");
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "{bar}"});
@@ -123,7 +126,8 @@ test("attributeNameInfo", function(){
 		childToParent: true,
 		childName: "fooEd",
 		parentName: "bar",
-		bindingAttributeName: "foo-ed"
+		bindingAttributeName: "foo-ed",
+		syncChildWithParent: true
 	}, "OG stache vm binding");
 
 	// NEW BINDINGS
@@ -138,7 +142,8 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		childName: "foo-ed",
 		bindingAttributeName: "{$foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new el binding");
 
 	info = stacheBindings.getBindingInfo({name: "{($foo-ed)}", value: "bar"});
@@ -150,7 +155,8 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		childName: "foo-ed",
 		bindingAttributeName: "{($foo-ed)}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: true
 	}, "new el binding");
 
 	info = stacheBindings.getBindingInfo({name: "{^$foo-ed}", value: "bar"});
@@ -162,7 +168,8 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		childName: "foo-ed",
 		bindingAttributeName: "{^$foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new el binding");
 
 	// vm based
@@ -175,7 +182,8 @@ test("attributeNameInfo", function(){
 		childName: "fooEd",
 		parentName: "bar",
 		bindingAttributeName: "{foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new vm binding");
 
 	info = stacheBindings.getBindingInfo({name: "{(foo-ed)}", value: "bar"});
@@ -187,7 +195,8 @@ test("attributeNameInfo", function(){
 		childName: "fooEd",
 		parentName: "bar",
 		bindingAttributeName: "{(foo-ed)}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: true
 	}, "new el binding");
 
 	info = stacheBindings.getBindingInfo({name: "{^foo-ed}", value: "bar"});
@@ -199,7 +208,8 @@ test("attributeNameInfo", function(){
 		childName: "fooEd",
 		parentName: "bar",
 		bindingAttributeName: "{^foo-ed}",
-		initializeValues: true
+		initializeValues: true,
+		syncChildWithParent: false
 	}, "new el binding");
 
 });
