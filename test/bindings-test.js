@@ -2546,6 +2546,7 @@ if (System.env.indexOf('production') < 0) {
 }
 
 test("updates happen on two-way even when one binding is satisfied", function() {
+	stop();
 	var template = stache('<input {($value)}="firstName"/>');
 
 	var ViewModel = DefaultMap.extend({
@@ -2563,9 +2564,12 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 	domMutate.appendChild.call(this.fixture, frag);
 	equal(this.fixture.firstChild.value, "jeffrey");
 
-	this.fixture.firstChild.value = "JEFFREY";
-	canEvent.trigger.call(this.fixture.firstChild, "change");
-	equal(this.fixture.firstChild.value, "jeffrey");
+	setTimeout(function () {
+		this.fixture.firstChild.value = "JEFFREY";
+		canEvent.trigger.call(this.fixture.firstChild, "change");
+		equal(this.fixture.firstChild.value, "jeffrey");
+		start();
+	}.bind(this), 100);
 });
 
 test("updates happen on changed two-way even when one binding is satisfied", function() {
@@ -2580,7 +2584,7 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 				}
 			}
 		},
-		lastName: { 
+		lastName: {
 			set: function(newValue) {
 				if(newValue) {
 					return newValue.toLowerCase();
