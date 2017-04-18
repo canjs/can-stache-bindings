@@ -69,10 +69,10 @@ QUnit.module(name, {
 
 		stop();
 		setTimeout(function() {
-			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
 			MUTATION_OBSERVER(MUT_OBS);
+			start();
 		}, 1);
 	}
 });
