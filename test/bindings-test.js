@@ -2549,9 +2549,11 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 	var template = stache('<input {($value)}="firstName"/>');
 
 	var ViewModel = DefaultMap.extend({
-		set firstName(newValue) {
-			if(newValue) {
-				return newValue.toLowerCase();
+		firstName: {
+			set: function(newValue) {
+				if(newValue) {
+					return newValue.toLowerCase();
+				}
 			}
 		}
 	});
@@ -2571,14 +2573,18 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 	var template = stache('<input {($value)}="{{bindValue}}"/>');
 
 	var ViewModel = DefaultMap.extend({
-		set firstName(newValue) {
-			if(newValue) {
-				return newValue.toLowerCase();
+		firstName: {
+			set: function(newValue) {
+				if(newValue) {
+					return newValue.toLowerCase();
+				}
 			}
 		},
-		set lastName(newValue) {
-			if(newValue) {
-				return newValue.toLowerCase();
+		lastName: { 
+			set: function(newValue) {
+				if(newValue) {
+					return newValue.toLowerCase();
+				}
 			}
 		},
 		bindValue: "string"
