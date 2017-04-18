@@ -160,6 +160,10 @@ var canLog = require('can-util/js/log/log');
 				semaphore = {},
 				teardown;
 
+			// If a two-way binding, take extra measure to ensure
+			//  that parent and child sync values properly.
+			var twoWay = bindingsRegExp.exec(attrData.attributeName)[1];
+
 			// Setup binding
 			var dataBinding = makeDataBinding({
 				name: attrData.attributeName,
@@ -171,7 +175,8 @@ var canLog = require('can-util/js/log/log');
 				semaphore: semaphore,
 				getViewModel: function(){
 					return viewModel;
-				}
+				},
+				syncChildWithParent: twoWay
 			});
 
 			if(dataBinding.onCompleteBinding) {
@@ -204,7 +209,8 @@ var canLog = require('can-util/js/log/log');
 							},
 							// always update the viewModel accordingly.
 							initializeValues: true,
-							nodeList: attrData.nodeList
+							nodeList: attrData.nodeList,
+							syncChildWithParent: twoWay
 						});
 						if(dataBinding) {
 							// The viewModel is created, so call callback immediately.
