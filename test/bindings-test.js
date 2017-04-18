@@ -1024,12 +1024,14 @@ test('can-value with truthy and falsy values binds to checkbox (#1478)', functio
 			completed: 1
 		}),
 		frag = stache('<input type="checkbox" can-value="completed"/>')(data);
+	stop();
 	domMutate.appendChild.call(this.fixture, frag);
 
 	var input = this.fixture.getElementsByTagName('input')[0];
 	equal(input.checked, true, 'checkbox value bound (via attr check)');
 	data.attr('completed', 0);
 	equal(input.checked, false, 'checkbox value bound (via attr check)');
+	setTimeout(start, 1);
 });
 
 test("can-EVENT can call intermediate functions before calling the final function (#1474)", function () {
@@ -2558,7 +2560,7 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 		}
 	});
 	var viewModel = new ViewModel({ firstName: "jeffrey" });
-
+	stop(); // Stop here just to ensure the attributes event generated here is handled before the next test.
 	var frag = template(viewModel);
 	domMutate.appendChild.call(this.fixture, frag);
 	equal(this.fixture.firstChild.value, "jeffrey");
@@ -2566,6 +2568,7 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 	this.fixture.firstChild.value = "JEFFREY";
 	canEvent.trigger.call(this.fixture.firstChild, "change");
 	equal(this.fixture.firstChild.value, "jeffrey");
+	setTimeout(start, 1);
 });
 
 test("updates happen on changed two-way even when one binding is satisfied", function() {
