@@ -11,12 +11,13 @@ var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
 var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
-require('can-util/dom/events/inserted/');
 
 var stacheExpression = require('can-stache/src/expression');
 
 var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
+var domEvents = require('can-util/dom/events/');
+require('can-util/dom/events/inserted/');
 
 var makeDocument = require('can-vdom/make-document/make-document');
 var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
@@ -30,6 +31,16 @@ var types = require('can-types');
 var MockComponent = require("./mock-component");
 
 var DefaultMap = types.DefaultMap;
+
+function afterMutation(cb) {
+	var doc = DOCUMENT();
+  var div = doc.createElement("div");
+  domEvents.addEventListener.call(div,"inserted", function(){
+    setTimeout(cb,1);
+    doc.body.removeChild(div);
+  });
+  domMutate.appendChild.call(doc.body, div);
+}
 
 var DOC = DOCUMENT();
 var MUT_OBS = MUTATION_OBSERVER();
@@ -68,12 +79,12 @@ QUnit.module(name, {
 		}
 
 		stop();
-		setTimeout(function() {
+		afterMutation(function() {
 			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
 			MUTATION_OBSERVER(MUT_OBS);
-		}, 1);
+		});
 	}
 });
 
@@ -529,10 +540,10 @@ test("can-value select remove from DOM", function () {
 	domMutate.appendChild.call(ta,frag);
 	domMutate.removeChild.call(ta, ta.firstChild);
 
-	setTimeout(function () {
+	afterMutation(function () {
 		start();
 		ok(true, 'Nothing should break if we just add and then remove the select');
-	}, 10);
+	});
 });
 
 test("checkboxes with can-value bind properly (#628)", function () {
@@ -567,7 +578,7 @@ test("checkboxes with can-true-value bind properly", function () {
 	var input = this.fixture.getElementsByTagName('input')[0];
 
 	stop();
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 		equal(input.checked, true, 'checkbox value bound (via attr check)');
 
@@ -581,7 +592,7 @@ test("checkboxes with can-true-value bind properly", function () {
 		canEvent.trigger.call(input, 'change');
 		equal(input.checked, false, 'checkbox value bound (via uncheck)');
 		equal(data.attr('sex'), 'female', 'checkbox value bound (via uncheck)');
-	}, 10);
+	});
 });
 
 testIfRealDocument("can-value select single", function () {
@@ -861,11 +872,11 @@ test("can-value select with null or undefined value (#813)", function () {
 	var undefinedInputOptions = undefinedInput.getElementsByTagName('option');
 
 	// wait for set to be called which will change the selects
-	setTimeout(function(){
+	afterMutation(function(){
 		ok(nullInputOptions[0].selected, "default (null) value set");
 		ok(undefinedInputOptions[0].selected, "default (undefined) value set");
 		start();
-	}, 50);
+	});
 });
 
 test('radio type conversion (#811)', function(){
@@ -915,10 +926,10 @@ test("can-event throws an error when inside #if block (#1182)", function(assert)
 	};
 	domMutate.appendChild.call(this.fixture, frag);
 	trig();
-	setTimeout(function() {
+	afterMutation(function() {
 		equal(clickHandlerCount, 0, "click handler not called");
 		done();
-	}, 50);
+	});
 });
 
 // Temporarily skipped until issue #2292 get's resolved
@@ -1010,12 +1021,12 @@ testIfRealDocument("can-value select multiple applies initial value, when option
 		options = select.getElementsByTagName("option");
 
 	// Wait for Multiselect.set() to be called.
-	setTimeout(function(){
+	afterMutation(function(){
 		ok(options[0].selected, "red should be set initially");
 		ok(options[1].selected, "green should be set initially");
 		ok(!options[2].selected, "blue should not be set initially");
 		start();
-	}, 1);
+	});
 
 });
 
@@ -1031,7 +1042,7 @@ test('can-value with truthy and falsy values binds to checkbox (#1478)', functio
 	equal(input.checked, true, 'checkbox value bound (via attr check)');
 	data.attr('completed', 0);
 	equal(input.checked, false, 'checkbox value bound (via attr check)');
-	setTimeout(start, 1);
+	afterMutation(start);
 });
 
 test("can-EVENT can call intermediate functions before calling the final function (#1474)", function () {
@@ -1102,15 +1113,15 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 	state.attr('enableClick', false);
 
 	stop();
-	setTimeout(function() {
+	afterMutation(function() {
 		canEvent.trigger.call(btn, 'click');
 		state.attr('enableClick', true);
 
-		setTimeout(function() {
+		afterMutation(function() {
 			canEvent.trigger.call(btn, 'click');
 			start();
-		}, 100);
-	}, 100);
+		});
+	});
 });
 
 testIfRealDocument("<select can-value={value}> with undefined value selects option without value", function () {
@@ -1140,7 +1151,7 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 	stop();
 	var select = frag.firstChild;
 	// the value is set asynchronously
-	setTimeout(function(){
+	afterMutation(function(){
 		ok(select.childNodes.item(1).selected, "value is initially selected");
 
 		values(["7","2","5","4"]);
@@ -1149,7 +1160,7 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 
 
 		start();
-	},20);
+	});
 
 });
 
@@ -1166,7 +1177,7 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 
 
 	// the value is set asynchronously
-	setTimeout(function(){
+	afterMutation(function(){
 		ok(select.childNodes.item(1).selected, "value is initially selected");
 
 		values(["7","2","5","4"]);
@@ -1175,7 +1186,7 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 
 
 		start();
-	},20);
+	});
 
 });
 
@@ -1287,14 +1298,14 @@ test("two-way - DOM - input text (#1700)", function () {
 	map.attr("age", "30");
 
 	stop();
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 		equal(input.value, "30", "input value set correctly");
 
 		map.attr("age", "31");
 
 		stop();
-		setTimeout(function() {
+		afterMutation(function() {
 			start();
 			equal(input.value, "31", "input value update correctly");
 
@@ -1303,12 +1314,12 @@ test("two-way - DOM - input text (#1700)", function () {
 			canEvent.trigger.call(input, "change");
 
 			stop();
-			setTimeout(function() {
+			afterMutation(function() {
 				start();
 				equal(map.attr("age"), "32", "updated from input");
-			}, 10);
-		}, 10);
-	}, 10);
+			});
+		});
+	});
 });
 
 test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbox (#1700)', function() {
@@ -1324,10 +1335,10 @@ test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbo
 	data.attr('completed', 0);
 	stop();
 
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 		equal(input.checked, false, 'checkbox value bound (via attr check)');
-	}, 10);
+	});
 });
 
 test('two-way - reference - {(child)}="*ref" (#1700)', function(){
@@ -1554,7 +1565,7 @@ test("checkboxes with {($checked)} bind properly", function () {
 	canEvent.trigger.call(input, 'change');
 
 	stop();
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 
 		equal(input.checked, true, 'checkbox value bound (via check)');
@@ -1563,13 +1574,13 @@ test("checkboxes with {($checked)} bind properly", function () {
 		canEvent.trigger.call(input, 'change');
 
 		stop();
-		setTimeout(function() {
+		afterMutation(function() {
 			start();
 
 			equal(input.checked, false, 'checkbox value bound (via uncheck)');
 			equal(data.attr('completed'), false, 'checkbox value bound (via uncheck)');
-		}, 10);
-	}, 10);
+		});
+	});
 });
 
 test("two-way element empty value (1996)", function(){
@@ -1679,11 +1690,11 @@ testIfRealDocument("One way binding from a select's value to a parent compute up
 	var frag = template(map);
 	var select = frag.childNodes.item(0);
 
-	setTimeout(function(){
+	afterMutation(function(){
 		equal(select.selectedIndex, 0, "selectedIndex is 0 because no value exists on the map");
 		equal(map.attr("value"), "One", "The map's value property is set to the select's value");
 		start();
-	}, 50);
+	});
 
 	stop();
 
@@ -1696,11 +1707,11 @@ testIfRealDocument("two way binding from a select's value to null has no selecti
 	var frag = template(map);
 	var select = frag.childNodes.item(0);
 
-	setTimeout(function(){
+	afterMutation(function(){
 		equal(select.selectedIndex, -1, "selectedIndex is 0 because no value exists on the map");
 		equal(map.attr("key"), null, "The map's value property is set to the select's value");
 		start();
-	}, 50);
+	});
 
 	stop();
 
@@ -1716,7 +1727,7 @@ testIfRealDocument('two-way bound values that do not match a select option set s
 	map.attr('key', 'notfoo');
 	stop();
 
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 		equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
 
@@ -1726,7 +1737,7 @@ testIfRealDocument('two-way bound values that do not match a select option set s
 		map.attr('key', 'notbar');
 		stop();
 
-		setTimeout(function() {
+		afterMutation(function() {
 			start();
 			equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
 
@@ -1735,8 +1746,8 @@ testIfRealDocument('two-way bound values that do not match a select option set s
 
 			map.attr('key', 'bar');
 			strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
-		}, 10);
-	}, 10);
+		});
+	});
 });
 
 testIfRealDocument("two way bound select empty string null or undefined value (#2027)", function () {
@@ -1775,13 +1786,13 @@ testIfRealDocument("two way bound select empty string null or undefined value (#
 	var stringInputOptions = stringInput.getElementsByTagName('option');
 
 	// wait for set to be called which will change the selects
-	setTimeout(function(){
+	afterMutation(function(){
 		ok(!nullInputOptions[0].selected, "default (null) value set");
 		// the first item is selected because "" is the value.
 		ok(undefinedInputOptions[0].selected, "default (undefined) value set");
 		ok(stringInputOptions[0].selected, "default ('') value set");
 		start();
-	}, 50);
+	});
 });
 
 if (System.env !== 'canjs-test') {
@@ -1797,21 +1808,21 @@ if (System.env !== 'canjs-test') {
 		ta.appendChild(frag);
 
 		var input = ta.getElementsByTagName("input")[0];
-		setTimeout(function () {
+		afterMutation(function () {
 			equal(input.value, "Justin", "input value set correctly if key does not exist in map");
 			map.attr('propName','last');
-			setTimeout(function(){
+			afterMutation(function(){
 				equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
 				input.value = "Lueke";
 				canEvent.trigger.call(input, "change");
 
-				setTimeout(function() {
+				afterMutation(function() {
 					equal(map.attr("last"), "Lueke", "updated from input");
 					done();
-				}, 50);
-			}, 50);
-		}, 50);
+				});
+			});
+		});
 	});
 }
 
@@ -1837,10 +1848,10 @@ test("select bindings respond to changes immediately or during insert (#2134)", 
 	data.attr('countryCode', 'IND');
 
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
 		start();
 		equal(frag.firstChild.value, "IND", "got last updated value");
-	},10);
+	});
 
 });
 
@@ -1866,10 +1877,10 @@ test("select bindings respond to changes immediately or during insert using can-
 	data.attr('countryCode', 'IND');
 
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
 		start();
 		equal(frag.firstChild.value, "IND", "got last updated value");
-	},10);
+	});
 
 });
 
@@ -1892,17 +1903,17 @@ testIfRealDocument("two-way <select> bindings update to `undefined` if options a
 	template(data);
 
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
 		data.attr("countries").replace([]);
 
 
-		setTimeout(function(){
+		afterMutation(function(){
 			equal(data.attr("countryCode"), undefined, "countryCode set to undefined");
 
 			start();
-		},10);
+		});
 
-	},10);
+	});
 
 });
 
@@ -1924,17 +1935,17 @@ testIfRealDocument("two-way <select> bindings update to `undefined` if options a
 
 	template(data);
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
 		data.attr("countries").replace([]);
 
 
-		setTimeout(function(){
+		afterMutation(function(){
 			equal(data.attr("countryCode"), undefined, "countryCode set to undefined");
 
 			start();
-		},10);
+		});
 
-	},10);
+	});
 
 });
 
@@ -1967,14 +1978,14 @@ test('previously non-existing select value gets selected from a list when it is 
 
   equal(vm.attr('person'), 'Brian', 'Person is still set');
 
-  setTimeout(function() {
+  afterMutation(function() {
     people.push('Brian');
-    setTimeout(function() {
+    afterMutation(function() {
       var select = frag.firstChild;
       ok(select.lastChild.selected, 'New child should be selected');
       start();
-    }, 20);
-  }, 20);
+    });
+  });
 });
 
 test("one-way <select> bindings keep value if options are replaced (#1762)", function(){
@@ -1996,23 +2007,23 @@ test("one-way <select> bindings keep value if options are replaced (#1762)", fun
 	var frag = template(data);
 	var select = frag.firstChild;
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
 
 		data.attr("countries").replace([]);
 
-		setTimeout(function(){
+		afterMutation(function(){
 			data.attr("countries").replace(countries);
 
 			equal(data.attr("countryCode"), "US", "country kept as USA");
 
-			setTimeout(function(){
+			afterMutation(function(){
 				ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
-			},10);
+			});
 
 			start();
-		},10);
+		});
 
-	},10);
+	});
 
 });
 
@@ -2035,23 +2046,23 @@ test("one-way <select> bindings keep value if options are replaced - each (#1762
 	var frag = template(data);
 	var select = frag.firstChild;
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
 
 		data.attr("countries").replace([]);
 
-		setTimeout(function(){
+		afterMutation(function(){
 			data.attr("countries").replace(countries);
 
 			equal(data.attr("countryCode"), "US", "country kept as USA");
 
-			setTimeout(function(){
+			afterMutation(function(){
 				ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
-			},10);
+			});
 
 			start();
-		},10);
+		});
 
-	},10);
+	});
 
 });
 
@@ -2175,13 +2186,13 @@ test("two-way binding with empty strings (#2147)", function(){
 
 	var frag = template(map);
 
-	setTimeout(function(){
+	afterMutation(function(){
 		equal(frag.firstChild.value, '', "is an empty string");
 		if(isRealDocument()) {
 			equal( frag.firstChild.selectedIndex, 0, "empty strings are bound");
 		}
 		start();
-	},10);
+	});
 	stop();
 });
 
@@ -2207,10 +2218,10 @@ test("double render with batched / unbatched events (#2223)", function(){
 
 
 	stop();
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 		equal(logCalls, 1, "input rendered the right number of times");
-	}, 10);
+	});
 });
 
 
@@ -2279,13 +2290,15 @@ test("can-value memory leak (#2270)", function () {
 	var ta = this.fixture;
 	domMutate.appendChild.call(ta,frag);
 
-	domMutate.removeChild.call(ta, ta.firstChild);
 	stop();
-	setTimeout(function(){
+	afterMutation(function(){
+		domMutate.removeChild.call(ta, ta.firstChild);
 		// still 1 binding, should be 0
-		equal(vm.__bindEvents._lifecycleBindings,0, "no bindings");
-		start();
-	}, 100);
+		afterMutation(function(){
+			equal(vm.__bindEvents._lifecycleBindings,0, "no bindings");
+			start();
+		});
+	});
 
 });
 
@@ -2319,11 +2332,11 @@ test("converters work (#2299)", function(){
  	canEvent.trigger.call(frag.firstChild,"change");
 
 	stop();
-	setTimeout(function() {
+	afterMutation(function() {
 		start();
 		equal(frag.firstChild.value, "1");
 		equal(map.attr("age"), 1);
-	}, 10);
+	});
 
 });
 
@@ -2468,14 +2481,17 @@ test("special values get called", function(assert) {
 	var template = stache("<ref-syntax ($inserted)=\"%viewModel.method()\"></ref-syntax>");
 	var frag = template({});
 	domMutate.appendChild.call(this.fixture, frag);
+	stop();
+	afterMutation(function() {
+		var input = doc.getElementsByTagName("input")[0];
+		input.value = "bar";
+		canEvent.trigger.call(input, "change");
 
-	var input = doc.getElementsByTagName("input")[0];
-	input.value = "bar";
-	canEvent.trigger.call(input, "change");
-
-	// Read from mock component's shadow scope for refs.
-	var scope = domData.get.call(this.fixture.firstChild).shadowScope;
-	assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
+		// Read from mock component's shadow scope for refs.
+		var scope = domData.get.call(this.fixture.firstChild).shadowScope;
+		assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
+		start();
+	}.bind(this));
 });
 
 test("%arguments gives the event arguments", function(){
@@ -2568,7 +2584,7 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 	this.fixture.firstChild.value = "JEFFREY";
 	canEvent.trigger.call(this.fixture.firstChild, "change");
 	equal(this.fixture.firstChild.value, "jeffrey");
-	setTimeout(start, 1);
+	afterMutation(start);
 });
 
 test("updates happen on changed two-way even when one binding is satisfied", function() {
@@ -2596,15 +2612,17 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 
 	var frag = template(viewModel);
 	domMutate.appendChild.call(this.fixture, frag);
-	equal(this.fixture.firstChild.value, "jeffrey");
+	afterMutation(function() {
+		equal(this.fixture.firstChild.value, "jeffrey");
 
-	viewModel.bindValue = "lastName";
-	setTimeout(function() {
-		equal(this.fixture.firstChild.value, "king");
+		viewModel.bindValue = "lastName";
+		afterMutation(function() {
+			equal(this.fixture.firstChild.value, "king");
 
-		this.fixture.firstChild.value = "KING";
-		canEvent.trigger.call(this.fixture.firstChild, "change");
-		equal(this.fixture.firstChild.value, "king");
-		start();
-	}.bind(this), 100);
+			this.fixture.firstChild.value = "KING";
+			canEvent.trigger.call(this.fixture.firstChild, "change");
+			equal(this.fixture.firstChild.value, "king");
+			start();
+		}.bind(this));
+	}.bind(this));
 });
