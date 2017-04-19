@@ -366,32 +366,46 @@ var canLog = require('can-util/js/log/log');
 					var trueValue = attr.has(el, "can-true-value") ? el.getAttribute("can-true-value") : true,
 						falseValue = attr.has(el, "can-false-value") ? el.getAttribute("can-false-value") : false;
 
-					getterSetter = compute(function(newValue){
+					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
-						if(arguments.length) {
-							property(newValue ? trueValue : falseValue);
-						}
-						else {
-							return property() == trueValue;
+						var isSet = arguments.length !== 0;
+						var isCompute = property && property.isComputed;
+						if (isCompute) {
+							if (isSet) {
+								property(newValue ? trueValue : falseValue);
+							} else {
+								return property() == trueValue;
+							}
+						} else {
+							if (isSet) {
+								// TODO: https://github.com/canjs/can-stache-bindings/issues/180
+							} else {
+								return property == trueValue;
+							}
 						}
 					});
 				}
 				else if(elType === "radio") {
 					// radio is two-way bound to if the property value
 					// equals the element value
-
-					getterSetter = compute(function(newValue){
+					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
-						if(arguments.length) {
-							if( newValue ) {
+						var isSet = arguments.length !== 0 && newValue;
+						var isCompute = property && property.isComputed;
+						if (isCompute) {
+							if (isSet) {
 								property(el.value);
+							} else {
+								return property() == el.value;
+							}
+						} else {
+							if (isSet) {
+								// TODO: https://github.com/canjs/can-stache-bindings/issues/180
+							} else {
+								return property == el.value;
 							}
 						}
-						else {
-							return property() == el.value;
-						}
 					});
-
 				}
 				propName = "$checked";
 				attrValue = "getterSetter";
