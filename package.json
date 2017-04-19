@@ -32,7 +32,7 @@
     "main": "can-stache-bindings"
   },
   "dependencies": {
-    "can-compute": "^3.0.9",
+    "can-compute": "^3.0.10",
     "can-event": "^3.3.0",
     "can-observation": "^3.0.1",
     "can-stache": "^3.0.22",
