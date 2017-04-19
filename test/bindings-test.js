@@ -16,8 +16,8 @@ var stacheExpression = require('can-stache/src/expression');
 
 var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
-var domEvents = require('can-util/dom/events/');
-require('can-util/dom/events/inserted/');
+var domEvents = require('can-util/dom/events/events');
+require('can-util/dom/events/inserted/inserted');
 
 var makeDocument = require('can-vdom/make-document/make-document');
 var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
@@ -34,12 +34,12 @@ var DefaultMap = types.DefaultMap;
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
-  var div = doc.createElement("div");
-  domEvents.addEventListener.call(div,"inserted", function(){
-    setTimeout(cb,1);
-    doc.body.removeChild(div);
-  });
-  domMutate.appendChild.call(doc.body, div);
+	var div = doc.createElement("div");
+	domEvents.addEventListener.call(div,"inserted", function(){
+		setTimeout(cb,1);
+		doc.body.removeChild(div);
+	});
+	domMutate.appendChild.call(doc.body, div);
 }
 
 var DOC = DOCUMENT();
@@ -1950,42 +1950,42 @@ testIfRealDocument("two-way <select> bindings update to `undefined` if options a
 });
 
 test('previously non-existing select value gets selected from a list when it is added (#1762)', function() {
-  var template = stache('<select {($value)}="{person}">' +
-      '<option></option>' +
-      '{{#each people}}<option value="{{.}}">{{.}}</option>{{/each}}' +
-    '</select>' +
-    '<input type="text" size="5" {($value)}="person">'
-  );
+	var template = stache('<select {($value)}="{person}">' +
+			'<option></option>' +
+			'{{#each people}}<option value="{{.}}">{{.}}</option>{{/each}}' +
+		'</select>' +
+		'<input type="text" size="5" {($value)}="person">'
+	);
 
-  var people = new CanList([
-    "Alexis",
-    "Mihael",
-    "Curtis",
-    "David"
-  ]);
+	var people = new CanList([
+		"Alexis",
+		"Mihael",
+		"Curtis",
+		"David"
+	]);
 
-  var vm = new CanMap({
-    person: 'Brian',
-    people: people
-  });
+	var vm = new CanMap({
+		person: 'Brian',
+		people: people
+	});
 
-  stop();
-  vm.bind('person', function(ev, newVal, oldVal) {
-    ok(false, 'person attribute should not change');
-  });
+	stop();
+	vm.bind('person', function(ev, newVal, oldVal) {
+		ok(false, 'person attribute should not change');
+	});
 
-  var frag = template(vm);
+	var frag = template(vm);
 
-  equal(vm.attr('person'), 'Brian', 'Person is still set');
+	equal(vm.attr('person'), 'Brian', 'Person is still set');
 
-  afterMutation(function() {
-    people.push('Brian');
-    afterMutation(function() {
-      var select = frag.firstChild;
-      ok(select.lastChild.selected, 'New child should be selected');
-      start();
-    });
-  });
+	afterMutation(function() {
+		people.push('Brian');
+		afterMutation(function() {
+			var select = frag.firstChild;
+			ok(select.lastChild.selected, 'New child should be selected');
+			start();
+		});
+	});
 });
 
 test("one-way <select> bindings keep value if options are replaced (#1762)", function(){
@@ -2304,32 +2304,32 @@ test("can-value memory leak (#2270)", function () {
 
 test("converters work (#2299)", function(){
 
- 	stache.registerHelper("numberToString", function(newVal, source){
- 		if(newVal instanceof stacheExpression.SetIdentifier) {
- 			source(newVal.value === "" ? null : +newVal.value );
- 		} else {
- 			source = newVal;
- 			return source() + "";
- 		}
- 	});
+	stache.registerHelper("numberToString", function(newVal, source){
+		if(newVal instanceof stacheExpression.SetIdentifier) {
+			source(newVal.value === "" ? null : +newVal.value );
+		} else {
+			source = newVal;
+			return source() + "";
+		}
+	});
 
- 	var template = stache('<input {($value)}="numberToString(~age)">');
+	var template = stache('<input {($value)}="numberToString(~age)">');
 
- 	var map = new CanMap({age: 25});
+	var map = new CanMap({age: 25});
 
- 	var frag = template(map);
+	var frag = template(map);
 
- 	equal(frag.firstChild.value, "25");
- 	equal(map.attr("age"), 25);
+	equal(frag.firstChild.value, "25");
+	equal(map.attr("age"), 25);
 
- 	map.attr("age",33);
+	map.attr("age",33);
 
- 	equal(frag.firstChild.value, "33");
- 	equal(map.attr("age"), 33);
+	equal(frag.firstChild.value, "33");
+	equal(map.attr("age"), 33);
 
- 	frag.firstChild.value = "1";
+	frag.firstChild.value = "1";
 
- 	canEvent.trigger.call(frag.firstChild,"change");
+	canEvent.trigger.call(frag.firstChild,"change");
 
 	stop();
 	afterMutation(function() {
@@ -2342,27 +2342,27 @@ test("converters work (#2299)", function(){
 
 test("Multi-select empty string works(#1263)", function(){
 
-    var data = {
-        isMultiple: 1,
-        isSelect: 1,
-        name: "attribute_ 0",
-        options: [
-            {label: 'empty', value: ""},
-            {label: 'zero', value: 0},
-            {label: 'one', value: 1},
-            {label: 'two', value: 2},
-            {label: 'three', value: 3},
-            {label: 'four', value: 4}
-        ],
-        value: [1]
-    };
+		var data = {
+				isMultiple: 1,
+				isSelect: 1,
+				name: "attribute_ 0",
+				options: [
+						{label: 'empty', value: ""},
+						{label: 'zero', value: 0},
+						{label: 'one', value: 1},
+						{label: 'two', value: 2},
+						{label: 'three', value: 3},
+						{label: 'four', value: 4}
+				],
+				value: [1]
+		};
 
-    var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> " +
-        "{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
+		var template = stache("<select {{#if isMultiple}}multiple{{/if}} can-value='value'> " +
+				"{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
 
-    var frag = template(new CanMap(data));
+		var frag = template(new CanMap(data));
 
-    equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
+		equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
 
 });
 
