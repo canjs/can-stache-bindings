@@ -2292,9 +2292,11 @@ test("can-value memory leak (#2270)", function () {
 
 	stop();
 	afterMutation(function(){
+		equal(vm.__bindEvents._lifecycleBindings,1, "has bindings");
 		domMutate.removeChild.call(ta, ta.firstChild);
 		// still 1 binding, should be 0
 		afterMutation(function(){
+			console.log("lifecycle bindings", vm.__bindEvents._lifecycleBindings);
 			equal(vm.__bindEvents._lifecycleBindings,0, "no bindings");
 			start();
 		});
