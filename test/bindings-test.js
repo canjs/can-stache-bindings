@@ -2599,7 +2599,7 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 				}
 			}
 		},
-		lastName: { 
+		lastName: {
 			set: function(newValue) {
 				if(newValue) {
 					return newValue.toLowerCase();
@@ -2625,4 +2625,36 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 			start();
 		}.bind(this));
 	}.bind(this));
+});
+
+test('plain data objects should work for checkboxes [can-value] (#161)', function () {
+	var template = stache([
+		'<input type="checkbox" name="status1" value="yes" can-value="status" can-true-value="yes"/>',
+		'<input type="checkbox" name="status2" value="no" can-value="status" can-true-value="no"/>'
+	].join(''));
+	var object = {status: 'yes'};
+
+	var fragment = template(object);
+	domMutate.appendChild.call(this.fixture, fragment);
+	var yesInput = this.fixture.firstChild;
+	var noInput = this.fixture.firstChild.nextSibling;
+
+	equal(yesInput.checked, true, 'yes-checkbox is initially checked');
+	equal(noInput.checked, false, 'no-checkbox is initially not checked');
+});
+
+test('plain data objects should work for radio buttons [can-value] (#161)', function () {
+	var template = stache([
+		'<input type="radio" name="status" value="no" can-value="status"/>',
+		'<input type="radio" name="status" value="yes" can-value="status"/>'
+	].join(''));
+	var object = {status: 'no'};
+
+	var fragment = template(object);
+	domMutate.appendChild.call(this.fixture, fragment);
+	var noInput = this.fixture.firstChild;
+	var yesInput = this.fixture.firstChild.nextSibling;
+
+	equal(noInput.checked, true, 'no-radio is initially checked');
+	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
