@@ -11,6 +11,8 @@
   <my-component {some-prop}="value"/>
   ```
 
+  > __Note:__ If [can-stache.key] is an object, changes to its properties will still be updated. The one-way binding only prevents replacement of the value.
+
   @param {String} child-prop The name of the property to set in the
   component’s viewmodel.
 
