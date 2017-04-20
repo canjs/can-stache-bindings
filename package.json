@@ -1,6 +1,6 @@
 {
   "name": "can-stache-bindings",
-  "version": "3.0.6",
+  "version": "3.0.18",
   "description": "Default binding syntaxes for can-stache",
   "homepage": "http://canjs.com",
   "author": {
@@ -14,7 +14,7 @@
     "postversion": "git push --tags && git checkout master && git branch -D release && git push",
     "testee": "testee test/test.html --browsers firefox",
     "test": "npm run jshint && npm run testee",
-    "jshint": "jshint ./*.js --config",
+    "jshint": "jshint test/ ./*.js --config",
     "release:pre": "npm version prerelease && npm publish",
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
@@ -28,17 +28,16 @@
     "canjs",
     "donejs"
   ],
-  "system": {
-    "main": "can-stache-bindings",
-    "npmAlgorithm": "flat"
+  "steal": {
+    "main": "can-stache-bindings"
   },
   "dependencies": {
-    "can-compute": "^3.0.0",
-    "can-event": "^3.0.1",
+    "can-compute": "^3.0.10",
+    "can-event": "^3.3.0",
     "can-observation": "^3.0.1",
-    "can-stache": "^3.0.13",
+    "can-stache": "^3.0.22",
     "can-types": "^1.0.1",
-    "can-util": "^3.2.2",
+    "can-util": "^3.3.7",
     "can-view-callbacks": "^3.0.0",
     "can-view-live": "^3.0.0",
     "can-view-model": "^3.0.0",
@@ -48,17 +47,17 @@
     "bit-docs": "0.0.7",
     "can-define": "^1.0.13",
     "can-list": "^3.0.1",
-    "can-map": "^3.0.3",
-    "can-vdom": "3.0.1",
+    "can-map": "^3.0.7",
+    "can-vdom": "^3.0.2",
     "can-view-nodelist": "^3.0.2",
     "done-serve": "^0.2.0",
     "donejs-cli": "^0.9.5",
     "generator-donejs": "^0.9.0",
     "jshint": "^2.9.1",
-    "steal": "^0.16.0",
-    "steal-qunit": "^0.1.1",
-    "steal-tools": "^0.16.0",
-    "testee": "^0.3.0"
+    "steal": "^1.2.9",
+    "steal-qunit": "^1.0.1",
+    "steal-tools": "^1.1.2",
+    "testee": "^0.3.1"
   },
   "bit-docs": {
     "dependencies": {

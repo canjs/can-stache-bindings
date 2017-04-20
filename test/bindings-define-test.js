@@ -236,16 +236,32 @@ if (System.env !== 'canjs-test') {
 	});
 }
 
+function makeKeyboardEvent() {
+	var event;
+	try {
+		// IE doesn't support this syntax (Edge does, other evergreen browsers do)
+		event = new KeyboardEvent("keyup",{key: "Enter"});
+		return event;
+	} catch(e) {
+		event = document.createEvent("KeyboardEvent");
+		event.initKeyboardEvent("keyup", true, false, document.parentWindow, "Enter", 16, "", false, "en-US");
+		return event;
+	}
+}
+
 var supportsKeyboardEvents = (function(){
 	if(typeof KeyboardEvent !== "undefined") {
-		var supports = false;
-		var el = document.createElement("div");
-		el.addEventListener("keyup", function(ev){
-			supports = (ev.key === "Enter");
-		});
-		var event = new KeyboardEvent("keyup",{key: "Enter"});
-		el.dispatchEvent(event);
-		return supports;
+		try {
+			var supports = false;
+			var el = document.createElement("div");
+			el.addEventListener("keyup", function(ev){
+				supports = (ev.key === "Enter");
+			});
+			el.dispatchEvent(makeKeyboardEvent());
+			return supports;
+		} catch(e) {
+			return false;
+		}
 	} else {
 		return false;
 	}
@@ -253,8 +269,6 @@ var supportsKeyboardEvents = (function(){
 
 
 if(supportsKeyboardEvents) {
-
-
 	QUnit.test("KeyboardEvent dispatching works with .key (#93)", function(){
 		var template = stache("<input ($enter)='method(%event)' type='text'/>");
 		var frag = template({
@@ -264,7 +278,7 @@ if(supportsKeyboardEvents) {
 		});
 		var input = frag.firstChild;
 
-		var event = new KeyboardEvent("keyup",{key: "Enter"});
+		var event = makeKeyboardEvent();
 		input.dispatchEvent(event);
 	});
 }
@@ -288,3 +302,30 @@ if(supportsKeyboardEvents) {
 //		domDispatch.call(input, "focus");
 //	}
 //});
+
+QUnit.test("Two way bindings should be sticky (#122)", function(){
+	var template = stache("<input {($value)}='firstName'/>");
+	var MyMap = define.Constructor({
+		firstName: {
+			set: function(newVal){
+				return newVal.toLowerCase();
+			}
+		}
+	});
+	var map = new MyMap({firstName: "matthew"});
+
+	var frag = template(map);
+
+	var ta = document.getElementById("qunit-fixture");
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+	QUnit.equal(input.value, "matthew", "input value set correctly");
+
+	input.value = "MATTHEW";
+
+	canEvent.trigger.call(input, "change");
+
+	QUnit.equal(map.firstName, "matthew", "vm stays the same");
+	QUnit.equal(input.value, "matthew", "input stays the same");
+});

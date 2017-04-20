@@ -1,4 +1,4 @@
-// # can/view/bindings/bindings.js
+// # can-stache-bindings.js
 //
 // This module provides CanJS's default data and event bindings.
 // It's broken up into several parts:
@@ -34,6 +34,7 @@ var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
+var canLog = require('can-util/js/log/log');
 
 	// ## Behaviors
 	var behaviors = {
@@ -159,6 +160,10 @@ var attr = require('can-util/dom/attr/attr');
 				semaphore = {},
 				teardown;
 
+			// If a two-way binding, take extra measure to ensure
+			//  that parent and child sync values properly.
+			var twoWay = bindingsRegExp.exec(attrData.attributeName)[1];
+
 			// Setup binding
 			var dataBinding = makeDataBinding({
 				name: attrData.attributeName,
@@ -170,7 +175,8 @@ var attr = require('can-util/dom/attr/attr');
 				semaphore: semaphore,
 				getViewModel: function(){
 					return viewModel;
-				}
+				},
+				syncChildWithParent: twoWay
 			});
 
 			if(dataBinding.onCompleteBinding) {
@@ -203,7 +209,8 @@ var attr = require('can-util/dom/attr/attr');
 							},
 							// always update the viewModel accordingly.
 							initializeValues: true,
-							nodeList: attrData.nodeList
+							nodeList: attrData.nodeList,
+							syncChildWithParent: twoWay
 						});
 						if(dataBinding) {
 							// The viewModel is created, so call callback immediately.
@@ -222,7 +229,7 @@ var attr = require('can-util/dom/attr/attr');
 		// For example `{^value}="name"`.
 		reference: function(el, attrData) {
 			if(el.getAttribute(attrData.attributeName)) {
-				console.warn("*reference attributes can only export the view model.");
+				canLog.warn("*reference attributes can only export the view model.");
 			}
 
 			var name = string.camelize( attrData.attributeName.substr(1).toLowerCase() );
@@ -306,7 +313,7 @@ var attr = require('can-util/dom/attr/attr');
 						});
 
 						//!steal-remove-start
-						dev.warn("can/view/bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
+						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
 							element: el,
 							scope: data.scope
 						});
@@ -359,32 +366,46 @@ var attr = require('can-util/dom/attr/attr');
 					var trueValue = attr.has(el, "can-true-value") ? el.getAttribute("can-true-value") : true,
 						falseValue = attr.has(el, "can-false-value") ? el.getAttribute("can-false-value") : false;
 
-					getterSetter = compute(function(newValue){
+					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
-						if(arguments.length) {
-							property(newValue ? trueValue : falseValue);
-						}
-						else {
-							return property() == trueValue;
+						var isSet = arguments.length !== 0;
+						var isCompute = property && property.isComputed;
+						if (isCompute) {
+							if (isSet) {
+								property(newValue ? trueValue : falseValue);
+							} else {
+								return property() == trueValue;
+							}
+						} else {
+							if (isSet) {
+								// TODO: https://github.com/canjs/can-stache-bindings/issues/180
+							} else {
+								return property == trueValue;
+							}
 						}
 					});
 				}
 				else if(elType === "radio") {
 					// radio is two-way bound to if the property value
 					// equals the element value
-
-					getterSetter = compute(function(newValue){
+					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
-						if(arguments.length) {
-							if( newValue ) {
+						var isSet = arguments.length !== 0 && newValue;
+						var isCompute = property && property.isComputed;
+						if (isCompute) {
+							if (isSet) {
 								property(el.value);
+							} else {
+								return property() == el.value;
+							}
+						} else {
+							if (isSet) {
+								// TODO: https://github.com/canjs/can-stache-bindings/issues/180
+							} else {
+								return property == el.value;
 							}
 						}
-						else {
-							return property() == el.value;
-						}
 					});
-
 				}
 				propName = "$checked";
 				attrValue = "getterSetter";
@@ -405,8 +426,7 @@ var attr = require('can-util/dom/attr/attr');
 				scope: data.scope,
 				semaphore: {},
 				initializeValues: true,
-				legacyBindings: true,
-				syncChildWithParent: true
+				legacyBindings: true
 			});
 
 			canEvent.one.call(el, "removed", function(){
@@ -433,7 +453,7 @@ var attr = require('can-util/dom/attr/attr');
 
 	//!steal-remove-start
 	function syntaxWarning(el, attrData) {
-		dev.warn('can/view/bindings/bindings.js: mismatched binding syntax - ' + attrData.attributeName);
+		dev.warn('can-stache-bindings: mismatched binding syntax - ' + attrData.attributeName);
 	}
 	viewCallbacks.attr(/^\(.+\}$/, syntaxWarning);
 	viewCallbacks.attr(/^\{.+\)$/, syntaxWarning);
@@ -461,10 +481,9 @@ var attr = require('can-util/dom/attr/attr');
 					return parentExpression.value(scope, new Scope.Options({}));
 				} else {
 					return function(newVal){
-						scope.attr(cleanVMName(scopeProp), newVal);
+						scope.set(cleanVMName(scopeProp), newVal);
 					};
 				}
-
 			}
 
 		},
@@ -600,7 +619,15 @@ var attr = require('can-util/dom/attr/attr');
 					// is on a plain JS object. This updates the observable to match whatever the
 					// new value is.
 					else if(types.isMapLike(parentCompute)) {
-						parentCompute.attr(newVal, true);
+						// !steal-dev-start
+						var attrValue = el.getAttribute(attrName);
+						dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
+						// !steal-dev-end
+						(parentCompute.set || parentCompute.attr).call(
+							parentCompute,
+							newVal.serialize ? newVal.serialize() : newVal,
+							true
+						);
 					}
 				}
 			};
@@ -687,7 +714,8 @@ var attr = require('can-util/dom/attr/attr');
 					child: "viewModel",
 					childName: vmName,
 					parentToChild: true,
-					childToParent: true
+					childToParent: true,
+					syncChildWithParent: true
 				};
 			} else {
 				return {
@@ -697,7 +725,8 @@ var attr = require('can-util/dom/attr/attr');
 					child: "viewModel",
 					childName: vmName,
 					parentToChild: true,
-					childToParent: true
+					childToParent: true,
+					syncChildWithParent: true
 				};
 			}
 		}
@@ -717,7 +746,8 @@ var attr = require('can-util/dom/attr/attr');
 				bindingAttributeName: attributeName,
 				childName: childName.substr(1),
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: true,
+				syncChildWithParent: twoWay
 			};
 			if(tagName === "select") {
 				bindingInfo.stickyParentToChild = true;
@@ -732,7 +762,8 @@ var attr = require('can-util/dom/attr/attr');
 				bindingAttributeName: attributeName,
 				childName: string.camelize(childName),
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: true,
+				syncChildWithParent: twoWay
 			};
 			if(attributeValue.trim().charAt(0) === "~") {
 				bindingInfo.stickyParentToChild = true;
@@ -819,7 +850,7 @@ var attr = require('can-util/dom/attr/attr');
 			if(bindingInfo.childToParent){
 				// setup listening on parent and forwarding to viewModel
 				updateParent = bind.childToParent(el, parentCompute, childCompute, bindingData.semaphore, bindingInfo.bindingAttributeName,
-					bindingData.syncChildWithParent);
+					bindingInfo.syncChildWithParent);
 			}
 			// the child needs to be bound even if
 			else if(bindingInfo.stickyParentToChild) {
