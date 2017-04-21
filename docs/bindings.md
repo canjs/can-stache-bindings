@@ -1,6 +1,7 @@
 @module can-stache-bindings
 @parent can-core
 @group can-stache-bindings.syntaxes Syntaxes
+@group can-stache-bindings.notes Notes
 @package ../package.json
 
 Provides template event, one-way bindings, and two-way bindings.
@@ -55,7 +56,7 @@ in the [can-view-scope scope]:
 <my-component {$child-attr}="value"/>
 ```
 
-> __Note:__ If the value is an object, changes to its properties will still be updated. The one-way binding only prevents replacement of the value.
+> __Note:__ If the value is an object, changes to its properties will still be updated. see [can-stache-bindings.oneWayObjects].
 
 #### [can-stache-bindings.toParent one-way to parent]
 
@@ -73,7 +74,7 @@ in the [can-view-scope scope] with the `child-attr` attribute or property on `<m
 <my-component {^$child-attr}="value"/>
 ```
 
-> __Note:__ If the value is an object, changes to its properties will still be updated. The one-way binding only prevents replacement of the value.
+> __Note:__ If the value is an object, changes to its properties will still be updated. see [can-stache-bindings.oneWayObjects].
 
 #### [can-stache-bindings.twoWay two-way]
 
