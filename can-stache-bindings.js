@@ -551,17 +551,32 @@ var canLog = require('can-util/js/log/log');
 				}
 			}
 
-			var hasChildren = el.nodeName.toLowerCase() === "select",
-				isMultiselectValue = prop === "value" && hasChildren && el.multiple,
-				// Sets the element property or attribute.
-				set = function(newVal){
-					if(bindingData.legacyBindings && hasChildren &&
-						 ("selectedIndex" in el) && prop === "value") {
+			var radioKey;
+			var radioName;
+			if (radioBinding.isConflictRadio(el)) {
+				radioName = el.getAttribute('name');
+			}
+
+			var nodeName = el.nodeName.toLowerCase();
+			var isSelect = nodeName === "select";
+			var isMultiselectValue = prop === "value" && isSelect && el.multiple;
+			var isLegacySet = (
+				bindingData.legacyBindings &&
+				isSelect &&
+				("selectedIndex" in el) &&
+				prop === "value"
+			);
+
+			// Sets the element property or attribute.
+			var set = function(newVal){
+					if (isLegacySet) {
 						attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
 					} else {
 						attr.setAttrOrProp(el, prop, newVal);
 					}
-
+					if (radioName && newVal) {
+						radioBinding.dispatch(radioKey);
+					}
 					return newVal;
 				},
 				get = function(){
@@ -574,10 +589,28 @@ var canLog = require('can-util/js/log/log');
 
 			return compute(get(), {
 				on: function(updater){
-					canEvent.on.call(el,event, updater);
+					canEvent.on.call(el, event, updater);
+					if (radioName && !radioKey) {
+						radioKey = radioBinding.addListener(el, function (_, isChecked) {
+							/*
+								We set/remove manually for the dumb vdom.
+								The dom does this bookkeeping automatically.
+							*/
+							if (isChecked) {
+								el.setAttribute('checked', 'checked');
+							} else {
+								el.removeAttribute('checked');
+							}
+							updater();
+						});
+					}
 				},
 				off: function(updater){
-					canEvent.off.call(el,event, updater);
+					canEvent.off.call(el, event, updater);
+					if (radioKey) {
+						radioBinding.removeListener(radioKey);
+						radioKey = undefined;
+					}
 				},
 				get: get,
 				set: set
@@ -993,6 +1026,168 @@ var canLog = require('can-util/js/log/log');
 			return name.replace(/@/g,"");
 		};
 
+/*
+	For radio inputs bound to different variables, but bound to the
+	same parent form (or lack thereof) and "name" attribute, we need to fire
+	change events for the deselected inputs whose events will not be fired.
+	This applies to named radio elements bound using `{($checked)}`.
+*/
+var radioBinding = {
+	_document: window.document,
+	_documentListener: null,
+	_listenerCount: 0,
+	_scopeListeners: {},
+	_scopeListenerCount: {},
+	_uniqueKey: 0,
+	_noFormKey: 'x0',
+
+	_id: function () {
+		return 'c' + this._uniqueKey++;
+	},
+
+	/*
+		@param el HTMLElement
+		@returns boolean: whether the element should be added
+	*/
+	isConflictRadio: function isConflictRadio (el) {
+		return (
+			el.nodeName.toLowerCase() === 'input' &&
+			el.getAttribute('type') === 'radio' &&
+			!!el.getAttribute('name')
+		);
+	},
+
+	_findParentForm: function _findParentForm (el) {
+		while (el) {
+			if (el.nodeName === 'FORM') {
+				break;
+			}
+			el = el.parentNode;
+		}
+		return el;
+	},
+
+	_getScopeKey: function _getScopeKey (el) {
+		/*
+			There are two conditions similar radios must match:
+				1) Same parent form, or same lack of parent form
+				2) Same "name" attribute
+			The scope key encapsulates both.
+		*/
+		var form = this._findParentForm(el);
+		var formKey = this._noFormKey;
+		if (form) {
+			formKey = form.__bindingFormKey = form.__bindingFormKey || this._id();
+		}
+		return formKey + '-' + el.getAttribute('name');
+	},
+
+	_attach: function attachListener () {
+		if (this._documentListener || this._listenerCount < 1) {
+			return;
+		}
+
+		var self = this;
+		this._documentListener = function documentListener (event) {
+			var shouldDispatch = (
+				event &&
+				self.isConflictRadio(event.target) &&
+				!event.__bindingTargetDispatch
+			);
+			if (!shouldDispatch) {
+				return;
+			}
+			var scopeKey = self._getScopeKey(event.target);
+			self._dispatch(null, scopeKey, event);
+		};
+		this._document.addEventListener('change', this._documentListener);
+	},
+
+	_detach: function detachListener () {
+		if (!this._documentListener || this._listenerCount !== 0) {
+			return;
+		}
+		this._document.removeEventListener('change', this._documentListener);
+	},
+
+	/*
+		Adds the (el, handler) listener to observer list, and
+		adds the document event listener if it is the first listener.
+
+		@param el HTMLElement: <input type='radio' name='x'/> node
+		@param handler function: callback called with:
+			el as this,
+			event: the object passed to dispatch,
+			isChecked boolean: whether the input should be checked or unchecked
+		@returns a key for refering to the (el, handler) tuple externally
+	*/
+	addListener: function addListener (el, handler) {
+		var elemKey = this._id();
+		var scopeKey = this._getScopeKey(el);
+		var scope = this._scopeListeners[scopeKey] = this._scopeListeners[scopeKey] || {};
+		scope[elemKey] = {el: el, handler: handler};
+		this._scopeListenerCount[scopeKey] = (this._scopeListenerCount[scopeKey] || 0) + 1;
+		this._listenerCount++;
+		this._attach();
+		return elemKey + ':' + scopeKey;
+	},
+
+	/*
+		Removes the listener associated with the key, and
+		the document listener if the key was the last one.
+
+		@param key: the string returned by addListener()
+	*/
+	removeListener: function removeListener (key) {
+		var sep = key.indexOf(':');
+		var elemKey = key.slice(0, sep);
+		var scopeKey = key.slice(sep + 1);
+
+		delete this._scopeListeners[scopeKey][elemKey];
+
+		var scopeCount = --this._scopeListeners[scopeKey];
+		if (scopeCount === 0) {
+			delete this._scopeListeners[scopeKey];
+		}
+
+		this._listenerCount--;
+		this._detach();
+	},
+
+	/*
+		Fires the callbacks of all listeners relevent
+		to the element associated to the key. An object
+		can be passed, preferably the original event.
+
+		@param key: the string returned by addListener()
+		@param event: arbitrary object to send all listeners
+		@returns the result of the key's own handler function
+	*/
+	dispatch: function dispatch (key, event) {
+		var sep = key.indexOf(':');
+		var elemKey = key.slice(0, sep);
+		var scopeKey = key.slice(sep + 1);
+		if (event === undefined) {
+			event = {};
+		}
+		event.__bindingTargetDispatch = true;
+		return this._dispatch(elemKey, scopeKey, event);
+	},
+
+	_dispatch: function _dispatch (elemKey, scopeKey, event) {
+		var scope = this._scopeListeners[scopeKey];
+		var result;
+		for (var listenerId in scope) {
+			var listener = scope[listenerId];
+			var isChecked = elemKey === listenerId;
+			var ret = listener.handler.call(listener.el, event, isChecked);
+			if (isChecked) {
+				result = ret;
+			}
+		}
+		return result;
+	}
+};
 
 	// ## Special Event Types (can-SPECIAL)
 	//
