@@ -2415,15 +2415,15 @@ if (System.env.indexOf('production') < 0) {
 				}
 			});
 
-			stache("<special-attrs id='{{foo}}' class='{{baz}}'></div>")({foo: "bar", baz: "quux"});
-			stache("<special-attrs id='foo' class='baz'></div>")({foo: "bar", baz: "quux"});
+			stache("<special-attrs id='{{foo}}' class='{{baz}}'></special-attrs>")({foo: "bar", baz: "quux"});
+			stache("<special-attrs id='foo' class='baz'></special-attrs>")({foo: "bar", baz: "quux"});
 
 			dev.warn = function() {
 				ok(true, 'dev.warn was called correctly');
 				_warn.apply(dev, arguments);
 			};
 
-			stache("<special-attrs id='{foo}' class='{baz}'></div>")({foo: "bar", baz: "quux"});
+			stache("<special-attrs id='{foo}' class='{baz}'></special-attrs>")({foo: "bar", baz: "quux"});
 		} finally {
 			dev.warn = _warn;
 		}
