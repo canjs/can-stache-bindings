@@ -2561,8 +2561,6 @@ if (System.env.indexOf('production') < 0) {
 	});
 }
 
-}
-
 test("updates happen on two-way even when one binding is satisfied", function() {
 	var template = stache('<input {($value)}="firstName"/>');
 
@@ -2658,3 +2656,21 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(noInput.checked, true, 'no-radio is initially checked');
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
+
+test("can bind to multiple functions (#115)", function() {
+	var template = stache("<div ($click)='do1(1); do2(2);' />");
+	var data = {
+		do1: function(arg) {
+			equal(arg, 1, "do1 called");
+		},
+		do2: function(arg) {
+			equal(arg, 2, "do2 called");
+		}
+	};
+
+	expect(2);
+	var frag = template(data);
+	canEvent.trigger.call(frag.firstChild, "click");
+});
+
+}
