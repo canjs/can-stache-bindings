@@ -1,7 +1,6 @@
 @module can-stache-bindings
 @parent can-core
 @group can-stache-bindings.syntaxes Syntaxes
-@group can-stache-bindings.notes Notes
 @package ../package.json
 
 Provides template event, one-way bindings, and two-way bindings.
@@ -56,7 +55,7 @@ in the [can-view-scope scope]:
 <my-component {$child-attr}="value"/>
 ```
 
-> __Note:__ If the value is an object, changes to its properties will still be updated. See [can-stache-bindings.oneWayObjects].
+> __Note:__ If the value is an object, changes to its properties will still be updated. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.toParent one-way to parent]
 
@@ -74,7 +73,7 @@ in the [can-view-scope scope] with the `child-attr` attribute or property on `<m
 <my-component {^$child-attr}="value"/>
 ```
 
-> __Note:__ If the value is an object, changes to its properties will still be updated. See [can-stache-bindings.oneWayObjects].
+> __Note:__ If the value is an object, changes to its properties will still be updated. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.twoWay two-way]
 
@@ -89,4 +88,27 @@ in the [can-view-scope scope] and vice versa:
 
 ```
 <my-component {($child-attr)}="value"/>
+```
+
+## One Way Binding With Objects
+
+`{child-prop}="key"` ([can-stache-bindings.toChild one-way to child]) or `{^child-prop}="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component or vice versa, respectively.
+
+Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
+
+```javascript
+function component(bar) {
+	// changes to bar's properties are preserved
+	bar.quux = 'barfoo';
+
+	// but replacing bar is not
+	bar = {
+		quux: 'hello world'
+	};
+}
+
+var foo = {
+	quux: 'foobar'
+};
+component(foo);
 ```
