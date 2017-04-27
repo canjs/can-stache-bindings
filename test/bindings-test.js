@@ -2573,8 +2573,6 @@ if (System.env.indexOf('production') < 0) {
 	});
 }
 
-}
-
 test("updates happen on two-way even when one binding is satisfied", function() {
 	var template = stache('<input {($value)}="firstName"/>');
 
@@ -2670,3 +2668,7 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(noInput.checked, true, 'no-radio is initially checked');
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
+
+// Add new tests above this line
+
+}
