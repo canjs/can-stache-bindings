@@ -830,6 +830,15 @@ var canLog = require('can-util/js/log/log');
 			updateChild,
 			childLifecycle;
 
+		//!steal-remove-start
+		if (parentCompute && parentCompute.isComputed) {
+			if (typeof parentCompute() === "undefined") {
+				dev.warn('The parent (' + bindingInfo.parentName + ') you bound to child' +
+					' (' + bindingInfo.childName + ') is not defined in the scope!');
+			}
+		}
+		//!steal-remove-end
+
 		if(bindingData.nodeList) {
 			if(parentCompute && parentCompute.isComputed){
 				parentCompute.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
