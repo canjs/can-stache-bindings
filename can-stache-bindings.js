@@ -263,67 +263,77 @@ var canLog = require('can-util/js/log/log');
 			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
 			var handler = function (ev) {
-					var attrVal = el.getAttribute(attributeName);
-					if (!attrVal) { return; }
+					var attrVals = el.getAttribute(attributeName);
+					if (!attrVals) { return; }
+
+					attrVals = attrVals.split(';').filter(function(v) { return v.trim(); });
 
 					var viewModel = canViewModel(el);
 
-					// expression.parse will read the attribute
-					// value and parse it identically to how mustache helpers
-					// get parsed.
-					var expr = expression.parse(removeBrackets(attrVal),{lookupRule: "method", methodRule: "call"});
+					var outputs = [];
 
-					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
+					for (var i in attrVals) {
+						var attrVal = attrVals[i];
 
-						var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data){
-							return new expression.Arg(new expression.Literal(data));
+						// expression.parse will read the attribute
+						// value and parse it identically to how mustache helpers
+						// get parsed.
+						var expr = expression.parse(removeBrackets(attrVal),{lookupRule: "method", methodRule: "call"});
+
+						if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
+
+							var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data){
+								return new expression.Arg(new expression.Literal(data));
+							});
+							expr = new expression.Call(expr, defaultArgs, {} );
+						}
+
+						// make a scope with these things just under
+						var localScope = data.scope.add({
+							"@element": el,
+							"@event": ev,
+							"@viewModel": viewModel,
+							"@scope": data.scope,
+							"@context": data.scope._context,
+
+							"%element": this,
+							"$element": types.wrapElement(el),
+							"%event": ev,
+							"%viewModel": viewModel,
+							"%scope": data.scope,
+							"%context": data.scope._context,
+							"%arguments": arguments
+						},{
+							notContext: true
 						});
-						expr = new expression.Call(expr, defaultArgs, {} );
-					}
-
-					// make a scope with these things just under
-					var localScope = data.scope.add({
-						"@element": el,
-						"@event": ev,
-						"@viewModel": viewModel,
-						"@scope": data.scope,
-						"@context": data.scope._context,
-
-						"%element": this,
-						"$element": types.wrapElement(el),
-						"%event": ev,
-						"%viewModel": viewModel,
-						"%scope": data.scope,
-						"%context": data.scope._context,
-						"%arguments": arguments
-					},{
-						notContext: true
-					});
 
 
-					// We grab the first item and treat it as a method that
-					// we'll call.
-					var scopeData = localScope.read(expr.methodExpr.key, {
-						isArgument: true
-					});
-
-					if (!scopeData.value) {
-						scopeData = localScope.read(expr.methodExpr.key, {
+						// We grab the first item and treat it as a method that
+						// we'll call.
+						var scopeData = localScope.read(expr.methodExpr.key, {
 							isArgument: true
 						});
 
-						//!steal-remove-start
-						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
-							element: el,
-							scope: data.scope
-						});
-						//!steal-remove-end
+						if (!scopeData.value) {
+							scopeData = localScope.read(expr.methodExpr.key, {
+								isArgument: true
+							});
 
-						return null;
+							//!steal-remove-start
+							dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
+								element: el,
+								scope: data.scope
+							});
+							//!steal-remove-end
+
+							return null;
+						}
+
+						var args = expr.args(localScope, null)();
+						outputs[i] = scopeData.value.apply(scopeData.parent, args);
 					}
 
-					var args = expr.args(localScope, null)();
-					return scopeData.value.apply(scopeData.parent, args);
+					return outputs;
 				};
 
 			// This code adds support for special event types, like can-enter="foo". special.enter (or any special[event]) is
