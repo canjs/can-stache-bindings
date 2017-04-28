@@ -495,6 +495,103 @@ test("can-enter", function () {
 
 });
 
+test("{($checked)} should trigger a change event for matching radio buttons", function () {
+	// NOTE: "matching" means 1) having the same "name" and 2) exising in the same form
+	var template = stache([
+		'<input type="radio" name="baz" {($checked)}="foo"/><span>{{foo}}</span>',
+		'<input type="radio" name="baz" {($checked)}="bar"/><span>{{bar}}</span>'
+	].join(''));
+	var data = new CanMap({
+		foo: false,
+		bar: false
+	});
+	var fragment = template(data);
+	domMutate.appendChild.call(this.fixture, fragment);
+
+	var self = this;
+	function child (index) {
+		return self.fixture.childNodes.item(index);
+	}
+
+	var fooRadio = child(0);
+	var fooText = child(1);
+	var barRadio = child(2);
+	var barText = child(3);
+
+	function text (node) {
+		while (node && node.nodeType !== 3) {
+			node = node.firstChild;
+		}
+		return node && node.nodeValue;
+	}
+
+	/* sanity checks
+	equal(fooRadio.checked, false);
+	equal(text(fooText), 'false');
+	equal(barRadio.checked, false);
+	equal(text(barText), 'false');
+	*/
+
+	fooRadio.checked = true;
+	canEvent.trigger.call(fooRadio, 'change');
+
+	barRadio.checked = true;
+	canEvent.trigger.call(barRadio, 'change');
+
+	equal(text(fooText), 'false');
+	equal(text(barText), 'true');
+
+	equal(data.foo, false);
+	equal(data.bar, true);
+});
+
+testIfRealDocument('{($checked)} radio elements should update via matching untracked radios', function () {
+	// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
+	// NOTE: "matching" means 1) having the same "name" and 2) exising in the same form
+	// NOTE: "untracked" means radios which are not bound via {($checked)}
+	var template = stache([
+		'<input type="radio" name="baz" {($checked)}="foo"/><span>{{foo}}</span>',
+		'<input type="radio" name="baz"/>' // untracked but matching
+	].join(''));
+	var data = new CanMap({foo: false});
+	var fragment = template(data);
+	domMutate.appendChild.call(this.fixture, fragment);
+
+	var self = this;
+	function child (index) {
+		return self.fixture.childNodes.item(index);
+	}
+
+	var fooRadio = child(0);
+	var fooText = child(1);
+	var barRadio = child(2);
+
+	function text (node) {
+		while (node && node.nodeType !== 3) {
+			node = node.firstChild;
+		}
+		return node && node.nodeValue;
+	}
+
+	/* sanity checks
+	equal(fooRadio.checked, false);
+	equal(text(fooText), 'false');
+	equal(barRadio.checked, false);
+	*/
+
+	fooRadio.checked = true;
+	canEvent.trigger.call(fooRadio, 'change');
+
+	equal(text(fooText), 'true');
+	equal(data.foo, true);
+
+	barRadio.checked = true;
+	canEvent.trigger.call(barRadio, 'change');
+
+	equal(text(fooText), 'false');
+	equal(data.foo, false);
+});
+
 test("two bindings on one element call back the correct method", function () {
 	expect(2);
 	var template = stache("<input can-mousemove='first' can-click='second'/>");
