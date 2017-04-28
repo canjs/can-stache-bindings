@@ -32,7 +32,7 @@ var last = require('can-util/js/last/last');
 var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
-require('can-util/dom/events/radiochange/radiochange');
+require('can-event-radiochange/override').override(domEvents);
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-util/js/log/log');
