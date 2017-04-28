@@ -1353,6 +1353,47 @@ test('one-way - DOM - {$checked} with undefined (#135)', function() {
 	equal(input.checked, false, 'checkbox value should be false for undefined');
 });
 
+test('one-way - DOM - parent value undefined (#189)', function () {
+	/* WHAT: We are testing whether, given the parent's passed property is
+	         undefined, the child template's value is always set to undefined
+	         or if the child template is free to update its value.
+	         **The child should be free to update its value.**
+	*/
+	/* HOW: We test a <toggle-button>, in this case the parent prop is undefined
+	        so we should be able to toggle true/false on each click.
+	*/
+
+	MockComponent.extend({
+		tag: 'toggle-button',
+		viewModel: {
+			value: false,
+			toggle: function () {
+				this.attr( "value", !this.attr( "value" ));
+			}
+		},
+		template: stache('<button type="button" ($click)="toggle()">{{value}}</button>')
+	});
+	var template = stache('<toggle-button {(value)}="./does-not-exist" />');
+	var fragment = template({});
+
+	domMutate.appendChild.call(this.fixture, fragment);
+	var button = this.fixture.getElementsByTagName('button')[0];
+
+	// Get first text for DOM and VDOM
+	function text (node) {
+		while (node && node.nodeType !== 3) {
+			node = node.firstChild;
+		}
+		return node && node.nodeValue;
+	}
+
+	equal(text(button), 'false', 'Initial value is "false"');
+	canEvent.trigger.call(button, 'click');
+	equal(text(button), 'true', 'Value is "true" after first click');
+	canEvent.trigger.call(button, 'click');
+	equal(text(button), 'false', 'Value is "false" after second click');
+});
+
 test('two-way - reference - {(child)}="*ref" (#1700)', function(){
 	var data = new CanMap({person: {name: {}}});
 	MockComponent.extend({
