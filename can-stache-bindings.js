@@ -32,6 +32,7 @@ var last = require('can-util/js/last/last');
 var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
+require('can-event-radiochange/override').override(domEvents);
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-util/js/log/log');
@@ -544,10 +545,16 @@ var canLog = require('can-util/js/log/log');
 			// Determine the event or events we need to listen to
 			// when this value changes.
 			if(!event) {
-				if(attr.special[prop] && attr.special[prop].addEventListener) {
+				event = "change";
+				var isRadioInput = el.nodeName === 'INPUT' && el.type === 'radio';
+				var isValidProp = prop === 'checked' && !bindingData.legacyBindings;
+				if (isRadioInput && isValidProp) {
+					event = 'radiochange';
+				}
+
+				var isSpecialProp = attr.special[prop] && attr.special[prop].addEventListener;
+				if (isSpecialProp) {
 					event = prop;
-				} else {
-					event = "change";
 				}
 			}
 
