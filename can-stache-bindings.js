@@ -832,8 +832,15 @@ var canLog = require('can-util/js/log/log');
 
 		//!steal-remove-start
 		if (parentCompute && parentCompute.isComputed) {
-			if (typeof parentCompute() === "undefined") {
+			if (parentCompute() === undefined) {
 				dev.warn('The parent (' + bindingInfo.parentName + ') you bound to child' +
+					' (' + bindingInfo.childName + ') is not defined in the scope!');
+			}
+		}
+
+		if (childCompute && childCompute.isComputed) {
+			if (childCompute() === undefined) {
+				dev.warn('The child (' + bindingInfo.childName + ') you bound to child' +
 					' (' + bindingInfo.childName + ') is not defined in the scope!');
 			}
 		}

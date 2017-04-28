@@ -2521,7 +2521,9 @@ if (System.env.indexOf('production') < 0) {
 			message = 'can-stache-bindings: Merging {(foo)} into bar because its parent is non-observable';
 
 		dev.warn = function (text) {
-			equal(text, message, 'Got expected message logged.');
+			if (text === message) {
+				ok(true, 'Got expected message logged.');
+			}
 		};
 
 		delete viewCallbacks._tags["merge-warn-test"];
@@ -2657,18 +2659,19 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
 
-test("warning when binding to non-existing value (#136)", function() {
+test("warning when binding to non-existing value (#136) (#119)", function() {
 	var oldWarn = dev.warn;
 	dev.warn = function() {
 		ok(true);
-		dev.warn = oldWarn;
 	};
 
 	var template = stache("<div {(target)}='source.bar'/>");
 
+	expect(2);
 	var map = new CanMap({ source: { foo: "foo" } });
-
 	template(map);
+
+	dev.warn = oldWarn;
 });
 
 }
