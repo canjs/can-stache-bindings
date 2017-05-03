@@ -51,14 +51,14 @@
     "can-map": "^3.0.7",
     "can-vdom": "^3.0.2",
     "can-view-nodelist": "^3.0.2",
-    "done-serve": "^0.2.0",
-    "donejs-cli": "^0.9.5",
-    "generator-donejs": "^0.9.0",
+    "done-serve": "^1.2.0",
+    "donejs-cli": "^1.0.1",
+    "generator-donejs": "^1.0.5",
     "jshint": "^2.9.1",
     "steal": "^1.2.9",
     "steal-qunit": "^1.0.1",
     "steal-tools": "^1.1.2",
-    "testee": "^0.3.1"
+    "testee": "^0.5.0"
   },
   "bit-docs": {
     "dependencies": {
