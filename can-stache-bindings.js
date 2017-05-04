@@ -1016,18 +1016,7 @@ var canLog = require('can-util/js/log/log');
 	//			// some logic that figures out if the original handler should be called or not, and if so...
 	//			return original.call(this, ev);
 	//		}
-	var special = {
-		enter: function (data, el, original) {
-			return {
-				event: "keyup",
-				handler: function (ev) {
-					if (ev.keyCode === 13 || ev.key === "Enter") {
-						return original.call(this, ev);
-					}
-				}
-			};
-		}
-	};
+	var special = {};
 
 	module.exports = {
 		behaviors: behaviors,
