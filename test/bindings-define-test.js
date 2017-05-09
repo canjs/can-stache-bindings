@@ -329,3 +329,27 @@ QUnit.test("Two way bindings should be sticky (#122)", function(){
 	QUnit.equal(map.firstName, "matthew", "vm stays the same");
 	QUnit.equal(input.value, "matthew", "input stays the same");
 });
+
+
+test('scope method called when scope property changes on DefineMap (#197)', function(){
+	stop();
+	expect(1);
+	
+	MockComponent.extend({
+		tag: "view-model-able"
+	});
+
+	var template = stache("<view-model-able (. prop)='someMethod'/>");
+
+	var map = new DefineMap({
+		prop: "Mercury",
+		someMethod: function(scope, el, ev, newVal){
+			start();
+			ok(true, "method called");
+		}
+	});
+
+	template(map);
+	map.prop ="Venus";
+
+});
