@@ -36,6 +36,7 @@ require('can-event-radiochange/override').override(domEvents);
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-util/js/log/log');
+var stacheHelperCore = require("can-stache/helpers/core");
 
 	// ## Behaviors
 	var behaviors = {
@@ -306,9 +307,16 @@ var canLog = require('can-util/js/log/log');
 					// we'll call.
 					var scopeData = localScope.read(expr.methodExpr.key, {
 						isArgument: true
-					});
+					}), args, stacheHelper;
 
 					if (!scopeData.value) {
+						// nothing found yet, look for a stache helper
+						stacheHelper = stacheHelperCore.getHelper(expr.methodExpr.key);
+						if(stacheHelper){
+							args = expr.args(localScope, null)();
+							return stacheHelper.fn.apply(localScope, args);
+						}
+
 						scopeData = localScope.read(expr.methodExpr.key, {
 							isArgument: true
 						});
@@ -323,7 +331,7 @@ var canLog = require('can-util/js/log/log');
 						return null;
 					}
 
-					var args = expr.args(localScope, null)();
+					args = expr.args(localScope, null)();
 					return scopeData.value.apply(scopeData.parent, args);
 				};
 

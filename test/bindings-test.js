@@ -2793,3 +2793,30 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(noInput.checked, true, 'no-radio is initially checked');
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
+
+
+test("changing a scope property calls registered stache helper", function(){
+	expect(1);
+	stop();
+	var scope = new CanMap({
+		test: "testval"
+	});
+	MockComponent.extend({
+		tag: "test-component",
+		viewModel: scope,
+		template: stache('<span>Hello world</span>')
+		
+	});
+
+	stache.registerHelper("propChangeEventStacheHelper", function(){
+		start();
+		ok(true, "helper called");
+	});
+
+	var template = stache('<test-component (test)="propChangeEventStacheHelper" />');
+
+	template(new CanMap({}));
+
+	scope.attr('test', 'changed');
+	
+});
