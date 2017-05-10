@@ -257,6 +257,8 @@ var stacheHelperCore = require("can-stache/helpers/core");
 					removeBrackets(attributeName, '(', ')'),
 				onBindElement = legacyBinding;
 
+			event = decodeAttrName(event);
+
 			if(event.charAt(0) === "$") {
 				event = event.substr(1);
 				onBindElement = true;
@@ -348,15 +350,28 @@ var stacheHelperCore = require("can-stache/helpers/core");
 				handler = specialData.handler;
 				event = specialData.event;
 			}
+
+			var context;
+			if(onBindElement){
+				context = el;
+			}else{
+				if(event.indexOf(" ") >= 0){
+					var eventSplit = event.split(" ");
+					context = data.scope.get(eventSplit[0]);
+					event = eventSplit[1];
+				}else{
+					context = canViewModel(el);
+				}
+			}
 			// Bind the handler defined above to the element we're currently processing and the event name provided in this
 			// attribute name (can-click="foo")
-			canEvent.on.call(onBindElement ? el : canViewModel(el), event, handler);
+			canEvent.on.call(context, event, handler);
 
 			// Create a handler that will unbind itself and the event when the attribute is removed from the DOM
 			var attributesHandler = function(ev) {
 				if(ev.attributeName === attributeName && !this.getAttribute(attributeName)) {
 
-					canEvent.off.call(onBindElement ? el : canViewModel(el), event, handler);
+					canEvent.off.call(context, event, handler);
 					canEvent.off.call(el, 'attributes', attributesHandler);
 				}
 			};
@@ -461,7 +476,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 	viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
 
 	// `(EVENT)` event bindings.
-	viewCallbacks.attr(/^\([\$?\w\.]+\)$/, behaviors.event);
+	viewCallbacks.attr(/^\([\$?\w\.\\]+\)$/, behaviors.event);
 
 
 	//!steal-remove-start
@@ -684,7 +699,12 @@ var stacheHelperCore = require("can-stache/helpers/core");
 		}
 	};
 
-	var DOUBLE_CURLY_BRACE_REGEX = /\{\{/g;
+	// Regular expressions for getBindingInfo
+	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
+		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i,
+		DOUBLE_CURLY_BRACE_REGEX = /\{\{/g,
+		encodedSpacesRegExp = /\\s/g;
+
 	// ## getBindingInfo
 	// takes a node object like {name, value} and returns
 	// an object with information about that binding.
@@ -779,7 +799,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 				childToParent: childToParent,
 				parentToChild: parentToChild,
 				bindingAttributeName: attributeName,
-				childName: string.camelize(childName),
+				childName: decodeAttrName(string.camelize(childName)),
 				parentName: attributeValue,
 				initializeValues: true,
 				syncChildWithParent: twoWay
@@ -791,9 +811,9 @@ var stacheHelperCore = require("can-stache/helpers/core");
 		}
 
 	};
-	// Regular expressions for getBindingInfo
-	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
-		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i;
+	var decodeAttrName = function(name){
+		return name.replace(encodedSpacesRegExp, " ");
+	};
 
 
 	// ## makeDataBinding
