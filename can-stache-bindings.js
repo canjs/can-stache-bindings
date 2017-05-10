@@ -307,14 +307,18 @@ var stacheHelperCore = require("can-stache/helpers/core");
 					// we'll call.
 					var scopeData = localScope.read(expr.methodExpr.key, {
 						isArgument: true
-					}), args, stacheHelper;
+					}), args, stacheHelper, stacheHelperResult;
 
 					if (!scopeData.value) {
 						// nothing found yet, look for a stache helper
 						stacheHelper = stacheHelperCore.getHelper(expr.methodExpr.key);
 						if(stacheHelper){
 							args = expr.args(localScope, null)();
-							return stacheHelper.fn.apply(localScope, args);
+							stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
+							if(typeof stacheHelperResult === "function"){
+							  stacheHelperResult(el);
+							}
+							return stacheHelperResult;
 						}
 
 						scopeData = localScope.read(expr.methodExpr.key, {

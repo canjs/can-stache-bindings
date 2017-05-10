@@ -2820,3 +2820,31 @@ test("changing a scope property calls registered stache helper", function(){
 	scope.attr('test', 'changed');
 	
 });
+
+test("changing a scope property calls registered stache helper's returned function", function(){
+	expect(1);
+	stop();
+	var scope = new CanMap({
+		test: "testval"
+	});
+	MockComponent.extend({
+		tag: "test-component",
+		viewModel: scope,
+		template: stache('<span>Hello world</span>')
+		
+	});
+
+	stache.registerHelper("propChangeEventStacheHelper", function(){
+		return function(){
+			start();
+			ok(true, "helper's returned function called");
+		};
+	});
+
+	var template = stache('<test-component (test)="propChangeEventStacheHelper" />');
+
+	template(new CanMap({}));
+
+	scope.attr('test', 'changed');
+	
+});
