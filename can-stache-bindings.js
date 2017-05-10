@@ -371,7 +371,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 			var attributesHandler = function(ev) {
 				if(ev.attributeName === attributeName && !this.getAttribute(attributeName)) {
 
-					canEvent.off.call(onBindElement ? el : canViewModel(el), event, handler);
+					canEvent.off.call(context, event, handler);
 					canEvent.off.call(el, 'attributes', attributesHandler);
 				}
 			};
