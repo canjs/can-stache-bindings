@@ -2870,3 +2870,23 @@ test('scope method called when scope property changes (#197)', function(){
 	map.attr("prop", "Venus");
 
 });
+
+test('change event handler set up when binding on radiochange (#206)', function() {
+	stop();
+	var template = stache('<input type="radio" {($checked)}="attending" />');
+
+	var map = new CanMap({
+		attending: function() {
+			start();
+			ok(true, "method called");
+		}
+	});
+
+	var frag = template(map);
+	var input = frag.firstChild;
+
+	input.checked = true;
+	canEvent.trigger.call(input, "change");
+
+	QUnit.equal(map.attr('attending'), true, "now it is true");
+});
