@@ -608,10 +608,18 @@ var stacheHelperCore = require("can-stache/helpers/core");
 
 			return compute(get(), {
 				on: function(updater){
-					canEvent.on.call(el,event, updater);
+					if (event === "radiochange") {
+						canEvent.on.call(el, "change", updater);
+					}
+
+					canEvent.on.call(el, event, updater);
 				},
 				off: function(updater){
-					canEvent.off.call(el,event, updater);
+					if (event === "radiochange") {
+						canEvent.off.call(el, "change", updater);
+					}
+
+					canEvent.off.call(el, event, updater);
 				},
 				get: get,
 				set: set
