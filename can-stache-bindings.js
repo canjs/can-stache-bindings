@@ -313,7 +313,11 @@ var stacheHelperCore = require("can-stache/helpers/core");
 
 					if (!scopeData.value) {
 						// nothing found yet, look for a stache helper
-						stacheHelper = stacheHelperCore.getHelper(expr.methodExpr.key);
+						var name = observeReader.reads(expr.methodExpr.key).map(function(part){
+							return part.key;
+						}).join(".");
+
+						stacheHelper = stacheHelperCore.getHelper(name);
 						if(stacheHelper){
 							args = expr.args(localScope, null)();
 							stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
@@ -322,10 +326,6 @@ var stacheHelperCore = require("can-stache/helpers/core");
 							}
 							return stacheHelperResult;
 						}
-
-						scopeData = localScope.read(expr.methodExpr.key, {
-							isArgument: true
-						});
 
 						//!steal-remove-start
 						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
