@@ -2804,7 +2804,7 @@ test("changing a scope property calls registered stache helper", function(){
 		tag: "test-component",
 		viewModel: scope,
 		template: stache('<span>Hello world</span>')
-		
+
 	});
 
 	stache.registerHelper("propChangeEventStacheHelper", function(){
@@ -2817,7 +2817,7 @@ test("changing a scope property calls registered stache helper", function(){
 	template(new CanMap({}));
 
 	scope.attr('test', 'changed');
-	
+
 });
 
 test("changing a scope property calls registered stache helper's returned function", function(){
@@ -2830,7 +2830,7 @@ test("changing a scope property calls registered stache helper's returned functi
 		tag: "test-component",
 		viewModel: scope,
 		template: stache('<span>Hello world</span>')
-		
+
 	});
 
 	stache.registerHelper("propChangeEventStacheHelper", function(){
@@ -2851,7 +2851,7 @@ test("changing a scope property calls registered stache helper's returned functi
 test('scope method called when scope property changes (#197)', function(){
 	stop();
 	expect(1);
-	
+
 	MockComponent.extend({
 		tag: "view-model-able"
 	});
@@ -2889,4 +2889,24 @@ test('change event handler set up when binding on radiochange (#206)', function(
 	canEvent.trigger.call(input, "change");
 
 	QUnit.equal(map.attr('attending'), true, "now it is true");
+});
+
+
+test("call expressions work (#208)", function(){
+	expect(2);
+
+
+	stache.registerHelper("helperWithArgs", function(arg){
+		QUnit.equal(arg, 1, "got the helper");
+		ok(true, "helper called");
+	});
+
+	var template = stache("<p ($click)='helperWithArgs(arg)'></p>");
+	var frag = template({arg: 1});
+
+
+	this.fixture.appendChild(frag);
+	var p0 = this.fixture.getElementsByTagName("p")[0];
+	canEvent.trigger.call(p0, "click");
+
 });
