@@ -2895,13 +2895,16 @@ test('change event handler set up when binding on radiochange (#206)', function(
 test("call expressions work (#208)", function(){
 	expect(2);
 
+	stache.registerHelper("addTwo", function(arg){
+		return arg+2;
+	});
 
 	stache.registerHelper("helperWithArgs", function(arg){
-		QUnit.equal(arg, 1, "got the helper");
+		QUnit.equal(arg, 3, "got the helper");
 		ok(true, "helper called");
 	});
 
-	var template = stache("<p ($click)='helperWithArgs(arg)'></p>");
+	var template = stache("<p ($click)='helperWithArgs(addTwo(arg))'></p>");
 	var frag = template({arg: 1});
 
 

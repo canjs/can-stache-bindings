@@ -275,7 +275,10 @@ var stacheHelperCore = require("can-stache/helpers/core");
 					// expression.parse will read the attribute
 					// value and parse it identically to how mustache helpers
 					// get parsed.
-					var expr = expression.parse(removeBrackets(attrVal),{lookupRule: "method", methodRule: "call"});
+					var expr = expression.parse(removeBrackets(attrVal),{
+						lookupRule: function(){
+							return expression.Lookup;
+						}, methodRule: "call"});
 
 					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
 
