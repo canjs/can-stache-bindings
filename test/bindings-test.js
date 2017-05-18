@@ -2644,6 +2644,30 @@ test("%arguments gives the event arguments", function(){
 	canEvent.trigger.call(button, "click");
 });
 
+test("'this' and %context give the context", 2, function(){
+	var template = stache("<button ($click)='this.doSomething()'>Default Args</button>");
+
+	var vm;
+	var MyMap = DefaultMap.extend({
+		doSomething: function(){
+			equal(this, vm, "event callback called on context");
+		}
+	});
+	vm = new MyMap();
+
+	var frag = template(vm);
+	var button = frag.firstChild;
+
+	canEvent.trigger.call(button, "click");
+
+	template = stache("<button ($click)='%context.doSomething()'>Default Args</button>");
+
+	frag = template(vm);
+	button = frag.firstChild;
+
+	canEvent.trigger.call(button, "click");
+});
+
 if (System.env.indexOf('production') < 0) {
 	test("Warning happens when changing the map that a to-parent binding points to.", function() {
 		expect(4);
