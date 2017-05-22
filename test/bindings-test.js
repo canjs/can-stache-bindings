@@ -2696,8 +2696,6 @@ if (System.env.indexOf('production') < 0) {
 	});
 }
 
-}
-
 test("updates happen on two-way even when one binding is satisfied", function() {
 	var template = stache('<input {($value)}="firstName"/>');
 
@@ -2913,3 +2911,7 @@ test("call expressions work (#208)", function(){
 	canEvent.trigger.call(p0, "click");
 
 });
+
+// Add new tests above this line
+
+}
