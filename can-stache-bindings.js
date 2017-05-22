@@ -499,14 +499,8 @@ var getComputeFrom = {
 		if(!scopeProp) {
 			return compute();
 		} else {
-			if(mustBeACompute) {
-				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
-				return parentExpression.value(scope, new Scope.Options({}));
-			} else {
-				return function(newVal){
-					scope.set(cleanVMName(scopeProp), newVal);
-				};
-			}
+			var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
+			return parentExpression.value(scope, new Scope.Options({}));
 		}
 	},
 	// ### getComputeFrom.viewModel
@@ -853,10 +847,10 @@ var makeDataBinding = function(node, el, bindingData){
 	updateChild;
 
 	if(bindingData.nodeList) {
-		if(parentCompute && parentCompute[canSymbol.for("can.getValue")]) {
+		if(parentCompute && parentCompute.computeInstance) {
 			parentCompute.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
 		}
-		if(childCompute && childCompute[canSymbol.for("can.getValue")]) {
+		if(childCompute && childCompute.computeInstance) {
 			childCompute.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
 		}
 	}
