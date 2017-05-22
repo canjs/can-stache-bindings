@@ -38,6 +38,40 @@ var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-util/js/log/log');
 var stacheHelperCore = require("can-stache/helpers/core");
 
+// split attribute values, for binding to multiple function calls
+// splits on ';' as long as it is not inside parenthesis
+function splitAttrVals(input) {
+	if (input.indexOf(';') < 0) {
+		return [ input ];
+	}
+
+	var output = [];
+
+	var start = 0;
+	var parens = 0;
+	for (var i = 0; i < input.length; i++) {
+		if (input[i] === '(') {
+			parens++;
+			continue;
+		}
+		if (input[i] === ')') {
+			parens--;
+			continue;
+		}
+
+		if (input[i] === ';' && parens === 0) {
+			output.push(input.slice(start, i).trim());
+			start = i + 1;
+		}
+	}
+
+	if (start < input.length) {
+		output.push(input.slice(start).trim());
+	}
+
+	return output;
+}
+
 	// ## Behaviors
 	var behaviors = {
 		// ### bindings.behaviors.viewModel
@@ -270,7 +304,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 				var attrVals = el.getAttribute(attributeName);
 				if (!attrVals) { return; }
 
-				attrVals = attrVals.split(';').filter(function(v) { return v.trim(); });
+				attrVals = splitAttrVals(attrVals);
 
 				var viewModel = canViewModel(el);
 

@@ -2793,7 +2793,7 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 });
 
 test("can bind to multiple functions (#115)", function() {
-	var template = stache("<div ($click)='do1(1); do2(2);' />");
+	var template = stache("<div ($click)='do1(1); do2(2, \";\")' />");
 	var data = {
 		do1: function(arg) {
 			equal(arg, 1, "do1 called");
