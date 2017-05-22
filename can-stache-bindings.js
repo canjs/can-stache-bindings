@@ -32,9 +32,11 @@ var last = require('can-util/js/last/last');
 var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
+require('can-event-radiochange/override').override(domEvents);
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-util/js/log/log');
+var stacheHelperCore = require("can-stache/helpers/core");
 
 	// ## Behaviors
 	var behaviors = {
@@ -255,6 +257,8 @@ var canLog = require('can-util/js/log/log');
 					removeBrackets(attributeName, '(', ')'),
 				onBindElement = legacyBinding;
 
+			event = decodeAttrName(event);
+
 			if(event.charAt(0) === "$") {
 				event = event.substr(1);
 				onBindElement = true;
@@ -271,7 +275,10 @@ var canLog = require('can-util/js/log/log');
 					// expression.parse will read the attribute
 					// value and parse it identically to how mustache helpers
 					// get parsed.
-					var expr = expression.parse(removeBrackets(attrVal),{lookupRule: "method", methodRule: "call"});
+					var expr = expression.parse(removeBrackets(attrVal),{
+						lookupRule: function(){
+							return expression.Lookup;
+						}, methodRule: "call"});
 
 					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
 
@@ -305,12 +312,23 @@ var canLog = require('can-util/js/log/log');
 					// we'll call.
 					var scopeData = localScope.read(expr.methodExpr.key, {
 						isArgument: true
-					});
+					}), args, stacheHelper, stacheHelperResult;
 
 					if (!scopeData.value) {
-						scopeData = localScope.read(expr.methodExpr.key, {
-							isArgument: true
-						});
+						// nothing found yet, look for a stache helper
+						var name = observeReader.reads(expr.methodExpr.key).map(function(part){
+							return part.key;
+						}).join(".");
+
+						stacheHelper = stacheHelperCore.getHelper(name);
+						if(stacheHelper){
+							args = expr.args(localScope, null)();
+							stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
+							if(typeof stacheHelperResult === "function"){
+							  stacheHelperResult(el);
+							}
+							return stacheHelperResult;
+						}
 
 						//!steal-remove-start
 						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
@@ -322,7 +340,7 @@ var canLog = require('can-util/js/log/log');
 						return null;
 					}
 
-					var args = expr.args(localScope, null)();
+					args = expr.args(localScope, null)();
 					return scopeData.value.apply(scopeData.parent, args);
 				};
 
@@ -335,15 +353,28 @@ var canLog = require('can-util/js/log/log');
 				handler = specialData.handler;
 				event = specialData.event;
 			}
+
+			var context;
+			if(onBindElement){
+				context = el;
+			}else{
+				if(event.indexOf(" ") >= 0){
+					var eventSplit = event.split(" ");
+					context = data.scope.get(eventSplit[0]);
+					event = eventSplit[1];
+				}else{
+					context = canViewModel(el);
+				}
+			}
 			// Bind the handler defined above to the element we're currently processing and the event name provided in this
 			// attribute name (can-click="foo")
-			canEvent.on.call(onBindElement ? el : canViewModel(el), event, handler);
+			canEvent.on.call(context, event, handler);
 
 			// Create a handler that will unbind itself and the event when the attribute is removed from the DOM
 			var attributesHandler = function(ev) {
 				if(ev.attributeName === attributeName && !this.getAttribute(attributeName)) {
 
-					canEvent.off.call(onBindElement ? el : canViewModel(el), event, handler);
+					canEvent.off.call(context, event, handler);
 					canEvent.off.call(el, 'attributes', attributesHandler);
 				}
 			};
@@ -448,7 +479,7 @@ var canLog = require('can-util/js/log/log');
 	viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
 
 	// `(EVENT)` event bindings.
-	viewCallbacks.attr(/^\([\$?\w\.]+\)$/, behaviors.event);
+	viewCallbacks.attr(/^\([\$?\w\.\\]+\)$/, behaviors.event);
 
 
 	//!steal-remove-start
@@ -544,10 +575,16 @@ var canLog = require('can-util/js/log/log');
 			// Determine the event or events we need to listen to
 			// when this value changes.
 			if(!event) {
-				if(attr.special[prop] && attr.special[prop].addEventListener) {
+				event = "change";
+				var isRadioInput = el.nodeName === 'INPUT' && el.type === 'radio';
+				var isValidProp = prop === 'checked' && !bindingData.legacyBindings;
+				if (isRadioInput && isValidProp) {
+					event = 'radiochange';
+				}
+
+				var isSpecialProp = attr.special[prop] && attr.special[prop].addEventListener;
+				if (isSpecialProp) {
 					event = prop;
-				} else {
-					event = "change";
 				}
 			}
 
@@ -574,10 +611,18 @@ var canLog = require('can-util/js/log/log');
 
 			return compute(get(), {
 				on: function(updater){
-					canEvent.on.call(el,event, updater);
+					if (event === "radiochange") {
+						canEvent.on.call(el, "change", updater);
+					}
+
+					canEvent.on.call(el, event, updater);
 				},
 				off: function(updater){
-					canEvent.off.call(el,event, updater);
+					if (event === "radiochange") {
+						canEvent.off.call(el, "change", updater);
+					}
+
+					canEvent.off.call(el, event, updater);
 				},
 				get: get,
 				set: set
@@ -665,7 +710,12 @@ var canLog = require('can-util/js/log/log');
 		}
 	};
 
-	var DOUBLE_CURLY_BRACE_REGEX = /\{\{/g;
+	// Regular expressions for getBindingInfo
+	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
+		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i,
+		DOUBLE_CURLY_BRACE_REGEX = /\{\{/g,
+		encodedSpacesRegExp = /\\s/g;
+
 	// ## getBindingInfo
 	// takes a node object like {name, value} and returns
 	// an object with information about that binding.
@@ -760,7 +810,7 @@ var canLog = require('can-util/js/log/log');
 				childToParent: childToParent,
 				parentToChild: parentToChild,
 				bindingAttributeName: attributeName,
-				childName: string.camelize(childName),
+				childName: decodeAttrName(string.camelize(childName)),
 				parentName: attributeValue,
 				initializeValues: true,
 				syncChildWithParent: twoWay
@@ -772,9 +822,9 @@ var canLog = require('can-util/js/log/log');
 		}
 
 	};
-	// Regular expressions for getBindingInfo
-	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
-		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i;
+	var decodeAttrName = function(name){
+		return name.replace(encodedSpacesRegExp, " ");
+	};
 
 
 	// ## makeDataBinding

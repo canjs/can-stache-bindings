@@ -495,6 +495,88 @@ test("can-enter", function () {
 
 });
 
+testIfRealDocument("{($checked)} should trigger a radiochange event for radio buttons", function () {
+	// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
+	var template = stache([
+		'<input type="radio" name="baz" {($checked)}="foo"/><span>{{foo}}</span>',
+		'<input type="radio" name="baz" {($checked)}="bar"/><span>{{bar}}</span>'
+	].join(''));
+	var data = new CanMap({
+		foo: false,
+		bar: false
+	});
+	var fragment = template(data);
+	domMutate.appendChild.call(this.fixture, fragment);
+
+	var self = this;
+	function child (index) {
+		return self.fixture.childNodes.item(index);
+	}
+
+	var fooRadio = child(0);
+	var fooText = child(1);
+	var barRadio = child(2);
+	var barText = child(3);
+
+	function text (node) {
+		while (node && node.nodeType !== 3) {
+			node = node.firstChild;
+		}
+		return node && node.nodeValue;
+	}
+
+	fooRadio.checked = true;
+	canEvent.trigger.call(fooRadio, 'change');
+
+	barRadio.checked = true;
+	canEvent.trigger.call(barRadio, 'change');
+
+	equal(text(fooText), 'false');
+	equal(text(barText), 'true');
+
+	equal(data.foo, false);
+	equal(data.bar, true);
+});
+
+testIfRealDocument('{($checked)} radio elements should update via the radiochange event', function () {
+	// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
+	var template = stache([
+		'<input type="radio" name="baz" {($checked)}="foo"/><span>{{foo}}</span>',
+		'<input type="radio" name="baz"/>' // untracked but matching
+	].join(''));
+	var data = new CanMap({foo: false});
+	var fragment = template(data);
+	domMutate.appendChild.call(this.fixture, fragment);
+
+	var self = this;
+	function child (index) {
+		return self.fixture.childNodes.item(index);
+	}
+
+	var fooRadio = child(0);
+	var fooText = child(1);
+	var barRadio = child(2);
+
+	function text (node) {
+		while (node && node.nodeType !== 3) {
+			node = node.firstChild;
+		}
+		return node && node.nodeValue;
+	}
+
+	fooRadio.checked = true;
+	canEvent.trigger.call(fooRadio, 'change');
+
+	equal(text(fooText), 'true');
+	equal(data.foo, true);
+
+	barRadio.checked = true;
+	canEvent.trigger.call(barRadio, 'change');
+
+	equal(text(fooText), 'false');
+	equal(data.foo, false);
+});
+
 test("two bindings on one element call back the correct method", function () {
 	expect(2);
 	var template = stache("<input can-mousemove='first' can-click='second'/>");
@@ -1339,6 +1421,59 @@ test('two-way - DOM - {($checked)} with truthy and falsy values binds to checkbo
 		start();
 		equal(input.checked, false, 'checkbox value bound (via attr check)');
 	});
+});
+
+test('one-way - DOM - {$checked} with undefined (#135)', function() {
+	var data = new CanMap({
+			completed: undefined
+		}),
+		frag = stache('<input type="checkbox" {$checked}="completed"/>')(data);
+
+	domMutate.appendChild.call(this.fixture, frag);
+
+	var input = this.fixture.getElementsByTagName('input')[0];
+	equal(input.checked, false, 'checkbox value should be false for undefined');
+});
+
+test('one-way - DOM - parent value undefined (#189)', function () {
+	/* WHAT: We are testing whether, given the parent's passed property is
+	         undefined, the child template's value is always set to undefined
+	         or if the child template is free to update its value.
+	         **The child should be free to update its value.**
+	*/
+	/* HOW: We test a <toggle-button>, in this case the parent prop is undefined
+	        so we should be able to toggle true/false on each click.
+	*/
+
+	MockComponent.extend({
+		tag: 'toggle-button',
+		viewModel: {
+			value: false,
+			toggle: function () {
+				this.attr( "value", !this.attr( "value" ));
+			}
+		},
+		template: stache('<button type="button" ($click)="toggle()">{{value}}</button>')
+	});
+	var template = stache('<toggle-button {(value)}="./does-not-exist" />');
+	var fragment = template({});
+
+	domMutate.appendChild.call(this.fixture, fragment);
+	var button = this.fixture.getElementsByTagName('button')[0];
+
+	// Get first text for DOM and VDOM
+	function text (node) {
+		while (node && node.nodeType !== 3) {
+			node = node.firstChild;
+		}
+		return node && node.nodeValue;
+	}
+
+	equal(text(button), 'false', 'Initial value is "false"');
+	canEvent.trigger.call(button, 'click');
+	equal(text(button), 'true', 'Value is "true" after first click');
+	canEvent.trigger.call(button, 'click');
+	equal(text(button), 'false', 'Value is "false" after second click');
 });
 
 test('two-way - reference - {(child)}="*ref" (#1700)', function(){
@@ -2673,5 +2808,127 @@ test("warning when binding to non-existing value (#136) (#119)", function() {
 
 	dev.warn = oldWarn;
 });
+
+test("changing a scope property calls registered stache helper", function(){
+	expect(1);
+	stop();
+	var scope = new CanMap({
+		test: "testval"
+	});
+	MockComponent.extend({
+		tag: "test-component",
+		viewModel: scope,
+		template: stache('<span>Hello world</span>')
+
+	});
+
+	stache.registerHelper("propChangeEventStacheHelper", function(){
+		start();
+		ok(true, "helper called");
+	});
+
+	var template = stache('<test-component (test)="propChangeEventStacheHelper" />');
+
+	template(new CanMap({}));
+
+	scope.attr('test', 'changed');
+
+});
+
+test("changing a scope property calls registered stache helper's returned function", function(){
+	expect(1);
+	stop();
+	var scope = new CanMap({
+		test: "testval"
+	});
+	MockComponent.extend({
+		tag: "test-component",
+		viewModel: scope,
+		template: stache('<span>Hello world</span>')
+
+	});
+
+	stache.registerHelper("propChangeEventStacheHelper", function(){
+		return function(){
+			start();
+			ok(true, "helper's returned function called");
+		};
+	});
+
+	var template = stache('<test-component (test)="propChangeEventStacheHelper" />');
+
+	template(new CanMap({}));
+
+	scope.attr('test', 'changed');
+
+});
+
+test('scope method called when scope property changes (#197)', function(){
+	stop();
+	expect(1);
+
+	MockComponent.extend({
+		tag: "view-model-able"
+	});
+
+	var template = stache("<view-model-able (. prop)='someMethod'/>");
+
+	var map = new CanMap({
+		prop: "Mercury",
+		someMethod: function(scope, el, ev, newVal){
+			start();
+			ok(true, "method called");
+		}
+	});
+
+	template(map);
+	map.attr("prop", "Venus");
+
+});
+
+test('change event handler set up when binding on radiochange (#206)', function() {
+	stop();
+	var template = stache('<input type="radio" {($checked)}="attending" />');
+
+	var map = new CanMap({
+		attending: function() {
+			start();
+			ok(true, "method called");
+		}
+	});
+
+	var frag = template(map);
+	var input = frag.firstChild;
+
+	input.checked = true;
+	canEvent.trigger.call(input, "change");
+
+	QUnit.equal(map.attr('attending'), true, "now it is true");
+});
+
+
+test("call expressions work (#208)", function(){
+	expect(2);
+
+	stache.registerHelper("addTwo", function(arg){
+		return arg+2;
+	});
+
+	stache.registerHelper("helperWithArgs", function(arg){
+		QUnit.equal(arg, 3, "got the helper");
+		ok(true, "helper called");
+	});
+
+	var template = stache("<p ($click)='helperWithArgs(addTwo(arg))'></p>");
+	var frag = template({arg: 1});
+
+
+	this.fixture.appendChild(frag);
+	var p0 = this.fixture.getElementsByTagName("p")[0];
+	canEvent.trigger.call(p0, "click");
+
+});
+
+// Add new tests above this line
 
 }
