@@ -12,7 +12,7 @@ Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can
 <my-component {^some-prop}="value"/>
 ```
 
-> __Note:__ If [can-stache.key] is an object, changes to its properties will still be updated. see <a href="can-stache-bindings.html#OneWayBindingWithObjects">One Way Binding With Objects</a>.
+> __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 @param {String} child-prop The name of the property to export from the
 child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewModel.

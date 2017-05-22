@@ -55,7 +55,7 @@ in the [can-view-scope scope]:
 <my-component {$child-attr}="value"/>
 ```
 
-> __Note:__ If the value is an object, changes to its properties will still be updated. See <a href="#OneWayBindingWithObjects">One Way Binding With Objects</a>.
+> __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.toParent one-way to parent]
 
@@ -73,7 +73,7 @@ in the [can-view-scope scope] with the `child-attr` attribute or property on `<m
 <my-component {^$child-attr}="value"/>
 ```
 
-> __Note:__ If the value is an object, changes to its properties will still be updated. See <a href="#OneWayBindingWithObjects">One Way Binding With Objects</a>.
+> __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.twoWay two-way]
 
