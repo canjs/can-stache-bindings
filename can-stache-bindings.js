@@ -366,19 +366,31 @@ var stacheHelperCore = require("can-stache/helpers/core");
 					context = canViewModel(el);
 				}
 			}
+
+			// Unbind the event when the attribute is removed from the DOM
+			var attributesHandler = function(ev) {
+				var isEventAttribute = ev.attributeName === attributeName;
+				var isRemoved = !this.getAttribute(attributeName);
+				var isEventAttributeRemoved = isEventAttribute && isRemoved;
+				if (isEventAttributeRemoved) {
+					unbindEvent();
+				}
+			};
+			// Unbind the event when the target is removed from the DOM
+			var removedHandler = function(ev) {
+				unbindEvent();
+			};
+			var unbindEvent = function() {
+				canEvent.off.call(context, event, handler);
+				canEvent.off.call(el, 'attributes', attributesHandler);
+				canEvent.off.call(el, 'removed', removedHandler);
+			};
+
 			// Bind the handler defined above to the element we're currently processing and the event name provided in this
 			// attribute name (can-click="foo")
 			canEvent.on.call(context, event, handler);
-
-			// Create a handler that will unbind itself and the event when the attribute is removed from the DOM
-			var attributesHandler = function(ev) {
-				if(ev.attributeName === attributeName && !this.getAttribute(attributeName)) {
-
-					canEvent.off.call(context, event, handler);
-					canEvent.off.call(el, 'attributes', attributesHandler);
-				}
-			};
 			canEvent.on.call(el, 'attributes', attributesHandler);
+			canEvent.on.call(el, 'removed', removedHandler);
 		},
 		// ### bindings.behaviors.value
 		// Behavior for the deprecated can-value
