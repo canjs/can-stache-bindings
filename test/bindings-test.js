@@ -607,6 +607,82 @@ test("two bindings on one element call back the correct method", function () {
 	});
 });
 
+test("event bindings should be removed when the bound element is", function (assert) {
+	// This test checks whether when an element
+	// with an event binding is removed from the
+	// DOM properly cleans up its event binding.
+
+	var template = stache('<div>{{#if isShowing}}<input ($click)="onClick()"><span></span>{{/if}}</div>');
+	var viewModel = new CanMap({
+		isShowing: false,
+		onClick: function () {}
+	});
+	var bindingListenerCount = 0;
+	var hasAddedBindingListener = false;
+	var hasRemovedBindingListener = false;
+
+	// Set the scene before we override domEvents
+	// as we don't care about "click" events before
+	// our input is shown/hidden.
+	var fragment = template(viewModel);
+	domMutate.appendChild.call(this.fixture, fragment);
+
+	// Predicate for relevant events
+	var isInputBindingEvent = function (element, eventName) {
+		return element.nodeName === 'INPUT' && eventName === 'click';
+	};
+
+	// Override domEvents to detect removed handlers
+	var realAddEventListener = domEvents.addEventListener;
+	var realRemoveEventListener = domEvents.removeEventListener;
+	domEvents.addEventListener = function (eventName) {
+		if (isInputBindingEvent(this, eventName)) {
+			bindingListenerCount++;
+			hasAddedBindingListener = true;
+		}
+		return realAddEventListener.apply(this, arguments);
+	};
+	domEvents.removeEventListener = function (eventName) {
+		if (isInputBindingEvent(this, eventName)) {
+			bindingListenerCount--;
+			hasRemovedBindingListener = true;
+		}
+		return realRemoveEventListener.apply(this, arguments);
+	};
+
+	// Add and then remove the input from the DOM
+	// NOTE: the implementation uses "remove" which is asynchronous.
+	viewModel.attr('isShowing', true);
+
+	var andThen = function () {
+		domEvents.removeEventListener.call(span, 'removed', andThen);
+		start();
+
+		// Reset domEvents
+		domEvents.addEventListener = realAddEventListener;
+		domEvents.removeEventListener = realRemoveEventListener;
+
+		// We should have:
+		// - Called add/remove for the event handler at least once
+		// - Called add/remove for the event handler an equal number of times
+		assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+		assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
+
+		var message = bindingListenerCount + ' event listeners were added but not removed';
+		if (removeEventListener < 0) {
+			message = 'Event listeners were removed more than necessary';
+		}
+		assert.equal(bindingListenerCount, 0, message);
+	};
+
+	// We use the also effected span so we
+	// can test the input handlers in isolation.
+	var span = this.fixture.firstChild.lastChild;
+	domEvents.addEventListener.call(span, 'removed', andThen);
+	viewModel.attr('isShowing', false);
+	stop();
+});
+
 test("can-value select remove from DOM", function () {
 	stop();
 	expect(1);
@@ -2696,8 +2772,6 @@ if (System.env.indexOf('production') < 0) {
 	});
 }
 
-}
-
 test("updates happen on two-way even when one binding is satisfied", function() {
 	var template = stache('<input {($value)}="firstName"/>');
 
@@ -2913,3 +2987,7 @@ test("call expressions work (#208)", function(){
 	canEvent.trigger.call(p0, "click");
 
 });
+
+// Add new tests above this line
+
+}
