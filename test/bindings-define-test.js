@@ -82,7 +82,6 @@ test('one-way - parent to child - viewModel', function(){
 	var context = new Context();
 	var frag = template(context);
 	var viewModel = canViewModel(frag.firstChild);
-
 	equal(viewModel.viewModelProp, 'Venus', 'ViewModel property initially set from scope');
 
 	viewModel.viewModelProp = 'Earth';

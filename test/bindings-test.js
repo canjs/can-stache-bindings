@@ -66,6 +66,7 @@ QUnit.module(name, {
 
 		types.DefaultMap = CanMap;
 
+
 		if(doc === document) {
 			this.fixture = document.getElementById("qunit-fixture");
 		} else {
@@ -80,6 +81,8 @@ QUnit.module(name, {
 
 		stop();
 		afterMutation(function() {
+			// Delete previous tags, to avoid warnings from can-view-callbacks.
+			viewCallbacks._tags = {};
 			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
@@ -1874,8 +1877,11 @@ if (System.env.indexOf('production') < 0) {
 		var oldlog = dev.warn,
 			message = 'can-stache-bindings: mismatched binding syntax - (foo}';
 
+		var thisTest = QUnit.config.current;
 		dev.warn = function (text) {
-			equal(text, message, 'Got expected message logged.');
+			if(QUnit.config.current === thisTest) {
+				equal(text, message, 'Got expected message logged.');
+			}
 		};
 
 		stache("<div (foo}='bar'/>")();
@@ -2731,8 +2737,11 @@ if (System.env.indexOf('production') < 0) {
 		var oldlog = dev.warn,
 			message = 'can-stache-bindings: Merging {(foo)} into bar because its parent is non-observable';
 
+		var thisTest = QUnit.config.current;
 		dev.warn = function (text) {
-			equal(text, message, 'Got expected message logged.');
+			if(QUnit.config.current === thisTest) {
+				equal(text, message, 'Got expected message logged.');
+			}
 		};
 
 		delete viewCallbacks._tags["merge-warn-test"];
