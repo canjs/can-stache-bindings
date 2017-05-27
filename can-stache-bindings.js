@@ -524,35 +524,35 @@ var getComputeFrom = {
 				return compute(function(newVal){
 					var viewModel = bindingData.getViewModel();
 					if(arguments.length) {
-					canReflect.setValue(viewModel, setName, newVal);
+					canReflect.setKeyValue(viewModel, setName, newVal);
 					} else {
 						return vmName === "." ? viewModel : observeReader.read(viewModel, observeReader.reads(vmName), {}).value;
 					}
 				});
 			} else {
-			return compute(function(newVal){
-					var childCompute;
-					var viewModel = bindingData.getViewModel();
+				return function(newVal){
+						var childCompute;
+						var viewModel = bindingData.getViewModel();
 
-					function updateViewModel(value, options) {
-					canReflect.setValue(viewModel, setName, value);
-					}
-
-					if(stickyCompute) {
-						childCompute = observeReader.get(viewModel, setName, { readCompute: false });
-						// childCompute is a compute at this point unless it was locally overwritten
-						//  in the child viewModel.
-					if(!childCompute || !childCompute[canSymbol.for("can.getValue")]) {
-							// If it was locally overwritten, make a new compute for the property.
-						childCompute = canReflect.getValue(childCompute);
-							updateViewModel(childCompute, { readCompute: false });
+						function updateViewModel(value, options) {
+							canReflect.setKeyValue(viewModel, setName, value);
 						}
-						// Otherwise update the compute's value.
-					canReflect.setValue(childCompute, newVal);
-					} else {
-						updateViewModel(newVal);
-					}
-			});
+
+						if(stickyCompute) {
+							childCompute = observeReader.get(viewModel, setName, { readCompute: false });
+							// childCompute is a compute at this point unless it was locally overwritten
+							//  in the child viewModel.
+						if(!childCompute || !childCompute[canSymbol.for("can.getValue")]) {
+								// If it was locally overwritten, make a new compute for the property.
+							childCompute = canReflect.getValue(childCompute);
+								updateViewModel(childCompute, { readCompute: false });
+							}
+							// Otherwise update the compute's value.
+						canReflect.setValue(childCompute, newVal);
+						} else {
+							updateViewModel(newVal);
+						}
+				};
 			}
 		},
 		// ### getComputeFrom.attribute
@@ -579,7 +579,7 @@ var getComputeFrom = {
 				// Sets the element property or attribute.
 				set = function(newVal){
 					if(bindingData.legacyBindings && hasChildren &&
-						 ("selectedIndex" in el) && prop === "value") {
+						("selectedIndex" in el) && prop === "value") {
 						attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
 					} else {
 						attr.setAttrOrProp(el, prop, newVal);
@@ -674,7 +674,7 @@ var bind = {
 				// We listen for when the batch has ended, and all observation updates have ended.
 				bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0 )+1;
 				canBatch.start();
-			canReflect.setValue(childUpdate, newValue);
+				childUpdate(newValue);
 
 				// only after computes have been updated, reduce the update counter
 				Observation.afterUpdateAndNotify(function(){
