@@ -43,6 +43,43 @@ is fired. The following key values are also supported:
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
 
+@signature `(KEY_LOOKUP EVENT)='CALL_EXPRESSION'`
+
+Listens to an event in the [can-stache/expressions/key-lookup specified scope] and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<div 
+	($click)="./activityrecorder.recordClick()"
+	(./activityrecorder clickrecorded)="doSomething()"
+/>
+```
+In this example, `activityrecorder` is on the current context and is defined as:
+```
+var ActivityRecorder = DefineMap.extend({
+	recordClick: function(){
+		this.dispatch("clickrecorded");
+	}
+});
+
+var context = new DefineMap({
+	activityrecorder: new ActivityRecorder()
+})
+```
+
+@param {can-stache/expressions/key-lookup} KEY_LOOKUP A key to specify the context for the `EVENT` binding.  The object spcified by `key` will have its event named `EVENT` bound.
+
+@param {String} EVENT The name of the event on an event emitter specified by `KEY_LOOKUP`.
+
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `EVENT` is fired. The following key values are also supported:
+
+ - `%element` - The element the event happened upon.
+ - `%event` - The event object.
+ - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
+ - `%context` - The current context.
+ - `%scope` - The current [can-view-scope].
+ - `%arguments` - The arguments passed when the event was dispatched/triggered.
+
+
 @body
 
 ## Use
@@ -92,8 +129,8 @@ To listen on a [can-component Component’s] [can-component.prototype.ViewModel 
 
 ```
 <player-edit
-  	(close)="removeEdit()"
-  	{player}="editingPlayer"/>
+		(close)="removeEdit()"
+		{player}="editingPlayer"/>
 ```
 
 ViewModels can publish events on themselves. The following `<player-edit>` component
@@ -101,13 +138,13 @@ dispatches a `"close"` event on itself when its `close` method is called:
 
 ```
 Component.extend({
-  tag: "player-edit",
-  template: can.view('player-edit-stache'),
-  viewModel: {
-    close: function(){
-      this.dispatch("close");
-    }
-  }
+	tag: "player-edit",
+	template: can.view('player-edit-stache'),
+	viewModel: {
+		close: function(){
+			this.dispatch("close");
+		}
+	}
 });
 ```
 
