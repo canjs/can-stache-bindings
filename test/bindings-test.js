@@ -249,14 +249,11 @@ if(typeof doc.getElementsByClassName === 'function') {
 		"{{/each}}" +
 		"</div>");
 
-
-
 		function doSomething(foodType, el, ev) {
 			ok(true, "doSomething called");
 			equal(el.nodeName.toLowerCase(), "p", "this is the element");
 			equal(ev.type, "click", "1st argument is the event");
 			equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
-
 		}
 
 		var frag = template({
@@ -267,7 +264,6 @@ if(typeof doc.getElementsByClassName === 'function') {
 		ta.appendChild(frag);
 		var p0 = ta.getElementsByTagName("p")[0];
 		canEvent.trigger.call(p0, "click");
-
 	});
 
 	test("can-event special keys", function(){
@@ -331,7 +327,6 @@ if(typeof doc.getElementsByClassName === 'function') {
 			equal(el.nodeName.toLowerCase(), "p", "this is the element");
 			equal(ev.type, "click", "1st argument is the event");
 			equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
-
 		}
 
 		var frag = template({
