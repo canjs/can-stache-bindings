@@ -11,6 +11,7 @@ var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
 var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
+var canSymbol = require('can-symbol');
 
 var stacheExpression = require('can-stache/src/expression');
 
@@ -1393,13 +1394,13 @@ test("two way - viewModel (#1700)", function(){
 	var attrSetCalled = 0;
 
 	var map = new CanMap({scopeProp: "Hello"});
-	var oldAttr = map.attr;
-	map.attr = function(attrName, value){
+	var oldSet = map._set;
+	map._set = function(attrName, value){
 		if(typeof attrName === "string" && arguments.length > 1) {
 			attrSetCalled++;
 		}
 
-		return oldAttr.apply(this, arguments);
+		return oldSet.apply(this, arguments);
 	};
 
 
@@ -1412,12 +1413,13 @@ test("two way - viewModel (#1700)", function(){
 	viewModel = canViewModel(frag.firstChild);
 
 	var viewModelAttrSetCalled = 1;
-	viewModel.attr = function(attrName){
+	viewModel[canSymbol.for("can.setKeyValue")] = function(attrName){
+		console.log(arguments.length, arguments);
 		if(typeof attrName === "string" && arguments.length > 1) {
 			viewModelAttrSetCalled++;
 		}
 
-		return oldAttr.apply(this, arguments);
+		return oldSet.apply(this, arguments);
 	};
 
 	viewModel.attr("viewModelProp","HELLO");
@@ -1425,13 +1427,12 @@ test("two way - viewModel (#1700)", function(){
 
 	equal(attrSetCalled, 1, "set is called once on scope map");
 
-	equal(viewModelAttrSetCalled, 3, "set is called once viewModel");
-
+	equal(viewModelAttrSetCalled, 2, "set is called once viewModel");
 
 	map.attr("scopeProp","WORLD");
 	equal( viewModel.attr("viewModelProp"), "WORLD", "binding from parent to child" );
 	equal(attrSetCalled, 2, "set is called once on scope map");
-	equal(viewModelAttrSetCalled, 4, "set is called once on viewModel");
+	equal(viewModelAttrSetCalled, 3, "set is called once on viewModel");
 
 });
 
@@ -1530,6 +1531,7 @@ test('one-way - DOM - parent value undefined (#189)', function () {
 		template: stache('<button type="button" ($click)="toggle()">{{value}}</button>')
 	});
 	var template = stache('<toggle-button {(value)}="./does-not-exist" />');
+
 	var fragment = template({});
 
 	domMutate.appendChild.call(this.fixture, fragment);
