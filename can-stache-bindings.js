@@ -5,7 +5,7 @@
 //
 // - Behaviors - Binding behaviors that run given an attribute or element.
 // - Attribute Syntaxes - Hooks up custom attributes to their behaviors.
-// - getComputeFrom - Methods that return a compute cross bound to the scope, viewModel, or element.
+// - getObservableFrom - Methods that return a observable cross bound to the scope, viewModel, or element.
 // - bind - Methods for setting up cross binding
 // - getBindingInfo - A helper that returns the details of a data binding given an attribute.
 // - makeDataBinding - A helper method for setting up a data binding.
@@ -20,6 +20,7 @@ var canBatch = require('can-event/batch/batch');
 var compute = require('can-compute');
 var observeReader = require('can-observation/reader/reader');
 var Observation = require('can-observation');
+var CID = require('can-cid');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
@@ -42,6 +43,37 @@ var canReflect = require("can-reflect");
 
 var noop = function() {};
 
+var reflectiveValue = function(value) {
+	var handlers = [];
+
+	var fn = function(newValue) {
+		if(arguments.length) {
+			value = newValue;
+			handlers.forEach(function(handler) {
+				canBatch.queue([handler, fn, [newValue]]);
+			}, this);
+		} else {
+			Observation.add(fn);
+			return value;
+		}
+	};
+	CID(fn);
+	canReflect.set(fn, canSymbol.for("can.onValue"), function(handler) {
+		handlers.push(handler);
+	});
+	canReflect.set(fn, canSymbol.for("can.offValue"), function(handler) {
+		var index = handlers.indexOf(handler);
+		handlers.splice(index, 1);
+	});
+	canReflect.set(fn, canSymbol.for("can.setValue"), function(newValue) {
+		return fn(newValue)
+	});
+	canReflect.set(fn, canSymbol.for("can.getValue"), function() {
+		return fn()
+	});
+	return fn;
+};
+
 // ## Behaviors
 var behaviors = {
 		// ### bindings.behaviors.viewModel
@@ -60,7 +92,7 @@ var behaviors = {
 		// Returns:
 		// - `function` - a function that tears all the bindings down. Component
 		// wants all the bindings active so cleanup can be done during a component being removed.
-		viewModel: function(el, tagData, makeViewModel, initialViewModelData){
+		viewModel: function(el, tagData, makeViewModel, initialViewModelData) {
 			initialViewModelData = initialViewModelData || {};
 
 			var bindingsSemaphore = {},
@@ -77,12 +109,12 @@ var behaviors = {
 			// For each attribute, we start the binding process,
 			// and save what's returned to be used when the `viewModel` is created,
 			// the element is removed, or the attribute changes values.
-			each( makeArray(el.attributes), function(node){
+			each(makeArray(el.attributes), function(node) {
 				var dataBinding = makeDataBinding(node, el, {
 					templateType: tagData.templateType,
 					scope: tagData.scope,
 					semaphore: bindingsSemaphore,
-					getViewModel: function(){
+					getViewModel: function() {
 						return viewModel;
 					},
 					attributeViewModelBindings: attributeViewModelBindings,
@@ -129,7 +161,7 @@ var behaviors = {
 						templateType: tagData.templateType,
 						scope: tagData.scope,
 						semaphore: {},
-						getViewModel: function(){
+						getViewModel: function() {
 							return viewModel;
 						},
 						attributeViewModelBindings: attributeViewModelBindings,
@@ -148,7 +180,7 @@ var behaviors = {
 				}
 			});
 
-			return function(){
+			return function() {
 				for(var attrName in onTeardowns) {
 					onTeardowns[attrName]();
 				}
@@ -157,8 +189,8 @@ var behaviors = {
 		// ### bindings.behaviors.data
 		// This is called when an individual data binding attribute is placed on an element.
 		// For example `{^value}="name"`.
-		data: function(el, attrData){
-			if(domData.get.call(el,"preventDataBindings")){
+		data: function(el, attrData) {
+			if(domData.get.call(el, "preventDataBindings")) {
 				return;
 			}
 			var viewModel = canViewModel(el),
@@ -178,7 +210,7 @@ var behaviors = {
 				templateType: attrData.templateType,
 				scope: attrData.scope,
 				semaphore: semaphore,
-				getViewModel: function(){
+				getViewModel: function() {
 					return viewModel;
 				},
 				syncChildWithParent: twoWay
@@ -189,7 +221,7 @@ var behaviors = {
 			}
 
 			teardown = dataBinding.onTeardown;
-			canEvent.one.call(el, 'removed', function(){
+			canEvent.one.call(el, 'removed', function() {
 				teardown();
 			});
 
@@ -208,7 +240,7 @@ var behaviors = {
 							templateType: attrData.templateType,
 							scope: attrData.scope,
 							semaphore: semaphore,
-							getViewModel: function(){
+							getViewModel: function() {
 								return viewModel;
 							},
 							// always update the viewModel accordingly.
@@ -276,13 +308,13 @@ var behaviors = {
 					// value and parse it identically to how mustache helpers
 					// get parsed.
 					var expr = expression.parse(removeBrackets(attrVal),{
-						lookupRule: function(){
+						lookupRule: function() {
 							return expression.Lookup;
 						}, methodRule: "call"});
 
 					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
 
-						var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data){
+						var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data) {
 							return new expression.Arg(new expression.Literal(data));
 						});
 						expr = new expression.Call(expr, defaultArgs, {} );
@@ -316,15 +348,15 @@ var behaviors = {
 
 					if (!scopeData.value) {
 						// nothing found yet, look for a stache helper
-						var name = observeReader.reads(expr.methodExpr.key).map(function(part){
+						var name = observeReader.reads(expr.methodExpr.key).map(function(part) {
 							return part.key;
 						}).join(".");
 
 						stacheHelper = stacheHelperCore.getHelper(name);
-						if(stacheHelper){
+						if(stacheHelper) {
 							args = expr.args(localScope, null)();
 							stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
-							if(typeof stacheHelperResult === "function"){
+							if(typeof stacheHelperResult === "function") {
 							  stacheHelperResult(el);
 							}
 							return stacheHelperResult;
@@ -355,10 +387,10 @@ var behaviors = {
 			}
 
 			var context;
-			if(onBindElement){
+			if(onBindElement) {
 				context = el;
 			}else{
-				if(event.indexOf(" ") >= 0){
+				if(event.indexOf(" ") >= 0) {
 					var eventSplit = event.split(" ");
 					context = data.scope.get(eventSplit[0]);
 					event = eventSplit[1];
@@ -402,7 +434,7 @@ var behaviors = {
 				getterSetter;
 
 			if (nodeName === "input" && (elType === "checkbox" || elType === "radio")) {
-				var property = getComputeFrom.scope(el, data.scope, attrValue, {}, true);
+				var property = getObservableFrom.scope(el, data.scope, attrValue, {}, true);
 				if (el.type === "checkbox") {
 
 					var trueValue = attr.has(el, "can-true-value") ? el.getAttribute("can-true-value") : true,
@@ -411,11 +443,11 @@ var behaviors = {
 					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
 						var isSet = arguments.length !== 0;
-					if (property && property[canSymbol.for("can.getValue")]) {
+						if (property && property[canSymbol.for("can.getValue")]) {
 							if (isSet) {
-							canReflect.setValue(property, newValue ? trueValue : falseValue);
+								canReflect.setValue(property, newValue ? trueValue : falseValue);
 							} else {
-							return canReflect.getValue(property) == trueValue;
+								return canReflect.getValue(property) == trueValue;
 							}
 						} else {
 							if (isSet) {
@@ -468,7 +500,7 @@ var behaviors = {
 				legacyBindings: true
 			});
 
-			canEvent.one.call(el, "removed", function(){
+			canEvent.one.call(el, "removed", function() {
 				dataBinding.onTeardown();
 			});
 		}
@@ -501,194 +533,183 @@ viewCallbacks.attr(/^\(\{.+\}\)$/, syntaxWarning);
 viewCallbacks.attr(/can-[\w\.]+/, behaviors.event);
 viewCallbacks.attr("can-value", behaviors.value);
 
-// ## getComputeFrom
-// An object of helper functions that make a getter/setter compute
+// ## getObservableFrom
+// An object of helper functions that make a getter/setter observable
 // on different types of objects.
-var getComputeFrom = {
-		// ### getComputeFrom.scope
-		// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
-		scope: function(el, scope, scopeProp, bindingData, mustBeACompute, stickyCompute){
-			if(!scopeProp) {
-				return compute();
+var getObservableFrom = {
+	// ### getObservableFrom.scope
+	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
+	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
+		if(!scopeProp) {
+			return reflectiveValue();
+		} else {
+			if(mustBeSettable) {
+				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
+				return parentExpression.value(scope, new Scope.Options({}));
 			} else {
-					var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
-					return parentExpression.value(scope, new Scope.Options({}));
-				}
-		},
-		// ### getComputeFrom.viewModel
-		// Returns a compute that's two-way bound to the `viewModel` returned by
-		// `options.getViewModel()`.
-		viewModel: function(el, scope, vmName, bindingData, mustBeACompute, stickyCompute) {
-			var setName = cleanVMName(vmName);
-			if(mustBeACompute) {
-				return compute(function(newVal){
-					var viewModel = bindingData.getViewModel();
-					if(arguments.length) {
-					canReflect.setKeyValue(viewModel, setName, newVal);
-					} else {
-						return vmName === "." ? viewModel : observeReader.read(viewModel, observeReader.reads(vmName), {}).value;
-					}
-				});
-			} else {
-				return function(newVal){
-						var childCompute;
-						var viewModel = bindingData.getViewModel();
-
-						function updateViewModel(value, options) {
-							canReflect.setKeyValue(viewModel, setName, value);
-						}
-
-						if(stickyCompute) {
-							childCompute = observeReader.get(viewModel, setName, { readCompute: false });
-							// childCompute is a compute at this point unless it was locally overwritten
-							//  in the child viewModel.
-						if(!childCompute || !childCompute[canSymbol.for("can.getValue")]) {
-								// If it was locally overwritten, make a new compute for the property.
-							childCompute = canReflect.getValue(childCompute);
-								updateViewModel(childCompute, { readCompute: false });
-							}
-							// Otherwise update the compute's value.
-						canReflect.setValue(childCompute, newVal);
-						} else {
-							updateViewModel(newVal);
-						}
+				return function(newVal) {
+					scope.set(cleanVMName(scopeProp), newVal);
 				};
 			}
-		},
-		// ### getComputeFrom.attribute
-		// Returns a compute that is two-way bound to an attribute or property on the element.
-		attribute: function(el, scope, prop, bindingData, mustBeACompute, stickyCompute, event){
-			// Determine the event or events we need to listen to
-			// when this value changes.
-			if(!event) {
-				event = "change";
-				var isRadioInput = el.nodeName === 'INPUT' && el.type === 'radio';
-				var isValidProp = prop === 'checked' && !bindingData.legacyBindings;
-				if (isRadioInput && isValidProp) {
-					event = 'radiochange';
-				}
+		}
+	},
+	// ### getObservableFrom.viewModel
+	// Returns a compute that's two-way bound to the `viewModel` returned by
+	// `options.getViewModel()`.
+	viewModel: function(el, scope, vmName, bindingData, mustBeSettable, stickyCompute) {
+		var setName = cleanVMName(vmName);
 
-				var isSpecialProp = attr.special[prop] && attr.special[prop].addEventListener;
-				if (isSpecialProp) {
-					event = prop;
-				}
+		var observation = new Observation(function() {
+			var viewModel = bindingData.getViewModel();
+			return vmName === "." ? viewModel : observeReader.read(viewModel, observeReader.reads(vmName), {}).value;
+		});
+
+		observation[canSymbol.for("can.setValue")] = function(newVal) {
+			var viewModel = bindingData.getViewModel();
+			if(arguments.length) { // should this check if mustBeSettable is true ???
+				canReflect.setKeyValue(viewModel, setName, newVal);
+			}
+		};
+
+		return observation;
+	},
+	// ### getObservableFrom.attribute
+	// Returns a compute that is two-way bound to an attribute or property on the element.
+	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event) {
+		// Determine the event or events we need to listen to
+		// when this value changes.
+		if(!event) {
+			event = "change";
+			var isRadioInput = el.nodeName === 'INPUT' && el.type === 'radio';
+			var isValidProp = prop === 'checked' && !bindingData.legacyBindings;
+			if (isRadioInput && isValidProp) {
+				event = 'radiochange';
 			}
 
-			var hasChildren = el.nodeName.toLowerCase() === "select",
-				isMultiselectValue = prop === "value" && hasChildren && el.multiple,
-				// Sets the element property or attribute.
-				set = function(newVal){
-					if(bindingData.legacyBindings && hasChildren &&
-						("selectedIndex" in el) && prop === "value") {
-						attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
-					} else {
-						attr.setAttrOrProp(el, prop, newVal);
-					}
+			var isSpecialProp = attr.special[prop] && attr.special[prop].addEventListener;
+			if (isSpecialProp) {
+				event = prop;
+			}
+		}
 
-					return newVal;
-				},
-				get = function(){
-					return attr.get(el, prop);
-				};
+		var hasChildren = el.nodeName.toLowerCase() === "select",
+			isMultiselectValue = prop === "value" && hasChildren && el.multiple,
+			// Sets the element property or attribute.
+			set = function(newVal) {
+				if(bindingData.legacyBindings && hasChildren &&
+					("selectedIndex" in el) && prop === "value") {
+					attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
+				} else {
+					attr.setAttrOrProp(el, prop, newVal);
+				}
+
+				return newVal;
+			},
+			get = function() {
+				return attr.get(el, prop);
+			};
 
 			if(isMultiselectValue) {
 				prop = "values";
 			}
 
-			return compute(get(), {
-				on: function(updater){
-					if (event === "radiochange") {
-						canEvent.on.call(el, "change", updater);
-					}
+		return compute(get(), {
+			on: function(updater) {
+				if (event === "radiochange") {
+					canEvent.on.call(el, "change", updater);
+				}
 
-					canEvent.on.call(el, event, updater);
-				},
-				off: function(updater){
-					if (event === "radiochange") {
-						canEvent.off.call(el, "change", updater);
-					}
+				canEvent.on.call(el, event, updater);
+			},
+			off: function(updater) {
+				if (event === "radiochange") {
+					canEvent.off.call(el, "change", updater);
+				}
 
-					canEvent.off.call(el, event, updater);
-				},
-				get: get,
-				set: set
-			});
-		}
+				canEvent.off.call(el, event, updater);
+			},
+			get: get,
+			set: set
+		});
+	}
 };
 
 // ## bind
 // An object with helpers that perform bindings in a certain direction.
 // These use the semaphore to prevent cycles.
 var bind = {
-		// ## bind.childToParent
-		// Listens to the child and updates the parent when it changes.
-		// - `syncChild` - Makes sure the child is equal to the parent after the parent is set.
-		childToParent: function(el, parentCompute, childCompute, bindingsSemaphore, attrName, syncChild){
-			// Updates the parent if
-		var updateParent = function(newVal){
-				if (!bindingsSemaphore[attrName]) {
-				if (parentCompute && parentCompute[canSymbol.for("can.getValue")]) {
-					canReflect.setValue(parentCompute, newVal);
+	// ## bind.childToParent
+	// Listens to the child and updates the parent when it changes.
+	// - `syncChild` - Makes sure the child is equal to the parent after the parent is set.
+	childToParent: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, syncChild) {
+		// Updates the parent if
+		var updateParent = function(newVal) {
+			if (!bindingsSemaphore[attrName]) {
+				if (parentObservable && parentObservable[canSymbol.for("can.getValue")]) {
+					if (canReflect.getValue(parentObservable) !== newVal) {
+						canReflect.setValue(parentObservable, newVal);
+					}
 
-						if( syncChild ) {
-							// If, after setting the parent, it's value is not the same as the child,
-							// update the child with the value of the parent.
-							// This is used by `can-value`.
-						if(canReflect.getValue(parentCompute) !== canReflect.getValue(childCompute)) {
-								bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0 )+1;
-							canReflect.setValue(childCompute, canReflect.getValue(parentCompute));
-								Observation.afterUpdateAndNotify(function(){
-									--bindingsSemaphore[attrName];
-								});
-							}
+					if( syncChild ) {
+						// If, after setting the parent, it's value is not the same as the child,
+						// update the child with the value of the parent.
+						// This is used by `can-value`.
+						if(canReflect.getValue(parentObservable) !== canReflect.getValue(childObservable)) {
+							bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
+							canReflect.setValue(childObservable, canReflect.getValue(parentObservable));
+
+							Observation.afterUpdateAndNotify(function() {
+								--bindingsSemaphore[attrName];
+							});
 						}
 					}
-					// The parentCompute can sometimes be just an observable if the observable
-					// is on a plain JS object. This updates the observable to match whatever the
-					// new value is.
-				else if(canReflect.isMapLike(parentCompute)) {
-						// !steal-dev-start
-						var attrValue = el.getAttribute(attrName);
-						dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
-						// !steal-dev-end
-						(parentCompute.set || parentCompute.attr).call(
-							parentCompute,
-							newVal.serialize ? newVal.serialize() : newVal,
-							true
-						);
-					}
 				}
-			};
-
-		if(childCompute && childCompute[canSymbol.for("can.getValue")]) {
-			canReflect.onValue(childCompute, updateParent);
+				// The parentObservable can sometimes be just an observable if the observable
+				// is on a plain JS object. This updates the observable to match whatever the
+				// new value is.
+				else if(canReflect.isMapLike(parentObservable)) {
+					// !steal-dev-start
+					var attrValue = el.getAttribute(attrName);
+					dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
+					// !steal-dev-end
+					(parentObservable.set || parentObservable.attr || parentObservable).call(
+						parentObservable,
+						(newVal && newVal.serialize) ? newVal.serialize() : newVal,
+						true
+					);
+				}
 			}
+		};
 
-			return updateParent;
-		},
-		// parent -> child binding
-		parentToChild: function(el, parentCompute, childUpdate, bindingsSemaphore, attrName){
-			// setup listening on parent and forwarding to viewModel
-		var updateChild = function(newValue){
-				// Save the viewModel property name so it is not updated multiple times.
-				// We listen for when the batch has ended, and all observation updates have ended.
-				bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0 )+1;
-				canBatch.start();
-				childUpdate(newValue);
-
-				// only after computes have been updated, reduce the update counter
-				Observation.afterUpdateAndNotify(function(){
-					--bindingsSemaphore[attrName];
-				});
-				canBatch.stop();
-			};
-
-		if(parentCompute && parentCompute[canSymbol.for("can.getValue")]) {
-			canReflect.onValue(parentCompute, updateChild);
-			}
-
-			return updateChild;
+		if(childObservable && childObservable[canSymbol.for("can.getValue")]) {
+			canReflect.onValue(childObservable, updateParent);
 		}
+
+		return updateParent;
+	},
+	// parent -> child binding
+	parentToChild: function(el, parentObservable, childUpdate, bindingsSemaphore, attrName) {
+		// setup listening on parent and forwarding to viewModel
+		var updateChild = function(newValue) {
+			// Save the viewModel property name so it is not updated multiple times.
+			// We listen for when the batch has ended, and all observation updates have ended.
+			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
+//			canBatch.start();
+			canReflect.setValue(childUpdate, newValue);
+
+			// only after computes have been updated, reduce the update counter
+			Observation.afterUpdateAndNotify(function() {
+				--bindingsSemaphore[attrName];
+			});
+//			canBatch.stop();
+		};
+
+		if(parentObservable && parentObservable[canSymbol.for("can.getValue")]) {
+			canReflect.onValue(parentObservable, updateChild);
+		}
+
+		return updateChild;
+	}
 };
 
 // Regular expressions for getBindingInfo
@@ -710,7 +731,7 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 // - `bindingAttributeName` - the attribute name that created this binding.
 // - `initializeValues` - should parent and child be initialized to their counterpart.
 // If undefined is return, there is no binding.
-var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName){
+var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName) {
 		var bindingInfo,
 			attributeName = node.name,
 			attributeValue = node.value || "";
@@ -802,7 +823,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			return bindingInfo;
 		}
 };
-var decodeAttrName = function(name){
+var decodeAttrName = function(name) {
 		return name.replace(encodedSpacesRegExp, " ");
 };
 
@@ -827,119 +848,123 @@ var decodeAttrName = function(name){
 // Returns:
 // - `undefined` - If this isn't a data binding.
 // - `object` - An object with information about the binding.
-var makeDataBinding = function(node, el, bindingData){
-		// Get information about the binding.
-		var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase());
-		if(!bindingInfo) {
-			return;
-		}
-		// assign some bindingData props to the bindingInfo
-		bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
-		if( bindingData.initializeValues) {
-			bindingInfo.initializeValues = true;
-		}
+var makeDataBinding = function(node, el, bindingData) {
+	// Get information about the binding.
+	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase());
+	if(!bindingInfo) {
+		return;
+	}
+	// assign some bindingData props to the bindingInfo
+	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
+	if( bindingData.initializeValues) {
+		bindingInfo.initializeValues = true;
+	}
 
-		// Get computes for the parent and child binding
-		var parentCompute = getComputeFrom[bindingInfo.parent](
-				el,
-				bindingData.scope,
-				bindingInfo.parentName,
-				bindingData, bindingInfo.parentToChild
-			),
-			childCompute = getComputeFrom[bindingInfo.child](
-				el,
-				bindingData.scope,
-				bindingInfo.childName,
-				bindingData,
-				bindingInfo.childToParent,
-				bindingInfo.stickyParentToChild && parentCompute
-			),
-			// these are the functions bound to one compute that update the other.
-			updateParent,
+	// Get computes for the parent and child binding
+	var parentObservable = getObservableFrom[bindingInfo.parent](
+		el,
+		bindingData.scope,
+		bindingInfo.parentName,
+		bindingData, bindingInfo.parentToChild
+	),
+	childObservable = getObservableFrom[bindingInfo.child](
+		el,
+		bindingData.scope,
+		bindingInfo.childName,
+		bindingData,
+		bindingInfo.childToParent,
+		bindingInfo.stickyParentToChild && parentObservable
+	),
+	// these are the functions bound to one compute that update the other.
+	updateParent,
 	updateChild;
 
-		if(bindingData.nodeList) {
-		if(parentCompute && parentCompute.computeInstance) {
-				parentCompute.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
-			}
-		if(childCompute && childCompute.computeInstance) {
-				childCompute.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
-			}
+	if(bindingData.nodeList) {
+		if(parentObservable && parentObservable.computeInstance) {
+			parentObservable.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
 		}
 
-		// Only bind to the parent if it will update the child.
-		if(bindingInfo.parentToChild){
-			updateChild = bind.parentToChild(el, parentCompute, childCompute, bindingData.semaphore, bindingInfo.bindingAttributeName);
+		if(childObservable && childObservable.computeInstance) {
+			childObservable.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
+		}
+	}
+
+	// Only bind to the parent if it will update the child.
+	if(bindingInfo.parentToChild) {
+		updateChild = bind.parentToChild(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName);
+	}
+
+	// This completes the binding.  We can't call it right away because
+	// the `viewModel` might not have been created yet.
+	var completeBinding = function() {
+		if(bindingInfo.childToParent) {
+			// setup listening on parent and forwarding to viewModel
+			updateParent = bind.childToParent(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName,
+				bindingInfo.syncChildWithParent);
+		}
+		// the child needs to be bound even if
+		else if(bindingInfo.stickyParentToChild && childObservable[canSymbol.for("can.onValue")])  {
+			canReflect.onValue(childObservable, noop);
 		}
 
-		// This completes the binding.  We can't call it right away because
-		// the `viewModel` might not have been created yet.
-		var completeBinding = function(){
-			if(bindingInfo.childToParent){
-				// setup listening on parent and forwarding to viewModel
-				updateParent = bind.childToParent(el, parentCompute, childCompute, bindingData.semaphore, bindingInfo.bindingAttributeName,
-					bindingInfo.syncChildWithParent);
-			}
-			// the child needs to be bound even if
-			else if(bindingInfo.stickyParentToChild) {
-			canReflect.onValue(childCompute, noop);
-			}
+		if(bindingInfo.initializeValues) {
+			initializeValues(bindingInfo, childObservable, parentObservable, updateChild, updateParent);
+		}
+	};
 
-			if(bindingInfo.initializeValues) {
-				initializeValues(bindingInfo, childCompute, parentCompute, updateChild, updateParent);
-			}
+	// This tears down the binding.
+	var onTeardown = function() {
+		unbindUpdate(parentObservable, updateChild);
+		unbindUpdate(childObservable, updateParent);
+		unbindUpdate(childObservable, noop);
+	};
+
+	// If this binding depends on the viewModel, which might not have been created,
+	// return the function to complete the binding as `onCompleteBinding`.
+	if(bindingInfo.child === "viewModel") {
+		return {
+			value: bindingInfo.stickyParentToChild ? reflectiveValue(getValue(parentObservable)) : getValue(parentObservable),
+			onCompleteBinding: completeBinding,
+			bindingInfo: bindingInfo,
+			onTeardown: onTeardown
 		};
-		// This tears down the binding.
-		var onTeardown = function() {
-			unbindUpdate(parentCompute, updateChild);
-			unbindUpdate(childCompute, updateParent);
-		unbindUpdate(childCompute, noop);
+	} else {
+		completeBinding();
+		return {
+			bindingInfo: bindingInfo,
+			onTeardown: onTeardown
 		};
-		// If this binding depends on the viewModel, which might not have been created,
-		// return the function to complete the binding as `onCompleteBinding`.
-		if(bindingInfo.child === "viewModel") {
-			return {
-				value: bindingInfo.stickyParentToChild ? compute(getValue(parentCompute)) : getValue(parentCompute),
-				onCompleteBinding: completeBinding,
-				bindingInfo: bindingInfo,
-				onTeardown: onTeardown
-			};
-		} else {
-			completeBinding();
-			return {
-				bindingInfo: bindingInfo,
-				onTeardown: onTeardown
-			};
-		}
+	}
 };
 
 // ## initializeValues
 // Updates the parent or child value depending on the direction of the binding
 // or if the child or parent is `undefined`.
-var initializeValues = function(bindingInfo, childCompute, parentCompute, updateChild, updateParent){
-		var doUpdateParent = false;
-		if(bindingInfo.parentToChild && !bindingInfo.childToParent) {
-			// updateChild
-		}
-		else if(!bindingInfo.parentToChild && bindingInfo.childToParent) {
-			doUpdateParent = true;
-		}
-		// Two way
-		// Update child or parent depending on who has a value.
-		// If both have a value, update the child.
-		else if( getValue(childCompute) === undefined) {
-			// updateChild
-		} else if(getValue(parentCompute) === undefined) {
-			doUpdateParent = true;
-		}
+var initializeValues = function(bindingInfo, childObservable, parentObservable, updateChild, updateParent) {
+	var doUpdateParent = false;
 
-		if(doUpdateParent) {
-		updateParent(getValue(childCompute) );
-		} else {
-			if(!bindingInfo.alreadyUpdatedChild) {
-			updateChild(getValue(parentCompute) );
-			}
+	if(bindingInfo.parentToChild && !bindingInfo.childToParent) {
+		// updateChild
+	}
+	else if(!bindingInfo.parentToChild && bindingInfo.childToParent) {
+		doUpdateParent = true;
+	}
+	// Two way
+	// Update child or parent depending on who has a value.
+	// If both have a value, update the child.
+	else if(getValue(childObservable) === undefined) {
+		// updateChild
+	} else if(getValue(parentObservable) === undefined) {
+		doUpdateParent = true;
+	}
+
+	if(doUpdateParent) {
+		updateParent( getValue(childObservable) );
+	} else {
+		if(!bindingInfo.alreadyUpdatedChild) {
+			updateChild( getValue(parentObservable) );
 		}
+	}
 };
 
 // For "sticky" select values, we need to know when `<option>`s are
@@ -947,14 +972,14 @@ var initializeValues = function(bindingInfo, childCompute, parentCompute, update
 // MutationObserver, we need to setup can.view.live to
 // callback when this happens.
 if( !getMutationObserver() ) {
-		var updateSelectValue = function(el){
-			var bindingCallback = domData.get.call(el,"canBindingCallback");
+		var updateSelectValue = function(el) {
+			var bindingCallback = domData.get.call(el, "canBindingCallback");
 			if(bindingCallback) {
 				bindingCallback.onMutation(el);
 			}
 		};
 		live.registerChildMutationCallback("select",updateSelectValue);
-		live.registerChildMutationCallback("optgroup",function(el){
+		live.registerChildMutationCallback("optgroup",function(el) {
 			updateSelectValue(el.parentNode);
 		});
 }
@@ -967,7 +992,7 @@ if( !getMutationObserver() ) {
 // By default an element is also contenteditable if its immediate parent
 // has a truthy version of the attribute, unless the element is explicitly
 // set to "false".
-var isContentEditable = (function(){
+var isContentEditable = (function() {
 		// A contenteditable element has a value of an empty string or "true"
 		var values = {
 			"": true,
@@ -976,7 +1001,7 @@ var isContentEditable = (function(){
 		};
 
 		// Tests if an element has the appropriate contenteditable attribute
-		var editable = function(el){
+		var editable = function(el) {
 			// DocumentFragments do not have a getAttribute
 			if(!el || !el.getAttribute) {
 				return;
@@ -986,7 +1011,7 @@ var isContentEditable = (function(){
 			return values[attr];
 		};
 
-		return function (el){
+		return function (el) {
 			// First check if the element is explicitly true or false
 			var val = editable(el);
 			if(typeof val === "boolean") {
@@ -997,25 +1022,25 @@ var isContentEditable = (function(){
 			}
 		};
 })(),
-removeBrackets = function(value, open, close){
-			open = open || "{";
-			close = close || "}";
+removeBrackets = function(value, open, close) {
+	open = open || "{";
+	close = close || "}";
 
-			if(value[0] === open && value[value.length-1] === close) {
-				return value.substr(1, value.length - 2);
-			}
-			return value;
+	if(value[0] === open && value[value.length-1] === close) {
+		return value.substr(1, value.length - 2);
+	}
+	return value;
 },
-getValue = function(value){
+getValue = function(value) {
 	return value && value[canSymbol.for("can.getValue")] ? canReflect.getValue(value) : value;
 },
-unbindUpdate = function(compute, updateOther){
-	if(compute && compute[canSymbol.for("can.getValue")] && typeof updateOther === "function") {
-		canReflect.offValue(compute, updateOther);
-			}
+unbindUpdate = function(observable, updater) {
+	if(observable && observable[canSymbol.for("can.getValue")] && typeof updater === "function") {
+		canReflect.offValue(observable, updater);
+	}
 },
-cleanVMName = function(name){
-			return name.replace(/@/g,"");
+cleanVMName = function(name) {
+	return name.replace(/@/g, "");
 };
 
 

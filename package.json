@@ -32,6 +32,7 @@
     "main": "can-stache-bindings"
   },
   "dependencies": {
+    "can-cid": "^1.0.3",
     "can-compute": "^3.1.0-pre.6",
     "can-event": "^3.3.0",
     "can-event-radiochange": "^0.1.0",
