@@ -40,6 +40,7 @@ var canLog = require('can-util/js/log/log');
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
+var singleReference = require("can-compute/single-reference");
 
 var noop = function() {};
 
@@ -609,28 +610,39 @@ var getObservableFrom = {
 				return attr.get(el, prop);
 			};
 
-			if(isMultiselectValue) {
-				prop = "values";
+		if(isMultiselectValue) {
+			prop = "values";
+		}
+
+		var observation = new Observation(get);
+
+		observation[canSymbol.for("can.setValue")] = set;
+		observation[canSymbol.for("can.getValue")] = get;
+
+		observation[canSymbol.for("can.onValue")] = function(updater) {
+			var translationHandler = function() {
+				updater(get());
+			};
+			singleReference.set(updater, this, translationHandler);
+
+			if (event === "radiochange") {
+				canEvent.on.call(el, "change", translationHandler);
 			}
 
-		return compute(get(), {
-			on: function(updater) {
-				if (event === "radiochange") {
-					canEvent.on.call(el, "change", updater);
-				}
+			canEvent.on.call(el, event, translationHandler);
+		};
 
-				canEvent.on.call(el, event, updater);
-			},
-			off: function(updater) {
-				if (event === "radiochange") {
-					canEvent.off.call(el, "change", updater);
-				}
+		observation[canSymbol.for("can.offValue")] = function(updater) {
+			var translationHandler = singleReference.getAndDelete(updater, this);
 
-				canEvent.off.call(el, event, updater);
-			},
-			get: get,
-			set: set
-		});
+			if (event === "radiochange") {
+				canEvent.off.call(el, "change", translationHandler);
+			}
+
+			canEvent.off.call(el, event, translationHandler);
+		};
+
+		return observation;
 	}
 };
 
