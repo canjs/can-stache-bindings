@@ -67,7 +67,6 @@ QUnit.module(name, {
 
 		types.DefaultMap = CanMap;
 
-
 		if(doc === document) {
 			this.fixture = document.getElementById("qunit-fixture");
 		} else {
@@ -76,14 +75,17 @@ QUnit.module(name, {
 		}
 	},
 	teardown: function(){
+		// Delete previous tags, to avoid warnings from can-view-callbacks.
+		for (var tag in viewCallbacks._tags) {
+			delete viewCallbacks._tags[tag];
+		}
+
 		if(doc !== document) {
 			doc.body.removeChild(this.fixture);
 		}
 
 		stop();
 		afterMutation(function() {
-			// Delete previous tags, to avoid warnings from can-view-callbacks.
-			viewCallbacks._tags = {};
 			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
@@ -2725,7 +2727,6 @@ if (System.env.indexOf('production') < 0) {
 			}
 		};
 
-		delete viewCallbacks._tags["merge-warn-test"];
 		MockComponent.extend({
 			tag: "merge-warn-test",
 			viewModel: function() {
