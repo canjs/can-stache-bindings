@@ -1381,53 +1381,57 @@ test("(event) methods on objects are called with call expressions (#1839)", func
 });
 
 test("two way - viewModel (#1700)", function(){
-	MockComponent.extend({
-		tag: "view-model-able"
-	});
-
 	var template = stache("<div {(view-model-prop)}='scopeProp'/>");
-
-	var attrSetCalled = 0;
-
 	var map = new CanMap({ scopeProp: "Hello" });
-	var oldSet = map._set;
-	map._set = function(attrName, value){
+
+	var scopeMapSetCalled = 0;
+
+	// overwrite setKeyValue to catch child->parent updates
+	var origMapSetKeyValue = map[canSymbol.for("can.setKeyValue")];
+	map[canSymbol.for("can.setKeyValue")] = function(attrName, value){
 		if(typeof attrName === "string" && arguments.length > 1) {
-			attrSetCalled++;
+			scopeMapSetCalled++;
 		}
 
-		return oldSet.apply(this, arguments);
+		return origMapSetKeyValue.apply(this, arguments);
+	};
+	// overwrite _set to catch changes made by calling attr()
+	var origMapSet = map._set;
+	map._set = function(attrName, value) {
+		if(typeof attrName === "string" && arguments.length > 1) {
+			scopeMapSetCalled++;
+		}
+
+		return origMapSet.apply(this, arguments);
 	};
 
 	var frag = template(map);
 	var viewModel = canViewModel(frag.firstChild);
 
-	equal(attrSetCalled, 0, "set is not called on scope map");
-	equal( viewModel.attr("viewModelProp"), "Hello", "initial value set" );
+	equal(scopeMapSetCalled, 0, "set is not called on scope map");
+	equal(viewModel.attr("viewModelProp"), "Hello", "initial value set" );
 
 	viewModel = canViewModel(frag.firstChild);
 
-	var viewModelAttrSetCalled = 1;
+	var viewModelSetCalled = 1; // set once already - on "initial value set"
+	var origViewModelSet = viewModel[canSymbol.for("can.setKeyValue")];
 	viewModel[canSymbol.for("can.setKeyValue")] = function(attrName){
-		console.log(arguments.length, arguments);
 		if(typeof attrName === "string" && arguments.length > 1) {
-			viewModelAttrSetCalled++;
+			viewModelSetCalled++;
 		}
 
-		return oldSet.apply(this, arguments);
+		return origViewModelSet.apply(this, arguments);
 	};
 
 	viewModel.attr("viewModelProp", "HELLO");
 	equal(map.attr("scopeProp"), "HELLO", "binding from child to parent");
-
-	equal(attrSetCalled, 1, "set is called once on scope map");
-
-	equal(viewModelAttrSetCalled, 2, "set is called once viewModel");
+	equal(scopeMapSetCalled, 1, "set is called on scope map");
+	equal(viewModelSetCalled, 2, "set is called viewModel");
 
 	map.attr("scopeProp", "WORLD");
 	equal(viewModel.attr("viewModelProp"), "WORLD", "binding from parent to child" );
-	equal(attrSetCalled, 2, "set is called once on scope map");
-	equal(viewModelAttrSetCalled, 3, "set is called once on viewModel");
+	equal(scopeMapSetCalled, 2, "set is called again on scope map");
+	equal(viewModelSetCalled, 3, "set is called again on viewModel");
 });
 
 // new two-way binding
@@ -1627,7 +1631,6 @@ test('one-way - parent to child - viewModel', function(){
 });
 
 test('one-way - child to parent - viewModel', function(){
-
 	MockComponent.extend({
 		tag: "view-model-able",
 		viewModel: {
