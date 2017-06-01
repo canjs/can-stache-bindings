@@ -726,7 +726,8 @@ var stacheHelperCore = require("can-stache/helpers/core");
 	var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i,
 		DOUBLE_CURLY_BRACE_REGEX = /\{\{/g,
-		encodedSpacesRegExp = /\\s/g;
+		encodedSpacesRegExp = /\\s/g,
+		encodedForwardSlashRegExp = /\\f/g;
 
 	// ## getBindingInfo
 	// takes a node object like {name, value} and returns
@@ -835,7 +836,9 @@ var stacheHelperCore = require("can-stache/helpers/core");
 
 	};
 	var decodeAttrName = function(name){
-		return name.replace(encodedSpacesRegExp, " ");
+		return name
+			.replace(encodedSpacesRegExp, " ")
+			.replace(encodedForwardSlashRegExp, "/");
 	};
 
 
