@@ -12,6 +12,7 @@ var viewCallbacks = require('can-view-callbacks');
 var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
 var canSymbol = require('can-symbol');
+var canReflect = require('can-reflect');
 
 var stacheExpression = require('can-stache/src/expression');
 
@@ -2644,11 +2645,11 @@ test("one-way pass computes to components with ~", function(assert) {
 	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
 
 	var vm = canViewModel(this.fixture.firstChild);
-
+debugger;
 	ok(vm.attr("compute").isComputed, "Compute returned");
 	equal(vm.attr("compute")(), "bar", "Compute has correct value");
 
-	vm.attr("compute").bind("change", function() {
+	canReflect.onValue(vm.attr("compute"), function() {
 		// NB: This gets called twice below, once by
 		//  the parent and once directly.
 		ok(true, "Change handler called");

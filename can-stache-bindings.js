@@ -72,6 +72,7 @@ var reflectiveValue = function(value) {
 	canReflect.set(fn, canSymbol.for("can.getValue"), function() {
 		return fn()
 	});
+	fn.isComputed = true;
 	return fn;
 };
 
@@ -567,8 +568,18 @@ var getObservableFrom = {
 
 		observation[canSymbol.for("can.setValue")] = function(newVal) {
 			var viewModel = bindingData.getViewModel();
+			var oldValue = canReflect.getKeyValue(viewModel, setName);
+			debugger;
 			if(arguments.length) { // should this check if mustBeSettable is true ???
-				canReflect.setKeyValue(viewModel, setName, newVal);
+				if(stickyCompute) {
+					if (canReflect.isObservableLike(oldValue)) {
+						canReflect.setValue(oldValue, newVal);
+					} else {
+						canReflect.setKeyValue(viewModel, setName, reflectiveValue(canReflect.getValue(stickyCompute)));
+					}
+				} else {
+					canReflect.setKeyValue(viewModel, setName, newVal);
+				}
 			}
 		};
 
