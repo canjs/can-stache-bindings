@@ -549,9 +549,13 @@ var getObservableFrom = {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
 				return parentExpression.value(scope, new Scope.Options({}));
 			} else {
-				return function(newVal) {
+				var observation = new Observation(function() {});
+
+				observation[canSymbol.for("can.setValue")] = function(newVal) {
 					scope.set(cleanVMName(scopeProp), newVal);
 				};
+
+				return observation;
 			}
 		}
 	},
@@ -569,7 +573,6 @@ var getObservableFrom = {
 		observation[canSymbol.for("can.setValue")] = function(newVal) {
 			var viewModel = bindingData.getViewModel();
 			var oldValue = canReflect.getKeyValue(viewModel, setName);
-			debugger;
 			if(arguments.length) { // should this check if mustBeSettable is true ???
 				if(stickyCompute) {
 					if (canReflect.isObservableLike(oldValue)) {

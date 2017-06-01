@@ -1738,11 +1738,7 @@ test('one way - child to parent - importing viewModel {^hypenated-prop}="test"',
 
 });
 
-
-
-
 test("viewModel binding (event)", function(){
-
 	MockComponent.extend({
 		tag: "viewmodel-binding",
 		viewModel: {
@@ -2645,7 +2641,6 @@ test("one-way pass computes to components with ~", function(assert) {
 	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
 
 	var vm = canViewModel(this.fixture.firstChild);
-debugger;
 	ok(vm.attr("compute").isComputed, "Compute returned");
 	equal(vm.attr("compute")(), "bar", "Compute has correct value");
 
