@@ -2717,7 +2717,7 @@ if (System.env.indexOf('production') < 0) {
 		var useCanMap = true;
 
 		var oldlog = dev.warn,
-			message = 'can-stache-bindings: Merging {(foo)} into bar because its parent is non-observable';
+			message = 'can-view-scope: Merging data into "bar" because its parent is non-observable';
 
 		var thisTest = QUnit.config.current;
 		dev.warn = function(text) {

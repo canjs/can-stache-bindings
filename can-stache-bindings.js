@@ -67,10 +67,10 @@ var reflectiveValue = function(value) {
 		handlers.splice(index, 1);
 	});
 	canReflect.set(fn, canSymbol.for("can.setValue"), function(newValue) {
-		return fn(newValue)
+		return fn(newValue);
 	});
 	canReflect.set(fn, canSymbol.for("can.getValue"), function() {
-		return fn()
+		return fn();
 	});
 	fn.isComputed = true;
 	return fn;
@@ -698,7 +698,10 @@ var bind = {
 					var attrValue = el.getAttribute(attrName);
 					dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
 					// !steal-dev-end
-					(parentObservable.set || parentObservable.attr || parentObservable).call(
+					canReflect.eachKey(parentObservable, function(prop) {
+						canReflect.deleteKeyValue(parentObservable, prop);
+					});
+					canReflect.setValue(
 						parentObservable,
 						(newVal && newVal.serialize) ? newVal.serialize() : newVal,
 						true
