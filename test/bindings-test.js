@@ -477,7 +477,7 @@ test("can-enter", function () {
 	var frag = template({
 		update: function () {
 			called++;
-			ok(called, 1, "update called once");
+			ok(called, "1", "update called once");
 		}
 	});
 
