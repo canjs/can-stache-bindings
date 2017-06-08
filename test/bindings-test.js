@@ -76,11 +76,6 @@ QUnit.module(name, {
 		}
 	},
 	teardown: function(){
-		// Delete previous tags, to avoid warnings from can-view-callbacks.
-		for (var tag in viewCallbacks._tags) {
-			delete viewCallbacks._tags[tag];
-		}
-
 		if(doc !== document) {
 			doc.body.removeChild(this.fixture);
 		}
@@ -2710,6 +2705,11 @@ test("%arguments gives the event arguments", function(){
 
 if (System.env.indexOf('production') < 0) {
 	test("Warning happens when changing the map that a to-parent binding points to.", function() {
+		var tagName = "merge-warn-test";
+
+		// Delete previous tags, to avoid warnings from can-view-callbacks.
+		delete viewCallbacks._tags[tagName];
+
 		expect(4);
 
 		var step1 = { "baz": "quux" };
@@ -2727,7 +2727,7 @@ if (System.env.indexOf('production') < 0) {
 		};
 
 		MockComponent.extend({
-			tag: "merge-warn-test",
+			tag: tagName,
 			viewModel: function() {
 
 				if(useCanMap) {
