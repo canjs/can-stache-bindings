@@ -35,7 +35,7 @@
     "can-compute": "^3.0.10",
     "can-event": "^3.3.0",
     "can-event-radiochange": "^0.1.0",
-    "can-observation": "^3.0.1",
+    "can-observation": "3.1.6",
     "can-stache": "^3.0.24",
     "can-types": "^1.0.1",
     "can-util": "^3.3.7",
