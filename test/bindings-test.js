@@ -38,8 +38,8 @@ function afterMutation(cb) {
 	var doc = DOCUMENT();
 	var div = doc.createElement("div");
 	domEvents.addEventListener.call(div, "inserted", function(){
-		setTimeout(cb,1);
 		doc.body.removeChild(div);
+		setTimeout(cb, 5);
 	});
 	domMutate.appendChild.call(doc.body, div);
 }
