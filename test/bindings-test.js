@@ -1323,7 +1323,7 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 });
 
 testIfRealDocument("<select can-value> keeps its value as <option>s change with {{#each}} (#1762)", function(){
-	var template = stache("<select can-value='{id}'>{{#each values}}<option value='{{.}}'>{{.}}</option>{{/values}}</select>");
+	var template = stache("<select can-value='{id}'>{{#each values}}<option value='{{.}}'>{{.}}</option>{{/each}}</select>");
 	var values = canCompute( ["1","2","3","4"]);
 	var id = canCompute("2");
 	var frag = template({
@@ -1332,18 +1332,18 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 	});
 	stop();
 	var select = frag.firstChild;
+	var options = select.getElementsByTagName("option");
 
 
 	// the value is set asynchronously
 	afterMutation(function(){
-		ok(select.childNodes.item(1).selected, "value is initially selected");
-
+		ok(options[1].selected, "value is initially selected");
 		values(["7","2","5","4"]);
 
-		ok(select.childNodes.item(1).selected, "after changing options, value should still be selected");
-
-
-		start();
+		afterMutation(function(){
+			ok(options[1].selected, "after changing options, value should still be selected");
+			start();
+		});
 	});
 
 });
