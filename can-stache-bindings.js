@@ -40,7 +40,7 @@ var canLog = require('can-util/js/log/log');
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
-var singleReference = require("can-compute/single-reference");
+var singleReference = require("can-util/js/single-reference/single-reference");
 
 var noop = function() {};
 
