@@ -745,7 +745,8 @@ var bind = {
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i,
 		DOUBLE_CURLY_BRACE_REGEX = /\{\{/g,
-		encodedSpacesRegExp = /\\s/g;
+		encodedSpacesRegExp = /\\s/g,
+		encodedForwardSlashRegExp = /\\f/g;
 
 // ## getBindingInfo
 // takes a node object like {name, value} and returns
@@ -852,8 +853,10 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			return bindingInfo;
 		}
 };
-var decodeAttrName = function(name) {
-		return name.replace(encodedSpacesRegExp, " ");
+var decodeAttrName = function(name){
+	return name
+		.replace(encodedSpacesRegExp, " ")
+		.replace(encodedForwardSlashRegExp, "/");
 };
 
 
