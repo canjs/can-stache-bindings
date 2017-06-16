@@ -469,6 +469,10 @@ test("can-value input radio", function () {
 
 });
 
+// TODO: Remove this test in next major version.
+// This behavior is now in can-event-dom-enter,
+// which will be removed from here and users
+// will add it to an event registry themselves.
 test("can-enter", function () {
 	var template = stache("<input can-enter='update'/>");
 
