@@ -106,7 +106,9 @@ var behaviors = {
 				onTeardowns = {},
 				// Track info about each binding, we need this for binding attributes correctly.
 				bindingInfos = {},
-				attributeViewModelBindings = assign({}, initialViewModelData);
+				attributeViewModelBindings = assign({}, initialViewModelData),
+				// if we have a binding like {this} or {.}
+				hasContextBinding = false;
 
 			// For each attribute, we start the binding process,
 			// and save what's returned to be used when the `viewModel` is created,
@@ -124,12 +126,31 @@ var behaviors = {
 					nodeList: tagData.parentNodeList
 				});
 
+
+				// dataBinding.bindingInfo.childName === 'this' || '.'
+				// another one === anything else -> freak out
+
 				if(dataBinding) {
+
+					var isContextBinding = dataBinding.bindingInfo.childName === 'this' || dataBinding.bindingInfo.childName === '.';
+					if( isContextBinding ) {
+						if(!hasContextBinding) {
+							hasContextBinding = true;
+							initialViewModelData = undefined;
+						}
+					} else if( hasContextBinding ) {
+						throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
+					}
+
 					// For bindings that change the viewModel,
 					if(dataBinding.onCompleteBinding) {
 						// save the initial value on the viewModel.
 						if(dataBinding.bindingInfo.parentToChild && dataBinding.value !== undefined) {
-							initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+							if(isContextBinding) {
+								initialViewModelData = dataBinding.value;
+							} else {
+								initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+							}
 						}
 						// Save what needs to happen after the `viewModel` is created.
 						onCompleteBindings.push(dataBinding.onCompleteBinding);
@@ -148,39 +169,42 @@ var behaviors = {
 
 			// Listen to attribute changes and re-initialize
 			// the bindings.
-			domEvents.addEventListener.call(el, "attributes", function (ev) {
-				var attrName = ev.attributeName,
-					value = el.getAttribute(attrName);
+			if(!hasContextBinding) {
+				domEvents.addEventListener.call(el, "attributes", function (ev) {
+					var attrName = ev.attributeName,
+						value = el.getAttribute(attrName);
 
-				if( onTeardowns[attrName] ) {
-					onTeardowns[attrName]();
-				}
-				// Parent attribute bindings we always re-setup.
-				var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === "attribute";
-
-				if(value !== null || parentBindingWasAttribute ) {
-					var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
-						templateType: tagData.templateType,
-						scope: tagData.scope,
-						semaphore: {},
-						getViewModel: function() {
-							return viewModel;
-						},
-						attributeViewModelBindings: attributeViewModelBindings,
-						// always update the viewModel accordingly.
-						initializeValues: true,
-						nodeList: tagData.parentNodeList
-					});
-					if(dataBinding) {
-						// The viewModel is created, so call callback immediately.
-						if(dataBinding.onCompleteBinding) {
-							dataBinding.onCompleteBinding();
-						}
-						bindingInfos[attrName] = dataBinding.bindingInfo;
-						onTeardowns[attrName] = dataBinding.onTeardown;
+					if( onTeardowns[attrName] ) {
+						onTeardowns[attrName]();
 					}
-				}
-			});
+					// Parent attribute bindings we always re-setup.
+					var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === "attribute";
+
+					if(value !== null || parentBindingWasAttribute ) {
+						var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
+							templateType: tagData.templateType,
+							scope: tagData.scope,
+							semaphore: {},
+							getViewModel: function() {
+								return viewModel;
+							},
+							attributeViewModelBindings: attributeViewModelBindings,
+							// always update the viewModel accordingly.
+							initializeValues: true,
+							nodeList: tagData.parentNodeList
+						});
+						if(dataBinding) {
+							// The viewModel is created, so call callback immediately.
+							if(dataBinding.onCompleteBinding) {
+								dataBinding.onCompleteBinding();
+							}
+							bindingInfos[attrName] = dataBinding.bindingInfo;
+							onTeardowns[attrName] = dataBinding.onTeardown;
+						}
+					}
+				});
+			}
+
 
 			return function() {
 				for(var attrName in onTeardowns) {
@@ -564,24 +588,36 @@ var getObservableFrom = {
 	// `options.getViewModel()`.
 	viewModel: function(el, scope, vmName, bindingData, mustBeSettable, stickyCompute) {
 		var setName = cleanVMName(vmName);
+		var isBoundToContext = vmName === "." || vmName === "this";
+		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
 
 		var observation = new Observation(function() {
 			var viewModel = bindingData.getViewModel();
-			return vmName === "." ? viewModel : observeReader.read(viewModel, observeReader.reads(vmName), {}).value;
+			return observeReader.read(viewModel, keysToRead, {}).value;
 		});
 
 		observation[canSymbol.for("can.setValue")] = function(newVal) {
 			var viewModel = bindingData.getViewModel();
-			var oldValue = canReflect.getKeyValue(viewModel, setName);
-			if(arguments.length) { // should this check if mustBeSettable is true ???
+
+
+			if(arguments.length) {
 				if(stickyCompute) {
+					// TODO: Review
+					var oldValue = canReflect.getKeyValue(viewModel, setName);
 					if (canReflect.isObservableLike(oldValue)) {
 						canReflect.setValue(oldValue, newVal);
 					} else {
-						canReflect.setKeyValue(viewModel, setName, reflectiveValue(canReflect.getValue(stickyCompute)));
+						canReflect.setKeyValue(viewModel, setName,
+							reflectiveValue(canReflect.getValue(stickyCompute))
+						);
 					}
 				} else {
-					canReflect.setKeyValue(viewModel, setName, newVal);
+					if(isBoundToContext) {
+						canReflect.setValue(viewModel, newVal);
+					} else {
+						canReflect.setKeyValue(viewModel, setName, newVal);
+					}
+
 				}
 			}
 		};
