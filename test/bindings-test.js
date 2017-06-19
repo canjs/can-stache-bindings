@@ -3011,4 +3011,16 @@ test("call expressions work (#208)", function(){
 
 // Add new tests above this line
 
+// Switching between dom and vdom can cause some tests to fail. This test should
+// always be the last test, to introduce a delay to prevent the failures.
+test("Test Delay", function() {
+	QUnit.stop();
+	expect(0);
+
+	setTimeout(function () {
+		QUnit.start();
+	}, 100);
+
+});
+
 }
