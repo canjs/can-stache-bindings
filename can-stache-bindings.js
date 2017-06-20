@@ -108,7 +108,8 @@ var behaviors = {
 				bindingInfos = {},
 				attributeViewModelBindings = assign({}, initialViewModelData),
 				// if we have a binding like {this} or {.}
-				hasContextBinding = false;
+				hasContextBinding = false,
+				hasBinding = false;
 
 			// For each attribute, we start the binding process,
 			// and save what's returned to be used when the `viewModel` is created,
@@ -126,20 +127,38 @@ var behaviors = {
 					nodeList: tagData.parentNodeList
 				});
 
-
-				// dataBinding.bindingInfo.childName === 'this' || '.'
-				// another one === anything else -> freak out
-
 				if(dataBinding) {
 
 					var isContextBinding = dataBinding.bindingInfo.childName === 'this' || dataBinding.bindingInfo.childName === '.';
-					if( isContextBinding ) {
-						if(!hasContextBinding) {
+
+					// if( isContextBinding ) {
+					// 	if(!hasContextBinding) {
+					// 		hasContextBinding = true;
+					// 		initialViewModelData = undefined;
+					// 	}
+					// }
+					// else if( hasContextBinding ) {
+					// 	throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
+					// }
+
+					if (!isContextBinding) {
+						if (hasContextBinding) {
+							throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
+						}
+						else {
+							hasBinding = true;
+						}
+					}
+					else {
+						// Do we want to prevent re-binding here "hasBinding || hasContextBinding"?
+						if (hasBinding) {
+							throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
+						}
+						else {
+							hasBinding = true;
 							hasContextBinding = true;
 							initialViewModelData = undefined;
 						}
-					} else if( hasContextBinding ) {
-						throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
 					}
 
 					// For bindings that change the viewModel,
@@ -779,7 +798,7 @@ var bind = {
 
 // Regular expressions for getBindingInfo
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
-		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i,
+		ignoreAttributesRegExp = /^(data-view-id|class|id|name|\[[\w\.-]+\]|#[\w\.-])$/i,
 		DOUBLE_CURLY_BRACE_REGEX = /\{\{/g,
 		encodedSpacesRegExp = /\\s/g,
 		encodedForwardSlashRegExp = /\\f/g;

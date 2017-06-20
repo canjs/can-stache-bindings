@@ -1714,22 +1714,33 @@ test('one way - child to parent - importing viewModel {^hypenated-prop}="test"',
 
 	MockComponent.extend({
 		tag: 'import-prop-parent',
-		template: stache('<import-prop-scope {^user-name}="test" {^.}="childComponent"></import-prop-scope>' +
+		template: stache('<import-prop-scope {^user-name}="test"></import-prop-scope>' +
 			'<div>Imported: {{test}}</div>')
 	});
 
 	var template = stache('<import-prop-parent></import-prop-parent>');
 	var frag = template({});
-	var importPropParent = frag.firstChild;
-	var importPropScope = importPropParent.getElementsByTagName("import-prop-scope")[0];
+	var importPropParentVM = canViewModel(frag.firstChild);
+	var importPropScopeVM = canViewModel(frag.firstChild.firstChild);
 
-	canViewModel(importPropScope).updateName();
+	importPropScopeVM.updateName();
 
-	var importPropParentViewModel = canViewModel(importPropParent);
+	equal(importPropParentVM.attr("test"), "Justin", "got hypenated prop");
+	
+	MockComponent.extend({
+		tag: 'import-prop-parent-2',
+		template: stache('<import-prop-scope {^.}="childComponent"></import-prop-scope>' +
+			'<div>Imported: {{test}}</div>')
+	});
 
-	equal(importPropParentViewModel.attr("test"), "Justin", "got hypenated prop");
+	template = stache('<import-prop-parent-2></import-prop-parent-2>');
+	frag = template({});
+	importPropParentVM = canViewModel(frag.firstChild);
+	importPropScopeVM = canViewModel(frag.firstChild.firstChild);
 
-	equal(importPropParentViewModel.attr("childComponent"), canViewModel(importPropScope), "got view model");
+	importPropScopeVM.updateName();
+
+	equal(importPropParentVM.attr("childComponent"), importPropScopeVM, "got view model");
 
 });
 

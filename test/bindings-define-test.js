@@ -362,7 +362,6 @@ test(".viewModel() can work with this {^this}='bar'", function(){
 
 	vm(10);
 	QUnit.equal(myMap.value, 10, "changed the value");
-
 });
 
 
@@ -388,7 +387,37 @@ test(".viewModel() can work with this {this}='bar'", function(){
 	// change scope
 	myMap.value = 11;
 
-
 	QUnit.equal( vm(), 11, "updated VM by changing scope");
+});
 
+test("Will not accept more than one data binding if this is bound", function() {
+	expect(2);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData) {
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData) {
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({
+		value: 10,
+		bar: 'baz'
+	});
+
+	var template = stache('<export-this {this}="value" {foo}="bar" />');
+	try {
+		template(myMap);	
+	} catch (error) {
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+	}
+
+	template = stache('<export-this {foo}="bar" {this}="value" />');
+	try {
+		template(myMap);	
+	} catch (error) {
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+	}
 });
