@@ -80,10 +80,17 @@ QUnit.module(name, {
 
 		stop();
 		afterMutation(function() {
-			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
 			MUTATION_OBSERVER(MUT_OBS);
+
+			var fixture = document.getElementById("qunit-fixture");
+			while (fixture && fixture.hasChildNodes()) {
+				domData.delete.call(fixture.lastChild);
+				fixture.removeChild(fixture.lastChild);
+			}
+
+			start();
 		});
 	}
 });
@@ -3010,17 +3017,5 @@ test("call expressions work (#208)", function(){
 });
 
 // Add new tests above this line
-
-// Switching between dom and vdom can cause some tests to fail. This test should
-// always be the last test, to introduce a delay to prevent the failures.
-test("Test Delay", function() {
-	QUnit.stop();
-	expect(0);
-
-	setTimeout(function () {
-		QUnit.start();
-	}, 100);
-
-});
 
 }
