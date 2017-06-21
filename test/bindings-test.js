@@ -2875,6 +2875,22 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
 
+test("can bind to multiple functions (#115)", function() {
+	var template = stache("<div ($click)='do1(1); do2(2, \";\")' />");
+	var data = {
+		do1: function(arg) {
+			equal(arg, 1, "do1 called");
+		},
+		do2: function(arg) {
+			equal(arg, 2, "do2 called");
+		}
+	};
+
+	expect(2);
+	var frag = template(data);
+	canEvent.trigger.call(frag.firstChild, "click");
+});
+
 test("changing a scope property calls registered stache helper", function(){
 	expect(1);
 	stop();

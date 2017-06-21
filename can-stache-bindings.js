@@ -38,6 +38,40 @@ var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-util/js/log/log');
 var stacheHelperCore = require("can-stache/helpers/core");
 
+// split attribute values, for binding to multiple function calls
+// splits on ';' as long as it is not inside parenthesis
+function splitAttrVals(input) {
+	if (input.indexOf(';') < 0) {
+		return [ input ];
+	}
+
+	var output = [];
+
+	var start = 0;
+	var parens = 0;
+	for (var i = 0; i < input.length; i++) {
+		if (input[i] === '(') {
+			parens++;
+			continue;
+		}
+		if (input[i] === ')') {
+			parens--;
+			continue;
+		}
+
+		if (input[i] === ';' && parens === 0) {
+			output.push(input.slice(start, i).trim());
+			start = i + 1;
+		}
+	}
+
+	if (start < input.length) {
+		output.push(input.slice(start).trim());
+	}
+
+	return output;
+}
+
 	// ## Behaviors
 	var behaviors = {
 		// ### bindings.behaviors.viewModel
@@ -267,10 +301,17 @@ var stacheHelperCore = require("can-stache/helpers/core");
 			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
 			var handler = function (ev) {
-					var attrVal = el.getAttribute(attributeName);
-					if (!attrVal) { return; }
+				var attrVals = el.getAttribute(attributeName);
+				if (!attrVals) { return; }
 
-					var viewModel = canViewModel(el);
+				attrVals = splitAttrVals(attrVals);
+
+				var viewModel = canViewModel(el);
+
+				var outputs = [];
+
+				for (var i in attrVals) {
+					var attrVal = attrVals[i];
 
 					// expression.parse will read the attribute
 					// value and parse it identically to how mustache helpers
@@ -307,7 +348,6 @@ var stacheHelperCore = require("can-stache/helpers/core");
 						notContext: true
 					});
 
-
 					// We grab the first item and treat it as a method that
 					// we'll call.
 					var scopeData = localScope.read(expr.methodExpr.key, {
@@ -325,7 +365,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 							args = expr.args(localScope, null)();
 							stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
 							if(typeof stacheHelperResult === "function"){
-							  stacheHelperResult(el);
+								stacheHelperResult(el);
 							}
 							return stacheHelperResult;
 						}
@@ -341,8 +381,11 @@ var stacheHelperCore = require("can-stache/helpers/core");
 					}
 
 					args = expr.args(localScope, null)();
-					return scopeData.value.apply(scopeData.parent, args);
-				};
+					outputs[i] = scopeData.value.apply(scopeData.parent, args);
+				}
+
+				return outputs;
+			};
 
 			// This code adds support for special event types, like can-enter="foo". special.enter (or any special[event]) is
 			// a function that returns an object containing an event and a handler. These are to be used for binding. For example,
