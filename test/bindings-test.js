@@ -80,10 +80,17 @@ QUnit.module(name, {
 
 		stop();
 		afterMutation(function() {
-			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
 			MUTATION_OBSERVER(MUT_OBS);
+
+			var fixture = document.getElementById("qunit-fixture");
+			while (fixture && fixture.hasChildNodes()) {
+				domData.delete.call(fixture.lastChild);
+				fixture.removeChild(fixture.lastChild);
+			}
+
+			start();
 		});
 	}
 });
