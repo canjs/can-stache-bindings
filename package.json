@@ -43,7 +43,7 @@
     "can-symbol": "^1.0.0-pre.0",
     "can-types": "^1.1.0-pre.2",
     "can-util": "^3.9.0-pre.4",
-    "can-view-callbacks": "^3.0.7-pre.1",
+    "can-view-callbacks": "^3.1.0-pre.0",
     "can-view-live": "^3.1.0-pre.3",
     "can-view-model": "^3.3.0-pre.0",
     "can-view-scope": "^3.2.0-pre.9"
