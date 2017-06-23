@@ -12,7 +12,6 @@ var domAttr = require("can-util/dom/attr/attr");
 var domData = require('can-util/dom/data/data');
 var domDispatch = require("can-util/dom/dispatch/dispatch");
 
-
 var MockComponent = require("./mock-component");
 
 var viewModelFor = function(tag, viewModel) {
@@ -21,13 +20,9 @@ var viewModelFor = function(tag, viewModel) {
 	});
 };
 
-
-
 QUnit.module("can-stache-bindings (can-define)");
 
-
 test("two way - viewModel", 7, function () {
-
 	var ViewModel = define.Constructor({
 		vmProp: {}
 	});
@@ -63,7 +58,6 @@ test("two way - viewModel", 7, function () {
 
 	equal(context.scopeProp, 'BOOM!', 'Scope property was set');
 	equal(viewModel.vmProp, 'BOOM!', 'ViewModel property set via scope property set');
-
 });
 
 test('one-way - parent to child - viewModel', function(){
@@ -82,7 +76,6 @@ test('one-way - parent to child - viewModel', function(){
 	var context = new Context();
 	var frag = template(context);
 	var viewModel = canViewModel(frag.firstChild);
-
 	equal(viewModel.viewModelProp, 'Venus', 'ViewModel property initially set from scope');
 
 	viewModel.viewModelProp = 'Earth';
@@ -94,9 +87,7 @@ test('one-way - parent to child - viewModel', function(){
 	equal(viewModel.viewModelProp, 'Mars', 'ViewModel property was set via scope set');
 });
 
-
 test('one-way - child to parent - viewModel', function(){
-
 	var ViewModel = define.Constructor({
 		viewModelProp: {
 			value: 'Mercury'
@@ -134,7 +125,6 @@ test('one-way - child to parent - viewModel', function(){
 });
 
 test("two-way - DOM - input text (#1700)", function () {
-
 	var template = stache("<input {($value)}='age'/>");
 	var MyMap = define.Constructor({
 		age: {
@@ -164,7 +154,6 @@ test("two-way - DOM - input text (#1700)", function () {
 	canEvent.trigger.call(input, "change");
 
 	equal(map.age, "32", "updated from input");
-
 });
 
 test("Binding to a special property - values", function(){
@@ -267,7 +256,6 @@ var supportsKeyboardEvents = (function(){
 	}
 })();
 
-
 if(supportsKeyboardEvents) {
 	QUnit.test("KeyboardEvent dispatching works with .key (#93)", function(){
 		var template = stache("<input ($enter)='method(%event)' type='text'/>");
@@ -330,7 +318,6 @@ QUnit.test("Two way bindings should be sticky (#122)", function(){
 	QUnit.equal(input.value, "matthew", "input stays the same");
 });
 
-
 test('scope method called when scope property changes on DefineMap (#197)', function(){
 	stop();
 	expect(1);
@@ -351,5 +338,4 @@ test('scope method called when scope property changes on DefineMap (#197)', func
 
 	template(map);
 	map.prop ="Venus";
-
 });

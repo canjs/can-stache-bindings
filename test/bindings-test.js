@@ -11,6 +11,8 @@ var canBatch = require('can-event/batch/batch');
 var viewCallbacks = require('can-view-callbacks');
 var canCompute = require('can-compute');
 var canViewModel = require('can-view-model');
+var canSymbol = require('can-symbol');
+var canReflect = require('can-reflect');
 
 var stacheExpression = require('can-stache/src/expression');
 
@@ -35,9 +37,9 @@ var DefaultMap = types.DefaultMap;
 function afterMutation(cb) {
 	var doc = DOCUMENT();
 	var div = doc.createElement("div");
-	domEvents.addEventListener.call(div,"inserted", function(){
-		setTimeout(cb,1);
+	domEvents.addEventListener.call(div, "inserted", function(){
 		doc.body.removeChild(div);
+		setTimeout(cb, 5);
 	});
 	domMutate.appendChild.call(doc.body, div);
 }
@@ -60,7 +62,7 @@ var isRealDocument = function(){
 };
 
 QUnit.module(name, {
-	setup: function () {
+	setup: function() {
 		DOCUMENT(doc);
 		MUTATION_OBSERVER(mutObs);
 
@@ -80,10 +82,17 @@ QUnit.module(name, {
 
 		stop();
 		afterMutation(function() {
-			start();
 			types.DefaultMap = DefaultMap;
 			DOCUMENT(DOC);
 			MUTATION_OBSERVER(MUT_OBS);
+
+			var fixture = document.getElementById("qunit-fixture");
+			while (fixture && fixture.hasChildNodes()) {
+				domData.delete.call(fixture.lastChild);
+				fixture.removeChild(fixture.lastChild);
+			}
+
+			start();
 		});
 	}
 });
@@ -91,7 +100,7 @@ QUnit.module(name, {
 
 test("attributeNameInfo", function(){
 	// MUSTACHE BEHAVIOR
-	var info = stacheBindings.getBindingInfo({name: "foo", value: "bar"},{foo: "@"},"legacy");
+	var info = stacheBindings.getBindingInfo({name: "foo", value: "bar"},{foo: "@"}, "legacy");
 	deepEqual(info,{
 		parent: "attribute",
 		child: "viewModel",
@@ -104,7 +113,7 @@ test("attributeNameInfo", function(){
 	}, "legacy with @");
 
 
-	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "bar"},{},"legacy");
+	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "bar"},{}, "legacy");
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModel",
@@ -114,7 +123,7 @@ test("attributeNameInfo", function(){
 		parentName: "bar",
 		bindingAttributeName: "foo-ed",
 		syncChildWithParent: true
-	},"legacy");
+	}, "legacy");
 
 	// ORIGINAL STACHE BEHAVIOR
 	info = stacheBindings.getBindingInfo({name: "foo-ed", value: "bar"});
@@ -237,7 +246,7 @@ var foodTypes = new CanList([{
 }]);
 
 if(typeof doc.getElementsByClassName === 'function') {
-	test("can-event handlers", function () {
+	test("can-event handlers", function() {
 		//expect(12);
 		var ta = this.fixture;
 		var template = stache("<div>" +
@@ -246,14 +255,11 @@ if(typeof doc.getElementsByClassName === 'function') {
 		"{{/each}}" +
 		"</div>");
 
-
-
 		function doSomething(foodType, el, ev) {
 			ok(true, "doSomething called");
 			equal(el.nodeName.toLowerCase(), "p", "this is the element");
 			equal(ev.type, "click", "1st argument is the event");
 			equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
-
 		}
 
 		var frag = template({
@@ -264,7 +270,6 @@ if(typeof doc.getElementsByClassName === 'function') {
 		ta.appendChild(frag);
 		var p0 = ta.getElementsByTagName("p")[0];
 		canEvent.trigger.call(p0, "click");
-
 	});
 
 	test("can-event special keys", function(){
@@ -303,7 +308,7 @@ if(typeof doc.getElementsByClassName === 'function') {
 		canEvent.trigger.call(p0, "click");
 	});
 
-	test("(event) handlers", 12, function () {
+	test("(event) handlers", 12, function() {
 		//expect(12);
 		var ta = this.fixture;
 		var template = stache("<div>" +
@@ -328,7 +333,6 @@ if(typeof doc.getElementsByClassName === 'function') {
 			equal(el.nodeName.toLowerCase(), "p", "this is the element");
 			equal(ev.type, "click", "1st argument is the event");
 			equal(foodType, foodTypes[0], "2nd argument is the 1st foodType");
-
 		}
 
 		var frag = template({
@@ -376,8 +380,7 @@ if(typeof doc.getElementsByClassName === 'function') {
 	});
 }
 
-test("can-value input text", function () {
-
+test("can-value input text", function() {
 	var template = stache("<input can-value='age'/>");
 
 	var map = new CanMap();
@@ -403,11 +406,9 @@ test("can-value input text", function () {
 	canEvent.trigger.call(input, "change");
 
 	equal(map.attr("age"), "32", "updated from input");
-
 });
 
-test("can-value with spaces (#1477)", function () {
-
+test("can-value with spaces (#1477)", function() {
 	var template = stache("<input can-value='{ age }'/>");
 
 	var map = new CanMap();
@@ -436,7 +437,7 @@ test("can-value with spaces (#1477)", function () {
 
 });
 
-test("can-value input radio", function () {
+test("can-value input radio", function() {
 	var template = stache(
 		"<input type='radio' can-value='color' value='red'/> Red<br/>" +
 		"<input type='radio' can-value='color' value='green'/> Green<br/>");
@@ -466,16 +467,15 @@ test("can-value input radio", function () {
 	canEvent.trigger.call(inputs[0], "change");
 
 	equal(map.attr("color"), "red", "updated from input");
-
 });
 
-test("can-enter", function () {
+test("can-enter", function() {
 	var template = stache("<input can-enter='update'/>");
 
 	var called = 0;
 
 	var frag = template({
-		update: function () {
+		update: function() {
 			called++;
 			ok(called, 1, "update called once");
 		}
@@ -492,10 +492,9 @@ test("can-enter", function () {
 		type: "keyup",
 		keyCode: 13
 	});
-
 });
 
-testIfRealDocument("{($checked)} should trigger a radiochange event for radio buttons", function () {
+testIfRealDocument("{($checked)} should trigger a radiochange event for radio buttons", function() {
 	// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
 	var template = stache([
 		'<input type="radio" name="baz" {($checked)}="foo"/><span>{{foo}}</span>',
@@ -538,7 +537,7 @@ testIfRealDocument("{($checked)} should trigger a radiochange event for radio bu
 	equal(data.bar, true);
 });
 
-testIfRealDocument('{($checked)} radio elements should update via the radiochange event', function () {
+testIfRealDocument('{($checked)} radio elements should update via the radiochange event', function() {
 	// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
 	var template = stache([
 		'<input type="radio" name="baz" {($checked)}="foo"/><span>{{foo}}</span>',
@@ -577,7 +576,7 @@ testIfRealDocument('{($checked)} radio elements should update via the radiochang
 	equal(data.foo, false);
 });
 
-test("two bindings on one element call back the correct method", function () {
+test("two bindings on one element call back the correct method", function() {
 	expect(2);
 	var template = stache("<input can-mousemove='first' can-click='second'/>");
 
@@ -585,10 +584,10 @@ test("two bindings on one element call back the correct method", function () {
 		callingSecond = false;
 
 	var frag = template({
-		first: function () {
+		first: function() {
 			ok(callingFirst, "called first");
 		},
-		second: function () {
+		second: function() {
 			ok(callingSecond, "called second");
 		}
 	});
@@ -607,7 +606,7 @@ test("two bindings on one element call back the correct method", function () {
 	});
 });
 
-test("event bindings should be removed when the bound element is", function (assert) {
+test("event bindings should be removed when the bound element is", function(assert) {
 	// This test checks whether when an element
 	// with an event binding is removed from the
 	// DOM properly cleans up its event binding.
@@ -615,7 +614,7 @@ test("event bindings should be removed when the bound element is", function (ass
 	var template = stache('<div>{{#if isShowing}}<input ($click)="onClick()"><span></span>{{/if}}</div>');
 	var viewModel = new CanMap({
 		isShowing: false,
-		onClick: function () {}
+		onClick: function() {}
 	});
 	var bindingListenerCount = 0;
 	var hasAddedBindingListener = false;
@@ -628,21 +627,21 @@ test("event bindings should be removed when the bound element is", function (ass
 	domMutate.appendChild.call(this.fixture, fragment);
 
 	// Predicate for relevant events
-	var isInputBindingEvent = function (element, eventName) {
+	var isInputBindingEvent = function(element, eventName) {
 		return element.nodeName === 'INPUT' && eventName === 'click';
 	};
 
 	// Override domEvents to detect removed handlers
 	var realAddEventListener = domEvents.addEventListener;
 	var realRemoveEventListener = domEvents.removeEventListener;
-	domEvents.addEventListener = function (eventName) {
+	domEvents.addEventListener = function(eventName) {
 		if (isInputBindingEvent(this, eventName)) {
 			bindingListenerCount++;
 			hasAddedBindingListener = true;
 		}
 		return realAddEventListener.apply(this, arguments);
 	};
-	domEvents.removeEventListener = function (eventName) {
+	domEvents.removeEventListener = function(eventName) {
 		if (isInputBindingEvent(this, eventName)) {
 			bindingListenerCount--;
 			hasRemovedBindingListener = true;
@@ -654,7 +653,7 @@ test("event bindings should be removed when the bound element is", function (ass
 	// NOTE: the implementation uses "remove" which is asynchronous.
 	viewModel.attr('isShowing', true);
 
-	var andThen = function () {
+	var andThen = function() {
 		domEvents.removeEventListener.call(span, 'removed', andThen);
 		start();
 
@@ -683,7 +682,7 @@ test("event bindings should be removed when the bound element is", function (ass
 	stop();
 });
 
-test("can-value select remove from DOM", function () {
+test("can-value select remove from DOM", function() {
 	stop();
 	expect(1);
 
@@ -698,13 +697,13 @@ test("can-value select remove from DOM", function () {
 	domMutate.appendChild.call(ta,frag);
 	domMutate.removeChild.call(ta, ta.firstChild);
 
-	afterMutation(function () {
+	afterMutation(function() {
 		start();
 		ok(true, 'Nothing should break if we just add and then remove the select');
 	});
 });
 
-test("checkboxes with can-value bind properly (#628)", function () {
+test("checkboxes with can-value bind properly (#628)", function() {
 	var data = new CanMap({
 		completed: true
 	}),
@@ -726,7 +725,7 @@ test("checkboxes with can-value bind properly (#628)", function () {
 });
 
 // TODO: next
-test("checkboxes with can-true-value bind properly", function () {
+test("checkboxes with can-true-value bind properly", function() {
 	var data = new CanMap({
 		sex: "male"
 	}),
@@ -753,7 +752,7 @@ test("checkboxes with can-true-value bind properly", function () {
 	});
 });
 
-testIfRealDocument("can-value select single", function () {
+testIfRealDocument("can-value select single", function() {
 
 	var template = stache(
 		"<select can-value='color'>" +
@@ -778,7 +777,7 @@ testIfRealDocument("can-value select single", function () {
 	equal(inputs[0].value, 'green', "alternate value set");
 
 
-	canEach(ta.getElementsByTagName('option'), function (opt) {
+	canEach(ta.getElementsByTagName('option'), function(opt) {
 		if (opt.value === 'red') {
 			opt.selected = 'selected';
 		}
@@ -788,7 +787,7 @@ testIfRealDocument("can-value select single", function () {
 	canEvent.trigger.call(inputs[0], "change");
 	equal(map.attr("color"), "red", "updated from input");
 
-	canEach(ta.getElementsByTagName('option'), function (opt) {
+	canEach(ta.getElementsByTagName('option'), function(opt) {
 		if (opt.value === 'green') {
 			opt.selected = 'selected';
 		}
@@ -798,7 +797,7 @@ testIfRealDocument("can-value select single", function () {
 	equal(map.attr("color"), "green", "updated from input");
 });
 
-testIfRealDocument("can-value select multiple with values cross bound to an array", function () {
+testIfRealDocument("can-value select multiple with values cross bound to an array", function() {
 	var template = stache(
 		"<select can-value='colors' multiple>" +
 		"<option value='red'>Red</option>" +
@@ -852,7 +851,7 @@ testIfRealDocument("can-value select multiple with values cross bound to an arra
 	}, 1);
 });
 
-testIfRealDocument("can-value multiple select with a CanList", function () {
+testIfRealDocument("can-value multiple select with a CanList", function() {
 
 	var template = stache(
 		"<select can-value='colors' multiple>" +
@@ -904,7 +903,7 @@ testIfRealDocument("can-value multiple select with a CanList", function () {
 	}, 1);
 });
 
-test("can-value contenteditable", function () {
+test("can-value contenteditable", function() {
 	var template = stache("<div id='cdiv' contenteditable can-value='age'></div>");
 	var map = new CanMap();
 
@@ -931,7 +930,7 @@ test("can-value contenteditable", function () {
 	equal(map.attr("age"), "32", "updated from contenteditable");
 });
 
-test("can-event handlers work with {} (#905)", function () {
+test("can-event handlers work with {} (#905)", function() {
 	expect(4);
 	var template = stache("<div>" +
 		"{{#each foodTypes}}" +
@@ -950,7 +949,7 @@ test("can-event handlers work with {} (#905)", function () {
 		content: "ice cream, candy"
 	}]);
 
-	var doSomething = function (foodType, el, ev) {
+	var doSomething = function(foodType, el, ev) {
 		ok(true, "doSomething called");
 		equal(el.nodeName.toLowerCase(), "p", "this is the element");
 		equal(ev.type, "click", "1st argument is the event");
@@ -970,7 +969,7 @@ test("can-event handlers work with {} (#905)", function () {
 
 });
 
-test("can-value works with {} (#905)", function () {
+test("can-value works with {} (#905)", function() {
 
 	var template = stache("<input can-value='{age}'/>");
 
@@ -1000,7 +999,7 @@ test("can-value works with {} (#905)", function () {
 
 });
 
-test("can-value select with null or undefined value (#813)", function () {
+test("can-value select with null or undefined value (#813)", function() {
 
 	var template = stache(
 		"<select id='null-select' can-value='color-1'>" +
@@ -1071,7 +1070,7 @@ test("can-event throws an error when inside #if block (#1182)", function(assert)
 		clickHandlerCount = 0;
 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
 		flag: flag,
-		foo: function () {
+		foo: function() {
 			clickHandlerCount++;
 		}
 	});
@@ -1096,12 +1095,12 @@ testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", 
 		clickHandlerCount = 0;
 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
 		flag: flag,
-		foo: function () {
+		foo: function() {
 			clickHandlerCount++;
 		}
 	});
 	var testEnv = this;
-	var trig = function () {
+	var trig = function() {
 		var div = testEnv.fixture.getElementsByTagName('div')[0];
 		canEvent.trigger.call(div, {
 			type: "click"
@@ -1113,7 +1112,7 @@ testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", 
 	// so give some time for the mutation handlers.
 	stop();
 	var numTrigs = 3;
-	var testTimer = setInterval(function () {
+	var testTimer = setInterval(function() {
 		if (numTrigs--) {
 			trig();
 			flag( !flag() );
@@ -1154,7 +1153,7 @@ test("can-value compute rejects new value (#887)", function() {
 	equal(input.value, "30", "Text input has also not changed");
 });
 
-testIfRealDocument("can-value select multiple applies initial value, when options rendered from array (#1414)", function () {
+testIfRealDocument("can-value select multiple applies initial value, when options rendered from array (#1414)", function() {
 	var template = stache(
 		"<select can-value='colors' multiple>" +
 		"{{#each allColors}}<option value='{{value}}'>{{label}}</option>{{/each}}" +
@@ -1203,7 +1202,7 @@ test('can-value with truthy and falsy values binds to checkbox (#1478)', functio
 	afterMutation(start);
 });
 
-test("can-EVENT can call intermediate functions before calling the final function (#1474)", function () {
+test("can-EVENT can call intermediate functions before calling the final function(#1474)", function() {
 	var ta = this.fixture;
 	var template = stache("<div id='click-me' can-click='{does.some.thing}'></div>");
 	var frag = template({
@@ -1251,10 +1250,10 @@ test("by default can-EVENT calls with values, not computes", function(){
 
 });
 
-test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
+test('Conditional can-EVENT bindings are bound/unbound', 2, function() {
 	var state = new CanMap({
 		enableClick: true,
-		clickHandler: function () {
+		clickHandler: function() {
 			ok(true, '"click" was handled');
 		}
 	});
@@ -1282,7 +1281,7 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function () {
 	});
 });
 
-testIfRealDocument("<select can-value={value}> with undefined value selects option without value", function () {
+testIfRealDocument("<select can-value={value}> with undefined value selects option without value", function() {
 
 	var template = stache("<select can-value='opt'><option>Loading...</option></select>");
 
@@ -1300,7 +1299,7 @@ testIfRealDocument("<select can-value={value}> with undefined value selects opti
 testIfRealDocument("<select can-value> keeps its value as <option>s change with {{#list}} (#1762)", function(){
 
 	var template = stache("<select can-value='{id}'>{{#values}}<option value='{{.}}'>{{.}}</option>{{/values}}</select>");
-	var values = canCompute( ["1","2","3","4"]);
+	var values = canCompute( ["1", "2", "3", "4"]);
 	var id = canCompute("2");
 	var frag = template({
 		values: values,
@@ -1312,7 +1311,7 @@ testIfRealDocument("<select can-value> keeps its value as <option>s change with 
 	afterMutation(function(){
 		ok(select.childNodes.item(1).selected, "value is initially selected");
 
-		values(["7","2","5","4"]);
+		values(["7", "2", "5", "4"]);
 
 		ok(select.childNodes.item(1).selected, "after changing options, value should still be selected");
 
@@ -1385,61 +1384,62 @@ test("(event) methods on objects are called with call expressions (#1839)", func
 });
 
 test("two way - viewModel (#1700)", function(){
-
-	MockComponent.extend({
-		tag: "view-model-able"
-	});
-
 	var template = stache("<div {(view-model-prop)}='scopeProp'/>");
+	var map = new CanMap({ scopeProp: "Hello" });
 
-	var attrSetCalled = 0;
+	var scopeMapSetCalled = 0;
 
-	var map = new CanMap({scopeProp: "Hello"});
-	var oldAttr = map.attr;
-	map.attr = function(attrName, value){
+	// overwrite setKeyValue to catch child->parent updates
+	var origMapSetKeyValue = map[canSymbol.for("can.setKeyValue")];
+	map[canSymbol.for("can.setKeyValue")] = function(attrName, value){
 		if(typeof attrName === "string" && arguments.length > 1) {
-			attrSetCalled++;
+			scopeMapSetCalled++;
 		}
 
-		return oldAttr.apply(this, arguments);
+		return origMapSetKeyValue.apply(this, arguments);
 	};
+	// overwrite _set to catch changes made by calling attr()
+	var origMapSet = map._set;
+	map._set = function(attrName, value) {
+		if(typeof attrName === "string" && arguments.length > 1) {
+			scopeMapSetCalled++;
+		}
 
+		return origMapSet.apply(this, arguments);
+	};
 
 	var frag = template(map);
 	var viewModel = canViewModel(frag.firstChild);
 
-	equal(attrSetCalled, 0, "set is not called on scope map");
-	equal( viewModel.attr("viewModelProp"), "Hello", "initial value set" );
+	equal(scopeMapSetCalled, 0, "set is not called on scope map");
+	equal(viewModel.attr("viewModelProp"), "Hello", "initial value set" );
 
 	viewModel = canViewModel(frag.firstChild);
 
-	var viewModelAttrSetCalled = 1;
-	viewModel.attr = function(attrName){
+	var viewModelSetCalled = 1; // set once already - on "initial value set"
+	var origViewModelSet = viewModel[canSymbol.for("can.setKeyValue")];
+	viewModel[canSymbol.for("can.setKeyValue")] = function(attrName){
 		if(typeof attrName === "string" && arguments.length > 1) {
-			viewModelAttrSetCalled++;
+			viewModelSetCalled++;
 		}
 
-		return oldAttr.apply(this, arguments);
+		return origViewModelSet.apply(this, arguments);
 	};
 
-	viewModel.attr("viewModelProp","HELLO");
+	viewModel.attr("viewModelProp", "HELLO");
 	equal(map.attr("scopeProp"), "HELLO", "binding from child to parent");
+	equal(scopeMapSetCalled, 1, "set is called on scope map");
+	equal(viewModelSetCalled, 2, "set is called viewModel");
 
-	equal(attrSetCalled, 1, "set is called once on scope map");
-
-	equal(viewModelAttrSetCalled, 3, "set is called once viewModel");
-
-
-	map.attr("scopeProp","WORLD");
-	equal( viewModel.attr("viewModelProp"), "WORLD", "binding from parent to child" );
-	equal(attrSetCalled, 2, "set is called once on scope map");
-	equal(viewModelAttrSetCalled, 4, "set is called once on viewModel");
-
+	map.attr("scopeProp", "WORLD");
+	equal(viewModel.attr("viewModelProp"), "WORLD", "binding from parent to child" );
+	equal(scopeMapSetCalled, 2, "set is called again on scope map");
+	equal(viewModelSetCalled, 3, "set is called again on viewModel");
 });
 
 // new two-way binding
 
-test("two-way - DOM - input text (#1700)", function () {
+test("two-way - DOM - input text (#1700)", function() {
 
 	var template = stache("<input {($value)}='age'/>");
 
@@ -1511,7 +1511,7 @@ test('one-way - DOM - {$checked} with undefined (#135)', function() {
 	equal(input.checked, false, 'checkbox value should be false for undefined');
 });
 
-test('one-way - DOM - parent value undefined (#189)', function () {
+test('one-way - DOM - parent value undefined (#189)', function() {
 	/* WHAT: We are testing whether, given the parent's passed property is
 	         undefined, the child template's value is always set to undefined
 	         or if the child template is free to update its value.
@@ -1525,13 +1525,14 @@ test('one-way - DOM - parent value undefined (#189)', function () {
 		tag: 'toggle-button',
 		viewModel: {
 			value: false,
-			toggle: function () {
+			toggle: function() {
 				this.attr( "value", !this.attr( "value" ));
 			}
 		},
 		template: stache('<button type="button" ($click)="toggle()">{{value}}</button>')
 	});
 	var template = stache('<toggle-button {(value)}="./does-not-exist" />');
+
 	var fragment = template({});
 
 	domMutate.appendChild.call(this.fixture, fragment);
@@ -1576,15 +1577,15 @@ test('two-way - reference - {(child)}="*ref" (#1700)', function(){
 	var refExport = canViewModel(frag.firstChild);
 	var refImport = canViewModel(frag.firstChild.nextSibling);
 
-	refExport.attr("name","v1");
+	refExport.attr("name", "v1");
 
 	equal( scope.getRefs()._context.attr("*refName"), "v1", "reference scope updated");
 
-	equal(refImport.attr("name"),"v1", "updated ref-import");
+	equal(refImport.attr("name"), "v1", "updated ref-import");
 
-	refImport.attr("name","v2");
+	refImport.attr("name", "v2");
 
-	equal(refExport.attr("name"),"v2", "updated ref-export");
+	equal(refExport.attr("name"), "v2", "updated ref-export");
 
 	equal( scope.getRefs()._context.attr("*refName"), "v2", "actually put in refs scope");
 
@@ -1606,7 +1607,7 @@ test('two-way - reference shorthand (#1700)', function(){
 	var frag = template(data);
 
 	var refExport = canViewModel(frag.firstChild);
-	refExport.attr("name","done");
+	refExport.attr("name", "done");
 
 	equal( frag.lastChild.firstChild.nodeValue, "done");
 	equal( frag.firstChild.firstChild.firstChild.nodeValue, "", "not done");
@@ -1625,15 +1626,14 @@ test('one-way - parent to child - viewModel', function(){
 
 	equal( viewModel.attr("viewModelProp"), "Venus", "initial value set" );
 
-	viewModel.attr("viewModelProp","Earth");
+	viewModel.attr("viewModelProp", "Earth");
 	equal(map.attr("scopeProp"), "Venus", "no binding from child to parent");
 
-	map.attr("scopeProp","Mars");
+	map.attr("scopeProp", "Mars");
 	equal( viewModel.attr("viewModelProp"), "Mars", "binding from parent to child" );
 });
 
 test('one-way - child to parent - viewModel', function(){
-
 	MockComponent.extend({
 		tag: "view-model-able",
 		viewModel: {
@@ -1651,10 +1651,10 @@ test('one-way - child to parent - viewModel', function(){
 	equal( viewModel.attr("viewModelProp"), "Mercury", "initial value kept" );
 	equal( map.attr("scopeProp"), "Mercury", "initial value set on parent" );
 
-	viewModel.attr("viewModelProp","Earth");
+	viewModel.attr("viewModelProp", "Earth");
 	equal(map.attr("scopeProp"), "Earth", "binding from child to parent");
 
-	map.attr("scopeProp","Mars");
+	map.attr("scopeProp", "Mars");
 	equal( viewModel.attr("viewModelProp"), "Earth", "no binding from parent to child" );
 });
 
@@ -1740,11 +1740,7 @@ test('one way - child to parent - importing viewModel {^hypenated-prop}="test"',
 
 });
 
-
-
-
 test("viewModel binding (event)", function(){
-
 	MockComponent.extend({
 		tag: "viewmodel-binding",
 		viewModel: {
@@ -1761,7 +1757,7 @@ test("viewModel binding (event)", function(){
 	canViewModel(frag.firstChild).makeMyEvent();
 });
 
-test("checkboxes with {($checked)} bind properly", function () {
+test("checkboxes with {($checked)} bind properly", function() {
 	var data = new CanMap({
 		completed: true
 	}),
@@ -1845,17 +1841,17 @@ test("exporting methods (#2051)", function(){
 });
 
 
-test("renders dynamic custom attributes (#1800)", function () {
+test("renders dynamic custom attributes (#1800)", function() {
 
 	var template = stache("<ul>{{#actions}}<li can-click='{{.}}'>{{.}}</li>{{/actions}}</ul>");
 
 	var map = new CanMap({
 		actions: ["action1", "action2"],
 		action1: function(){
-			equal(calling, 0,"action1");
+			equal(calling, 0, "action1");
 		},
 		action2: function(){
-			equal(calling, 1,"action2");
+			equal(calling, 1, "action2");
 		}
 	});
 
@@ -1869,13 +1865,16 @@ test("renders dynamic custom attributes (#1800)", function () {
 });
 
 if (System.env.indexOf('production') < 0) {
-	test("warning on a mismatched quote (#1995)", function () {
+	test("warning on a mismatched quote (#1995)", function() {
 		expect(4);
 		var oldlog = dev.warn,
 			message = 'can-stache-bindings: mismatched binding syntax - (foo}';
 
-		dev.warn = function (text) {
-			equal(text, message, 'Got expected message logged.');
+		var thisTest = QUnit.config.current;
+		dev.warn = function(text) {
+			if(QUnit.config.current === thisTest) {
+				equal(text, message, 'Got expected message logged.');
+			}
 		};
 
 		stache("<div (foo}='bar'/>")();
@@ -1961,7 +1960,7 @@ testIfRealDocument('two-way bound values that do not match a select option set s
 	});
 });
 
-testIfRealDocument("two way bound select empty string null or undefined value (#2027)", function () {
+testIfRealDocument("two way bound select empty string null or undefined value (#2027)", function() {
 
 	var template = stache(
 		"<select id='null-select' {($value)}='color-1'>" +
@@ -2019,7 +2018,7 @@ if (System.env !== 'canjs-test') {
 		ta.appendChild(frag);
 
 		var input = ta.getElementsByTagName("input")[0];
-		afterMutation(function () {
+		afterMutation(function() {
 			equal(input.value, "Justin", "input value set correctly if key does not exist in map");
 			map.attr('propName','last');
 			afterMutation(function(){
@@ -2335,21 +2334,15 @@ test("function reference to child binding (#2116)", function(){
 	var template = stache('<foo-bar {child}="@parent"></foo-bar>');
 	MockComponent.extend({
 		tag : 'foo-bar',
-		viewModel : {
-
-		}
+		viewModel: { }
 	});
 
-	var VM = CanMap.extend({
-	});
-
+	var VM = CanMap.extend({ });
 	var vm = new VM({});
 	var frag = template(vm);
 
 	vm.attr("parent", function(){ ok(false, "should not be called"); });
-
 	equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
-
 
 	template = stache('<foo-bar {^@method}="vmMethod"></foo-bar>');
 	vm = new VM({});
@@ -2358,9 +2351,7 @@ test("function reference to child binding (#2116)", function(){
 	canViewModel(frag.firstChild).attr("method",function(){
 		ok(false, "method should not be called");
 	});
-
 	equal(typeof vm.attr("vmMethod"), "function", "parent export function");
-
 });
 
 test("backtrack path in to-parent bindings (#2132)", function(){
@@ -2444,7 +2435,7 @@ test("Child bindings updated before parent (#2252)", function(){
 		viewModel: {
 			_set: function(prop, val){
 				if(prop === "page"){
-					equal(val,"view", "value should not be edit");
+					equal(val, "view", "value should not be edit");
 				}
 
 				return CanMap.prototype._set.apply(this, arguments);
@@ -2472,7 +2463,7 @@ test("Child bindings updated before parent (#2252)", function(){
 		viewModel: {
 			_set: function(prop, val){
 				if(prop === "page"){
-					equal(val,"view", "value should not be edit");
+					equal(val, "view", "value should not be edit");
 				}
 
 				return CanMap.prototype._set.apply(this, arguments);
@@ -2490,7 +2481,7 @@ test("Child bindings updated before parent (#2252)", function(){
 	canBatch.stop();
 });
 
-test("can-value memory leak (#2270)", function () {
+test("can-value memory leak (#2270)", function() {
 
 	var template = stache('<div><input can-value="foo"></div>');
 
@@ -2540,7 +2531,7 @@ test("converters work (#2299)", function(){
 
 	frag.firstChild.value = "1";
 
-	canEvent.trigger.call(frag.firstChild,"change");
+	canEvent.trigger.call(frag.firstChild, "change");
 
 	stop();
 	afterMutation(function() {
@@ -2652,11 +2643,10 @@ test("one-way pass computes to components with ~", function(assert) {
 	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
 
 	var vm = canViewModel(this.fixture.firstChild);
-
 	ok(vm.attr("compute").isComputed, "Compute returned");
 	equal(vm.attr("compute")(), "bar", "Compute has correct value");
 
-	vm.attr("compute").bind("change", function() {
+	canReflect.onValue(vm.attr("compute"), function() {
 		// NB: This gets called twice below, once by
 		//  the parent and once directly.
 		ok(true, "Change handler called");
@@ -2670,7 +2660,7 @@ test("one-way pass computes to components with ~", function(assert) {
 
 	vm.attr("compute", "notACompute");
 	baseVm.attr("foo", "thud");
-	ok(vm.attr("compute").isComputed, "Back to being a compute");
+	equal(vm.attr("compute")(), "thud", "Back to being a compute");
 });
 
 test("special values get called", function(assert) {
@@ -2722,6 +2712,11 @@ test("%arguments gives the event arguments", function(){
 
 if (System.env.indexOf('production') < 0) {
 	test("Warning happens when changing the map that a to-parent binding points to.", function() {
+		var tagName = "merge-warn-test";
+
+		// Delete previous tags, to avoid warnings from can-view-callbacks.
+		delete viewCallbacks._tags[tagName];
+
 		expect(4);
 
 		var step1 = { "baz": "quux" };
@@ -2729,15 +2724,17 @@ if (System.env.indexOf('production') < 0) {
 		var useCanMap = true;
 
 		var oldlog = dev.warn,
-			message = 'can-stache-bindings: Merging {(foo)} into bar because its parent is non-observable';
+			message = 'can-view-scope: Merging data into "bar" because its parent is non-observable';
 
-		dev.warn = function (text) {
-			equal(text, message, 'Got expected message logged.');
+		var thisTest = QUnit.config.current;
+		dev.warn = function(text) {
+			if(QUnit.config.current === thisTest) {
+				equal(text, message, 'Got expected message logged.');
+			}
 		};
 
-		delete viewCallbacks._tags["merge-warn-test"];
 		MockComponent.extend({
-			tag: "merge-warn-test",
+			tag: tagName,
 			viewModel: function() {
 
 				if(useCanMap) {
@@ -2836,7 +2833,7 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 	}.bind(this));
 });
 
-test('plain data objects should work for checkboxes [can-value] (#161)', function () {
+test('plain data objects should work for checkboxes [can-value] (#161)', function() {
 	var template = stache([
 		'<input type="checkbox" name="status1" value="yes" can-value="status" can-true-value="yes"/>',
 		'<input type="checkbox" name="status2" value="no" can-value="status" can-true-value="no"/>'
@@ -2852,7 +2849,7 @@ test('plain data objects should work for checkboxes [can-value] (#161)', functio
 	equal(noInput.checked, false, 'no-checkbox is initially not checked');
 });
 
-test('plain data objects should work for radio buttons [can-value] (#161)', function () {
+test('plain data objects should work for radio buttons [can-value] (#161)', function() {
 	var template = stache([
 		'<input type="radio" name="status" value="no" can-value="status"/>',
 		'<input type="radio" name="status" value="yes" can-value="status"/>'
