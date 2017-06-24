@@ -1,5 +1,5 @@
-require('can-stache-bindings');
-
+var bindings = require('can-stache-bindings');
+var compute = require('can-compute');
 var QUnit = require('steal-qunit');
 var DefineMap = require("can-define/map/map");
 var stache = require('can-stache');
@@ -321,7 +321,7 @@ QUnit.test("Two way bindings should be sticky (#122)", function(){
 test('scope method called when scope property changes on DefineMap (#197)', function(){
 	stop();
 	expect(1);
-	
+
 	MockComponent.extend({
 		tag: "view-model-able"
 	});
@@ -338,4 +338,106 @@ test('scope method called when scope property changes on DefineMap (#197)', func
 
 	template(map);
 	map.prop ="Venus";
+});
+
+test(".viewModel() can work with this {^this}='bar'", function(){
+	expect(2);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData){
+		domData.set.call(el, "preventDataBindings", true);
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData, hasDataBindings){
+			QUnit.ok(hasDataBindings,"has data bindings");
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({value: null});
+
+	var template = stache('<export-this {^this}="value"/>');
+	template(myMap);
+
+	vm(10);
+	QUnit.equal(myMap.value, 10, "changed the value");
+});
+
+
+test(".viewModel() can work with this {this}='bar'", function(){
+	expect(3);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData){
+		domData.set.call(el, "preventDataBindings", true);
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData, hasDataBindings){
+			QUnit.ok(hasDataBindings,"has data bindings");
+			QUnit.equal(initialData, 10, "initial value right");
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({value: 10});
+
+	var template = stache('<export-this {this}="value"/>');
+	template(myMap);
+
+	// change scope
+	myMap.value = 11;
+
+	QUnit.equal( vm(), 11, "updated VM by changing scope");
+});
+
+test("Will not accept more than one data binding if this is bound", function() {
+	expect(2);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData) {
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData) {
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({
+		value: 10,
+		bar: 'baz'
+	});
+
+	var template = stache('<export-this {this}="value" {foo}="bar" />');
+	try {
+		template(myMap);
+	} catch (error) {
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+	}
+
+	template = stache('<export-this {foo}="bar" {this}="value" />');
+	try {
+		template(myMap);
+	} catch (error) {
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+	}
+});
+
+
+test(".viewModel() can bypass dynamic bindings", function(){
+	expect(1);
+
+	var teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData){
+		domData.set.call(el, "preventDataBindings", true);
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData, hasDataBindings){
+			QUnit.ok(false, "no bindings, this shouldn't be called");
+		},undefined, true);
+		QUnit.notOk(teardown, "we should get no teardown b/c there's no bindings");
+	});
+
+	var myMap = new DefineMap({value: 10});
+
+	var template = stache('<export-this/>');
+	template(myMap);
 });
