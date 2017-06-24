@@ -82,9 +82,10 @@ var throwOnlyOneTypeOfBindingError = function(){
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
 };
 
-//isSettingOnViewModel: false,
-// if we have binding like {this}="bar"
-// isSettingViewModel: false
+// This function checks if there bindings that are trying
+// to set a property ON the viewModel _conflicting_ with bindings trying to
+// set THE viewModel ITSELF.
+// If there is a conflict, an error is thrown.
 var checkBindingState = function(bindingState, dataBinding) {
 	var isSettingOnViewModel = dataBinding.bindingInfo.parentToChild && dataBinding.bindingInfo.child === "viewModel";
 	if(isSettingOnViewModel) {
