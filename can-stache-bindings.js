@@ -78,6 +78,38 @@ var reflectiveValue = function(value) {
 	return fn;
 };
 
+var throwOnlyOneTypeOfBindingError = function(){
+	throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
+};
+
+//isSettingOnViewModel: false,
+// if we have binding like {this}="bar"
+// isSettingViewModel: false
+var checkBindingState = function(bindingState, dataBinding) {
+	var isSettingOnViewModel = dataBinding.bindingInfo.parentToChild && dataBinding.bindingInfo.child === "viewModel";
+	if(isSettingOnViewModel) {
+		var bindingName = dataBinding.bindingInfo.childName;
+		var isSettingViewModel = isSettingOnViewModel && ( bindingName === 'this' || bindingName === '.' );
+
+		if( isSettingViewModel ) {
+			if(bindingState.isSettingViewModel || bindingState.isSettingOnViewModel) {
+				throwOnlyOneTypeOfBindingError();
+			} else {
+				return {isSettingViewModel: true};
+			}
+		} else {
+			// just setting on viewModel
+			if(bindingState.isSettingViewModel) {
+				throwOnlyOneTypeOfBindingError();
+			} else {
+				return {isSettingOnViewModel: true};
+			}
+		}
+	} else {
+		return bindingState;
+	}
+};
+
 // ## Behaviors
 var behaviors = {
 		// ### bindings.behaviors.viewModel
@@ -96,7 +128,7 @@ var behaviors = {
 		// Returns:
 		// - `function` - a function that tears all the bindings down. Component
 		// wants all the bindings active so cleanup can be done during a component being removed.
-		viewModel: function(el, tagData, makeViewModel, initialViewModelData) {
+		viewModel: function(el, tagData, makeViewModel, initialViewModelData, staticDataBindingsOnly) {
 			initialViewModelData = initialViewModelData || {};
 
 			var bindingsSemaphore = {},
@@ -108,7 +140,14 @@ var behaviors = {
 				onTeardowns = {},
 				// Track info about each binding, we need this for binding attributes correctly.
 				bindingInfos = {},
-				attributeViewModelBindings = assign({}, initialViewModelData);
+				attributeViewModelBindings = assign({}, initialViewModelData),
+				bindingsState = {
+					// if we have a binding like {something}="foo"
+					isSettingOnViewModel: false,
+					// if we have binding like {this}="bar"
+					isSettingViewModel: false
+				},
+				hasDataBinding = false;
 
 			// For each attribute, we start the binding process,
 			// and save what's returned to be used when the `viewModel` is created,
@@ -127,11 +166,22 @@ var behaviors = {
 				});
 
 				if(dataBinding) {
+					bindingsState = checkBindingState(bindingsState, dataBinding);
+					hasDataBinding = true;
+
+
 					// For bindings that change the viewModel,
 					if(dataBinding.onCompleteBinding) {
 						// save the initial value on the viewModel.
 						if(dataBinding.bindingInfo.parentToChild && dataBinding.value !== undefined) {
-							initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+
+							if(bindingsState.isSettingViewModel) {
+								// the initial data is the context
+								initialViewModelData = dataBinding.value;
+							} else {
+								initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+							}
+
 						}
 						// Save what needs to happen after the `viewModel` is created.
 						onCompleteBindings.push(dataBinding.onCompleteBinding);
@@ -139,10 +189,12 @@ var behaviors = {
 					onTeardowns[node.name] = dataBinding.onTeardown;
 				}
 			});
-
+			if(staticDataBindingsOnly && !hasDataBinding) {
+				return;
+			}
 			// Create the `viewModel` and call what needs to be happen after
 			// the `viewModel` is created.
-			viewModel = makeViewModel(initialViewModelData);
+			viewModel = makeViewModel(initialViewModelData, hasDataBinding);
 
 			for(var i = 0, len = onCompleteBindings.length; i < len; i++) {
 				onCompleteBindings[i]();
@@ -150,39 +202,41 @@ var behaviors = {
 
 			// Listen to attribute changes and re-initialize
 			// the bindings.
-			domEvents.addEventListener.call(el, "attributes", function (ev) {
-				var attrName = ev.attributeName,
-					value = el.getAttribute(attrName);
+			if(!bindingsState.isSettingViewModel) {
+				domEvents.addEventListener.call(el, "attributes", function (ev) {
+					var attrName = ev.attributeName,
+						value = el.getAttribute(attrName);
 
-				if( onTeardowns[attrName] ) {
-					onTeardowns[attrName]();
-				}
-				// Parent attribute bindings we always re-setup.
-				var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === "attribute";
-
-				if(value !== null || parentBindingWasAttribute ) {
-					var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
-						templateType: tagData.templateType,
-						scope: tagData.scope,
-						semaphore: {},
-						getViewModel: function() {
-							return viewModel;
-						},
-						attributeViewModelBindings: attributeViewModelBindings,
-						// always update the viewModel accordingly.
-						initializeValues: true,
-						nodeList: tagData.parentNodeList
-					});
-					if(dataBinding) {
-						// The viewModel is created, so call callback immediately.
-						if(dataBinding.onCompleteBinding) {
-							dataBinding.onCompleteBinding();
-						}
-						bindingInfos[attrName] = dataBinding.bindingInfo;
-						onTeardowns[attrName] = dataBinding.onTeardown;
+					if( onTeardowns[attrName] ) {
+						onTeardowns[attrName]();
 					}
-				}
-			});
+					// Parent attribute bindings we always re-setup.
+					var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === "attribute";
+
+					if(value !== null || parentBindingWasAttribute ) {
+						var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
+							templateType: tagData.templateType,
+							scope: tagData.scope,
+							semaphore: {},
+							getViewModel: function() {
+								return viewModel;
+							},
+							attributeViewModelBindings: attributeViewModelBindings,
+							// always update the viewModel accordingly.
+							initializeValues: true,
+							nodeList: tagData.parentNodeList
+						});
+						if(dataBinding) {
+							// The viewModel is created, so call callback immediately.
+							if(dataBinding.onCompleteBinding) {
+								dataBinding.onCompleteBinding();
+							}
+							bindingInfos[attrName] = dataBinding.bindingInfo;
+							onTeardowns[attrName] = dataBinding.onTeardown;
+						}
+					}
+				});
+			}
 
 			return function() {
 				for(var attrName in onTeardowns) {
@@ -566,24 +620,33 @@ var getObservableFrom = {
 	// `options.getViewModel()`.
 	viewModel: function(el, scope, vmName, bindingData, mustBeSettable, stickyCompute) {
 		var setName = cleanVMName(vmName);
+		var isBoundToContext = vmName === "." || vmName === "this";
+		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
 
 		var observation = new Observation(function() {
 			var viewModel = bindingData.getViewModel();
-			return vmName === "." ? viewModel : observeReader.read(viewModel, observeReader.reads(vmName), {}).value;
+			return observeReader.read(viewModel, keysToRead, {}).value;
 		});
 
 		observation[canSymbol.for("can.setValue")] = function(newVal) {
 			var viewModel = bindingData.getViewModel();
-			var oldValue = canReflect.getKeyValue(viewModel, setName);
+
 			if(arguments.length) { // should this check if mustBeSettable is true ???
 				if(stickyCompute) {
+					// TODO: Review what this is used for.
+					var oldValue = canReflect.getKeyValue(viewModel, setName);
 					if (canReflect.isObservableLike(oldValue)) {
 						canReflect.setValue(oldValue, newVal);
 					} else {
 						canReflect.setKeyValue(viewModel, setName, reflectiveValue(canReflect.getValue(stickyCompute)));
 					}
 				} else {
-					canReflect.setKeyValue(viewModel, setName, newVal);
+					if(isBoundToContext) {
+						canReflect.setValue(viewModel, newVal);
+					} else {
+						canReflect.setKeyValue(viewModel, setName, newVal);
+					}
+
 				}
 			}
 		};
@@ -745,7 +808,7 @@ var bind = {
 
 // Regular expressions for getBindingInfo
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
-		ignoreAttributesRegExp = /^(data-view-id|class|id|\[[\w\.-]+\]|#[\w\.-])$/i,
+		ignoreAttributesRegExp = /^(data-view-id|class|name|id|\[[\w\.-]+\]|#[\w\.-])$/i,
 		DOUBLE_CURLY_BRACE_REGEX = /\{\{/g,
 		encodedSpacesRegExp = /\\s/g,
 		encodedForwardSlashRegExp = /\\f/g;
