@@ -41,6 +41,9 @@ var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
 var singleReference = require("can-util/js/single-reference/single-reference");
 
+var addEnterEvent = require('can-event-dom-enter/compat');
+addEnterEvent(domEvents);
+
 var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
 
@@ -434,16 +437,6 @@ var behaviors = {
 					args = expr.args(localScope, null)();
 					return scopeData.value.apply(scopeData.parent, args);
 				};
-
-			// This code adds support for special event types, like can-enter="foo". special.enter (or any special[event]) is
-			// a function that returns an object containing an event and a handler. These are to be used for binding. For example,
-			// when a user adds a can-enter attribute, we'll bind on the keyup event, and the handler performs special logic to
-			// determine on keyup if the enter key was pressed.
-			if (special[event]) {
-				var specialData = special[event](data, el, handler);
-				handler = specialData.handler;
-				event = specialData.event;
-			}
 
 			var context;
 			if(onBindElement) {
@@ -1141,37 +1134,7 @@ cleanVMName = function(name) {
 	return name.replace(/@/g, "");
 };
 
-
-// ## Special Event Types (can-SPECIAL)
-//
-// A special object, similar to [$.event.special](http://benalman.com/news/2010/03/jquery-special-events/),
-// for adding hooks for special can-SPECIAL types (not native DOM events). Right now, only can-enter is
-// supported, but this object might be exported so that it can be added to easily.
-//
-// To implement a can-SPECIAL event type, add a property to the special object, whose value is a function
-// that returns the following:
-//
-//		// the real event name to bind to
-//		event: "event-name",
-//		handler: function (ev) {
-//			// some logic that figures out if the original handler should be called or not, and if so...
-//			return original.call(this, ev);
-//		}
-var special = {
-		enter: function (data, el, original) {
-			return {
-				event: "keyup",
-				handler: function (ev) {
-					if (ev.keyCode === 13 || ev.key === "Enter") {
-						return original.call(this, ev);
-					}
-				}
-			};
-		}
-};
-
 module.exports = {
-		behaviors: behaviors,
-		getBindingInfo: getBindingInfo,
-		special: special
+	behaviors: behaviors,
+	getBindingInfo: getBindingInfo
 };
