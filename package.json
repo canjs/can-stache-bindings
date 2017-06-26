@@ -20,8 +20,7 @@
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
     "build": "node build.js",
-    "document": "bit-docs",
-    "develop": "done-serve --static --develop --port 8080"
+    "document": "bit-docs"
   },
   "main": "can-stache-bindings",
   "keywords": [
@@ -55,9 +54,6 @@
     "can-map": "^3.1.0-pre.8",
     "can-vdom": "^3.1.0-pre.1",
     "can-view-nodelist": "^3.1.0-pre.0",
-    "done-serve": "^0.2.0",
-    "donejs-cli": "^0.9.5",
-    "generator-donejs": "^0.9.0",
     "jshint": "^2.9.1",
     "steal": "^1.2.9",
     "steal-qunit": "^1.0.1",
