@@ -1,5 +1,5 @@
-require('can-stache-bindings');
-
+var bindings = require('can-stache-bindings');
+var compute = require('can-compute');
 var QUnit = require('steal-qunit');
 var DefineMap = require("can-define/map/map");
 var stache = require('can-stache');
@@ -12,7 +12,6 @@ var domAttr = require("can-util/dom/attr/attr");
 var domData = require('can-util/dom/data/data');
 var domDispatch = require("can-util/dom/dispatch/dispatch");
 
-
 var MockComponent = require("./mock-component");
 
 var viewModelFor = function(tag, viewModel) {
@@ -21,13 +20,9 @@ var viewModelFor = function(tag, viewModel) {
 	});
 };
 
-
-
 QUnit.module("can-stache-bindings (can-define)");
 
-
 test("two way - viewModel", 7, function () {
-
 	var ViewModel = define.Constructor({
 		vmProp: {}
 	});
@@ -63,7 +58,6 @@ test("two way - viewModel", 7, function () {
 
 	equal(context.scopeProp, 'BOOM!', 'Scope property was set');
 	equal(viewModel.vmProp, 'BOOM!', 'ViewModel property set via scope property set');
-
 });
 
 test('one-way - parent to child - viewModel', function(){
@@ -82,7 +76,6 @@ test('one-way - parent to child - viewModel', function(){
 	var context = new Context();
 	var frag = template(context);
 	var viewModel = canViewModel(frag.firstChild);
-
 	equal(viewModel.viewModelProp, 'Venus', 'ViewModel property initially set from scope');
 
 	viewModel.viewModelProp = 'Earth';
@@ -94,9 +87,7 @@ test('one-way - parent to child - viewModel', function(){
 	equal(viewModel.viewModelProp, 'Mars', 'ViewModel property was set via scope set');
 });
 
-
 test('one-way - child to parent - viewModel', function(){
-
 	var ViewModel = define.Constructor({
 		viewModelProp: {
 			value: 'Mercury'
@@ -134,7 +125,6 @@ test('one-way - child to parent - viewModel', function(){
 });
 
 test("two-way - DOM - input text (#1700)", function () {
-
 	var template = stache("<input {($value)}='age'/>");
 	var MyMap = define.Constructor({
 		age: {
@@ -164,7 +154,6 @@ test("two-way - DOM - input text (#1700)", function () {
 	canEvent.trigger.call(input, "change");
 
 	equal(map.age, "32", "updated from input");
-
 });
 
 test("Binding to a special property - values", function(){
@@ -267,7 +256,6 @@ var supportsKeyboardEvents = (function(){
 	}
 })();
 
-
 if(supportsKeyboardEvents) {
 	QUnit.test("KeyboardEvent dispatching works with .key (#93)", function(){
 		var template = stache("<input ($enter)='method(%event)' type='text'/>");
@@ -328,4 +316,128 @@ QUnit.test("Two way bindings should be sticky (#122)", function(){
 
 	QUnit.equal(map.firstName, "matthew", "vm stays the same");
 	QUnit.equal(input.value, "matthew", "input stays the same");
+});
+
+test('scope method called when scope property changes on DefineMap (#197)', function(){
+	stop();
+	expect(1);
+
+	MockComponent.extend({
+		tag: "view-model-able"
+	});
+
+	var template = stache("<view-model-able (. prop)='someMethod'/>");
+
+	var map = new DefineMap({
+		prop: "Mercury",
+		someMethod: function(scope, el, ev, newVal){
+			start();
+			ok(true, "method called");
+		}
+	});
+
+	template(map);
+	map.prop ="Venus";
+});
+
+test(".viewModel() can work with this {^this}='bar'", function(){
+	expect(2);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData){
+		domData.set.call(el, "preventDataBindings", true);
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData, hasDataBindings){
+			QUnit.ok(hasDataBindings,"has data bindings");
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({value: null});
+
+	var template = stache('<export-this {^this}="value"/>');
+	template(myMap);
+
+	vm(10);
+	QUnit.equal(myMap.value, 10, "changed the value");
+});
+
+
+test(".viewModel() can work with this {this}='bar'", function(){
+	expect(3);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData){
+		domData.set.call(el, "preventDataBindings", true);
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData, hasDataBindings){
+			QUnit.ok(hasDataBindings,"has data bindings");
+			QUnit.equal(initialData, 10, "initial value right");
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({value: 10});
+
+	var template = stache('<export-this {this}="value"/>');
+	template(myMap);
+
+	// change scope
+	myMap.value = 11;
+
+	QUnit.equal( vm(), 11, "updated VM by changing scope");
+});
+
+test("Will not accept more than one data binding if this is bound", function() {
+	expect(2);
+
+	var vm,
+		teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData) {
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData) {
+			return vm = compute(initialData);
+		});
+	});
+
+	var myMap = new DefineMap({
+		value: 10,
+		bar: 'baz'
+	});
+
+	var template = stache('<export-this {this}="value" {foo}="bar" />');
+	try {
+		template(myMap);
+	} catch (error) {
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+	}
+
+	template = stache('<export-this {foo}="bar" {this}="value" />');
+	try {
+		template(myMap);
+	} catch (error) {
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+	}
+});
+
+
+test(".viewModel() can bypass dynamic bindings", function(){
+	expect(1);
+
+	var teardown;
+
+	viewCallbacks.tag("export-this", function(el, componentTagData){
+		domData.set.call(el, "preventDataBindings", true);
+		teardown = bindings.behaviors.viewModel(el, componentTagData, function(initialData, hasDataBindings){
+			QUnit.ok(false, "no bindings, this shouldn't be called");
+		},undefined, true);
+		QUnit.notOk(teardown, "we should get no teardown b/c there's no bindings");
+	});
+
+	var myMap = new DefineMap({value: 10});
+
+	var template = stache('<export-this/>');
+	template(myMap);
 });
