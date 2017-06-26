@@ -1,5 +1,7 @@
 # can-stache-bindings
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/canjs/can-stache-bindings.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/canjs/can-stache-bindings.png?branch=master)](https://travis-ci.org/canjs/can-stache-bindings)
 
 Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
