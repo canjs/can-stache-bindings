@@ -96,14 +96,14 @@ var checkBindingState = function(bindingState, dataBinding) {
 			if(bindingState.isSettingViewModel || bindingState.isSettingOnViewModel) {
 				throwOnlyOneTypeOfBindingError();
 			} else {
-				return {isSettingViewModel: true};
+				return {isSettingViewModel: true, initialViewModelData: undefined};
 			}
 		} else {
 			// just setting on viewModel
 			if(bindingState.isSettingViewModel) {
 				throwOnlyOneTypeOfBindingError();
 			} else {
-				return {isSettingOnViewModel: true};
+				return {isSettingOnViewModel: true, initialViewModelData: bindingState.initialViewModelData};
 			}
 		}
 	} else {
@@ -130,7 +130,6 @@ var behaviors = {
 		// - `function` - a function that tears all the bindings down. Component
 		// wants all the bindings active so cleanup can be done during a component being removed.
 		viewModel: function(el, tagData, makeViewModel, initialViewModelData, staticDataBindingsOnly) {
-			initialViewModelData = initialViewModelData || {};
 
 			var bindingsSemaphore = {},
 				viewModel,
@@ -146,7 +145,8 @@ var behaviors = {
 					// if we have a binding like {something}="foo"
 					isSettingOnViewModel: false,
 					// if we have binding like {this}="bar"
-					isSettingViewModel: false
+					isSettingViewModel: false,
+					initialViewModelData: initialViewModelData || {}
 				},
 				hasDataBinding = false;
 
@@ -178,9 +178,9 @@ var behaviors = {
 
 							if(bindingsState.isSettingViewModel) {
 								// the initial data is the context
-								initialViewModelData = dataBinding.value;
+								bindingsState.initialViewModelData = dataBinding.value;
 							} else {
-								initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+								bindingsState.initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
 							}
 
 						}
@@ -195,7 +195,7 @@ var behaviors = {
 			}
 			// Create the `viewModel` and call what needs to be happen after
 			// the `viewModel` is created.
-			viewModel = makeViewModel(initialViewModelData, hasDataBinding);
+			viewModel = makeViewModel(bindingsState.initialViewModelData, hasDataBinding);
 
 			for(var i = 0, len = onCompleteBindings.length; i < len; i++) {
 				onCompleteBindings[i]();
