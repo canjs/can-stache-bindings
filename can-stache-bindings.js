@@ -630,6 +630,7 @@ var getObservableFrom = {
 					// TODO: Review what this is used for.
 					var oldValue = canReflect.getKeyValue(viewModel, setName);
 					if (canReflect.isObservableLike(oldValue)) {
+						debugger;
 						canReflect.setValue(oldValue, newVal);
 					} else {
 						canReflect.setKeyValue(viewModel, setName, reflectiveValue(canReflect.getValue(stickyCompute)));

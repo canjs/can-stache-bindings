@@ -2314,11 +2314,11 @@ test("@function reference to child (#2116)", function(){
 test("setter only gets called once (#2117)", function(){
 	expect(1);
 	var VM = CanMap.extend({
-		_set: function(prop, val){
+		__set: function(prop, val){
 			if(prop === "bar") {
 				equal(val, "BAR");
 			}
-			return CanMap.prototype._set.apply(this, arguments);
+			return CanMap.prototype.__set.apply(this, arguments);
 		}
 	});
 
@@ -2437,12 +2437,13 @@ test("Child bindings updated before parent (#2252)", function(){
 		tag: 'child-binder',
 		template: stache('<span/>'),
 		viewModel: {
-			_set: function(prop, val){
+			__set: function(prop, val){
+                debugger;
 				if(prop === "page"){
 					equal(val, "view", "value should not be edit");
 				}
 
-				return CanMap.prototype._set.apply(this, arguments);
+				return CanMap.prototype.__set.apply(this, arguments);
 			}
 		}
 	});
