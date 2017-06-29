@@ -2438,40 +2438,11 @@ test("Child bindings updated before parent (#2252)", function(){
 		template: stache('<span/>'),
 		viewModel: {
 			__set: function(prop, val){
-                debugger;
 				if(prop === "page"){
 					equal(val, "view", "value should not be edit");
 				}
 
 				return CanMap.prototype.__set.apply(this, arguments);
-			}
-		}
-	});
-
-	var vm = new CanMap({
-		page : 'view'
-	});
-	template(vm);
-
-	canBatch.start();
-	vm.attr('page', 'edit');
-	canBatch.stop();
-});
-
-
-
-test("Child bindings updated before parent (#2252)", function(){
-	var template = stache("{{#eq page 'view'}}<child-binder {page}='page'/>{{/eq}}");
-	MockComponent.extend({
-		tag: 'child-binder',
-		template: stache('<span/>'),
-		viewModel: {
-			_set: function(prop, val){
-				if(prop === "page"){
-					equal(val, "view", "value should not be edit");
-				}
-
-				return CanMap.prototype._set.apply(this, arguments);
 			}
 		}
 	});
