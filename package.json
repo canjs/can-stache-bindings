@@ -1,6 +1,6 @@
 {
   "name": "can-stache-bindings",
-  "version": "3.3.0",
+  "version": "3.4.0-pre.0",
   "description": "Default binding syntaxes for can-stache",
   "homepage": "http://canjs.com",
   "author": {
@@ -32,27 +32,28 @@
   },
   "dependencies": {
     "can-cid": "^1.0.3",
-    "can-compute": "^3.1.0",
+    "can-compute": "^3.3.0-pre.1",
     "can-event": "^3.5.0",
     "can-event-dom-enter": "^1.0.0",
     "can-event-dom-radiochange": "^1.0.0",
-    "can-observation": "^3.2.0",
-    "can-reflect": "^1.0.2",
-    "can-simple-map": "^3.2.0",
-    "can-stache": "^3.1.0",
+    "can-observation": "^3.3.0-pre.1",
+    "can-reflect": "^1.1.0-pre.3",
+    "can-simple-map": "^3.3.0-pre.2",
+    "can-stache": "^3.2.0-pre.0",
     "can-symbol": "^1.0.0",
     "can-types": "^1.1.0",
     "can-util": "^3.9.0",
-    "can-view-callbacks": "^3.1.0",
-    "can-view-live": "^3.1.0",
-    "can-view-model": "^3.3.0",
-    "can-view-scope": "^3.2.0"
+    "can-view-callbacks": "^3.2.0-pre.0",
+    "can-view-live": "^3.2.0-pre.0",
+    "can-view-model": "^3.4.0-pre.0",
+    "can-view-scope": "^3.3.0-pre.3",
+    "can-stache-key": "^0.0.2"
   },
   "devDependencies": {
     "bit-docs": "0.0.7",
-    "can-define": "^1.2.0",
-    "can-list": "^3.1.0",
-    "can-map": "^3.1.0",
+    "can-define": "^1.3.0-pre.1",
+    "can-list": "^3.2.0-pre.1",
+    "can-map": "^3.3.0-pre.1",
     "can-vdom": "^3.1.0",
     "can-view-nodelist": "^3.1.0",
     "jshint": "^2.9.1",
@@ -60,21 +61,5 @@
     "steal-qunit": "^1.0.1",
     "steal-tools": "^1.1.2",
     "testee": "^0.6.1"
-  },
-  "bit-docs": {
-    "dependencies": {
-      "bit-docs-glob-finder": "^0.0.5",
-      "bit-docs-dev": "^0.0.3",
-      "bit-docs-js": "^0.0.3",
-      "bit-docs-generate-readme": "^0.0.8"
-    },
-    "glob": {
-      "pattern": "**/*.{js,md}",
-      "ignore": "node_modules/**/*"
-    },
-    "readme": {
-      "apis": "./docs/apis.json"
-    },
-    "parent": "can-stache-bindings"
   }
 }

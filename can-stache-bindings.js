@@ -18,7 +18,7 @@ var canViewModel = require('can-view-model');
 var canEvent = require('can-event');
 var canBatch = require('can-event/batch/batch');
 var compute = require('can-compute');
-var observeReader = require('can-observation/reader/reader');
+var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
 var CID = require('can-cid');
 
@@ -80,6 +80,16 @@ var reflectiveValue = function(value) {
 	fn.isComputed = true;
 	return fn;
 };
+
+function setPriority(observable, priority){
+	if(observable instanceof Observation) {
+	    observable.compute._primaryDepth = priority;
+	} else if(observable.computeInstance) {
+	    observable.computeInstance.setPrimaryDepth(priority);
+	} else if(observable.observation) {
+	    observable.observation.compute._primaryDepth = priority;
+	}
+}
 
 var throwOnlyOneTypeOfBindingError = function(){
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
@@ -971,12 +981,12 @@ var makeDataBinding = function(node, el, bindingData) {
 	updateChild;
 
 	if(bindingData.nodeList) {
-		if(parentObservable && parentObservable.computeInstance) {
-			parentObservable.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
+		if(parentObservable) {
+			setPriority(parentObservable, bindingData.nodeList.nesting+1);
 		}
 
-		if(childObservable && childObservable.computeInstance) {
-			childObservable.computeInstance.setPrimaryDepth(bindingData.nodeList.nesting+1);
+		if(childObservable) {
+			setPriority(childObservable, bindingData.nodeList.nesting+1);
 		}
 	}
 
