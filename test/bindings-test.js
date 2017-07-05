@@ -55,7 +55,7 @@ var testIfRealDocument = function(/* args */) {
 	if(doc === document) {
 		test.apply(null, arguments);
 	} else {
-		QUnit.skip.apply(null, arguments);
+		//QUnit.skip.apply(null, arguments);
 	}
 };
 
