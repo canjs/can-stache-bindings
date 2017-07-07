@@ -351,22 +351,48 @@ var behaviors = {
 		// and can-xxx (anything starting with can-), this callback will be run.  Inside, its setting up an event handler
 		// that calls a method identified by the value of this attribute.
 		event: function(el, data) {
+			
 			// Get the `event` name and if we are listening to the element or viewModel.
 			// The attribute name is the name of the event.
 			var attributeName = data.attributeName,
-			// The old way of binding is can-X
-				legacyBinding = attributeName.indexOf('can-') === 0,
-				event = attributeName.indexOf('can-') === 0 ?
-					attributeName.substr("can-".length) :
-					removeBrackets(attributeName, '(', ')'),
-				onBindElement = legacyBinding;
+				// the name of the event we are binding
+				event,
+				// if we are binding on the element or the VM
+				bindingContext;
 
+			// legacy binding
+			if(attributeName.indexOf('can-') === 0) {
+				event = attributeName.substr("can-".length);
+				bindingContext = el;
+			} else if(attributeName.indexOf("on:") === 0 ) {
+				event = attributeName.substr("on:".length);
+				var byIndex = event.indexOf(":by:");
+				if( byIndex >= 0 ) {
+					bindingContext = data.scope.get(decodeAttrName(event.substr(byIndex+ ":by:".length)));
+					event = event.substr(0, byIndex);
+				} else {
+					// bind on the element if there is not a viewModel
+					var viewModel = domData.get.call(el, "viewModel");
+					bindingContext = viewModel !== undefined ? viewModel : el;
+				}
+			} else {
+				event = removeBrackets(attributeName, '(', ')');
+				if(event.charAt(0) === "$") {
+					event = event.substr(1);
+					bindingContext = el;
+				} else {
+					if(event.indexOf(" ") >= 0) {
+						var eventSplit = event.split(" ");
+						bindingContext = data.scope.get(decodeAttrName(eventSplit[0]));
+						event = eventSplit[1];
+					}else{
+						bindingContext = canViewModel(el);
+					}
+				}
+			}
+			// The old way of binding is can-X
 			event = decodeAttrName(event);
 
-			if(event.charAt(0) === "$") {
-				event = event.substr(1);
-				onBindElement = true;
-			}
 
 			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
@@ -448,18 +474,7 @@ var behaviors = {
 					return scopeData.value.apply(scopeData.parent, args);
 				};
 
-			var context;
-			if(onBindElement) {
-				context = el;
-			}else{
-				if(event.indexOf(" ") >= 0) {
-					var eventSplit = event.split(" ");
-					context = data.scope.get(eventSplit[0]);
-					event = eventSplit[1];
-				}else{
-					context = canViewModel(el);
-				}
-			}
+
 
 			// Unbind the event when the attribute is removed from the DOM
 			var attributesHandler = function(ev) {
@@ -475,14 +490,14 @@ var behaviors = {
 				unbindEvent();
 			};
 			var unbindEvent = function() {
-					canEvent.off.call(context, event, handler);
+					canEvent.off.call(bindingContext, event, handler);
 					canEvent.off.call(el, 'attributes', attributesHandler);
 				canEvent.off.call(el, 'removed', removedHandler);
 			};
 
 			// Bind the handler defined above to the element we're currently processing and the event name provided in this
 			// attribute name (can-click="foo")
-			canEvent.on.call(context, event, handler);
+			canEvent.on.call(bindingContext, event, handler);
 			canEvent.on.call(el, 'attributes', attributesHandler);
 			canEvent.on.call(el, 'removed', removedHandler);
 		},
@@ -580,6 +595,7 @@ viewCallbacks.attr(/^\{[^\}]+\}$/, behaviors.data);
 viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
 
 // `(EVENT)` event bindings.
+viewCallbacks.attr(/on:[\w\.]+/, behaviors.event);
 viewCallbacks.attr(/^\([\$?\w\.\\]+\)$/, behaviors.event);
 
 //!steal-remove-start

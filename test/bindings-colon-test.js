@@ -11,6 +11,8 @@ var domData = require('can-util/dom/data/data');
 var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
+var canEvent = require('can-event');
+
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -65,7 +67,7 @@ QUnit.module(name, {
 });
 
 
-test("basics", function(){
+test("basics", 5, function(){
 
 	var viewModel = new SimpleMap({
 		toChild: "toChild",
@@ -79,12 +81,12 @@ test("basics", function(){
 	});
 	var template = stache("<basic-colon "+
 		"toChild:from='valueA' toParent:to='valueB' twoWay:bind='valueC' "+
-		/* "on:click='methodD()'" */
+		"on:vmevent='methodD()'" +
 		"/>");
 
 	var MySimpleMap = SimpleMap.extend({
 		methodD: function(){
-
+			QUnit.ok(true, "on:vmEvent bindings work");
 		}
 	});
 
@@ -94,7 +96,7 @@ test("basics", function(){
 		valueC: 'C'
 	});
 
-	template(parent);
+	var frag = template(parent);
 
 	QUnit.deepEqual(parent.get(), {
 		valueA: 'A',
@@ -134,6 +136,7 @@ test("basics", function(){
 		valueC: "two-way"
 	}, "vm set scope values correct");
 
+	viewModel.dispatch({type: "vmevent"});
 
 });
 
