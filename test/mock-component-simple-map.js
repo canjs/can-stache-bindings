@@ -16,6 +16,7 @@ module.exports = MockComponent = {
 				if(typeof proto.viewModel === "function") {
 					return viewModel = new proto.viewModel(initialViewModelData);
 				} else if(proto.viewModel instanceof CanSimpleMap){
+					proto.viewModel.set(initialViewModelData);
 					return viewModel = proto.viewModel;
 				} else {
 					var VM = CanSimpleMap.extend(proto.viewModel);

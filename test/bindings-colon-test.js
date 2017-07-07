@@ -1,3 +1,7 @@
+
+
+var QUnit = require("steal-qunit");
+
 var makeDocument = require('can-vdom/make-document/make-document');
 var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
 var DOCUMENT = require("can-util/dom/document/document");
@@ -6,6 +10,7 @@ var domMutate = require('can-util/dom/mutate/mutate');
 var domData = require('can-util/dom/data/data');
 var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
+var SimpleMap = require("can-simple-map");
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -62,24 +67,73 @@ QUnit.module(name, {
 
 test("basics", function(){
 
+	var viewModel = new SimpleMap({
+		toChild: "toChild",
+		toParent: "toParent",
+		twoWay: "twoWay"
+	});
+
 	MockComponent.extend({
 		tag: "basic-colon",
-		viewModel: SimpleMap
+		viewModel: viewModel
 	});
 	var template = stache("<basic-colon "+
 		"toChild:from='valueA' toParent:to='valueB' twoWay:bind='valueC' "+
-		"on:click='methodD()'/>");
+		/* "on:click='methodD()'" */
+		"/>");
 
-	var parent = new SimpleMap({
-		valueA: 'A',
-		valueB: 'B',
-		valueC: 'C',
+	var MySimpleMap = SimpleMap.extend({
 		methodD: function(){
 
 		}
 	});
 
+	var parent = new MySimpleMap({
+		valueA: 'A',
+		valueB: 'B',
+		valueC: 'C'
+	});
+
 	template(parent);
+
+	QUnit.deepEqual(parent.get(), {
+		valueA: 'A',
+		valueB: 'toParent',
+		valueC: 'C',
+	}, "initial scope values correct");
+
+	QUnit.deepEqual(viewModel.get(), {
+		toChild: "A",
+		toParent: "toParent",
+		twoWay: "C"
+	}, "initial VM values correct");
+
+	// Change scope
+	parent.set({
+		valueA: 'a',
+		valueB: 'b',
+		valueC: 'c'
+	})
+
+	QUnit.deepEqual(viewModel.get(), {
+		toChild: "a",
+		toParent: "toParent",
+		twoWay: "c"
+	}, "scope set VM values correct");
+
+	// Change vm
+	viewModel.set({
+		toChild: "to-child",
+		toParent: "to-parent",
+		twoWay: "two-way"
+	});
+
+	QUnit.deepEqual(parent.get(), {
+		valueA: "a",
+		valueB: "to-parent",
+		valueC: "two-way"
+	}, "vm set scope values correct");
+
 
 });
 

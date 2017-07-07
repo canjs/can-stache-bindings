@@ -809,7 +809,9 @@ var bind = {
 		return updateChild;
 	}
 };
-
+var endsWith = String.prototype.endsWith || function(text){
+	return this.lastIndexOf(text) === (this.length - text.length);
+};
 // Regular expressions for getBindingInfo
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 		ignoreAttributesRegExp = /^(data-view-id|class|name|id|\[[\w\.-]+\]|#[\w\.-])$/i,
@@ -831,9 +833,54 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 // - `initializeValues` - should parent and child be initialized to their counterpart.
 // If undefined is return, there is no binding.
 var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName) {
+
 		var bindingInfo,
 			attributeName = node.name,
-			attributeValue = node.value || "";
+			attributeValue = node.value || "",
+			childName;
+
+		// check new binding syntaxes
+		if(endsWith.call(attributeName, ":from")) {
+			childName = attributeName.substr(0, attributeName.length - ":from".length)
+			return {
+				parent: "scope",
+				child: "viewModel",
+				childToParent: false,
+				parentToChild: true,
+				bindingAttributeName: attributeName,
+				childName: decodeAttrName(string.camelize(childName)),
+				parentName: attributeValue,
+				initializeValues: true,
+				syncChildWithParent: false
+			};
+		} else if(endsWith.call(attributeName, ":to")) {
+			childName = attributeName.substr(0, attributeName.length - ":to".length)
+			return {
+				parent: "scope",
+				child: "viewModel",
+				childToParent: true,
+				parentToChild: false,
+				bindingAttributeName: attributeName,
+				childName: decodeAttrName(string.camelize(childName)),
+				parentName: attributeValue,
+				initializeValues: true,
+				syncChildWithParent: false
+			};
+		} else if(endsWith.call(attributeName, ":bind")) {
+			childName = attributeName.substr(0, attributeName.length - ":bind".length)
+			return {
+				parent: "scope",
+				child: "viewModel",
+				childToParent: true,
+				parentToChild: true,
+				bindingAttributeName: attributeName,
+				childName: decodeAttrName(string.camelize(childName)),
+				parentName: attributeValue,
+				initializeValues: true,
+				syncChildWithParent: true
+			};
+		}
+
 
 		// Does this match the new binding syntax?
 		var matches = attributeName.match(bindingsRegExp);
@@ -886,7 +933,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			childToParent = twoWay || !!matches[2],
 			parentToChild = twoWay || !childToParent;
 
-		var childName = matches[3];
+		childName = matches[3];
 		var isDOM = childName.charAt(0) === "$";
 		if(isDOM) {
 			bindingInfo = {
