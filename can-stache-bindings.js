@@ -961,6 +961,12 @@ var makeDataBinding = function(node, el, bindingData) {
 		bindingInfo.initializeValues = true;
 	}
 
+	//!steal-remove-start
+	if (!domData.get(el, "viewModel")) {
+		dev.warn('This element does not have a viewModel. (Attempting to bind `' + bindingInfo.bindingAttributeName + '="' + bindingInfo.parentName + '"`)');
+	}
+	//!steal-remove-end
+
 	// Get computes for the parent and child binding
 	var parentObservable = getObservableFrom[bindingInfo.parent](
 		el,

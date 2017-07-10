@@ -2853,20 +2853,22 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
 
-test("warning when binding to non-existing value (#136) (#119)", function() {
-	var oldWarn = dev.warn;
-	dev.warn = function() {
-		ok(true);
-	};
+if (System.env.indexOf('production') < 0) {
+	test("warning when binding to non-existing value (#136) (#119)", function() {
+		var oldWarn = dev.warn;
+		dev.warn = function(message) {
+			ok(true, message);
+		};
 
-	var template = stache("<div {(target)}='source.bar'/>");
+		var template = stache("<div {(target)}='source.bar'/>");
 
-	expect(2);
-	var map = new CanMap({ source: { foo: "foo" } });
-	template(map);
+		expect(1);
+		var map = new CanMap({ source: { foo: "foo" } });
+		template(map);
 
-	dev.warn = oldWarn;
-});
+		dev.warn = oldWarn;
+	});
+}
 
 test("changing a scope property calls registered stache helper", function(){
 	expect(1);
