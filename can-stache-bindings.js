@@ -265,7 +265,7 @@ var behaviors = {
 			if(domData.get.call(el, "preventDataBindings")) {
 				return;
 			}
-			var viewModel = canViewModel(el),
+			var viewModel,
 				semaphore = {},
 				teardown;
 
@@ -287,6 +287,14 @@ var behaviors = {
 				},
 				syncChildWithParent: twoWay
 			});
+
+			//!steal-remove-start
+			if(dataBinding.bindingInfo.child === "viewModel" && !domData.get(el, "viewModel")) {
+				dev.warn('This element does not have a viewModel. (Attempting to bind `' + dataBinding.bindingInfo.bindingAttributeName + '="' + dataBinding.bindingInfo.parentName + '"`)');
+			}
+			//!steal-remove-end
+
+			viewModel = canViewModel(el);
 
 			if(dataBinding.onCompleteBinding) {
 				dataBinding.onCompleteBinding();
@@ -960,12 +968,6 @@ var makeDataBinding = function(node, el, bindingData) {
 	if( bindingData.initializeValues) {
 		bindingInfo.initializeValues = true;
 	}
-
-	//!steal-remove-start
-	if (!domData.get(el, "viewModel")) {
-		dev.warn('This element does not have a viewModel. (Attempting to bind `' + bindingInfo.bindingAttributeName + '="' + bindingInfo.parentName + '"`)');
-	}
-	//!steal-remove-end
 
 	// Get computes for the parent and child binding
 	var parentObservable = getObservableFrom[bindingInfo.parent](
