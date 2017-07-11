@@ -55,6 +55,8 @@ in the [can-view-scope scope]:
 <my-component {$child-attr}="value"/>
 ```
 
+> __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+
 #### [can-stache-bindings.toParent one-way to parent]
 
 Updates `value` in the [can-view-scope scope]  with `childProp`
@@ -71,6 +73,8 @@ in the [can-view-scope scope] with the `child-attr` attribute or property on `<m
 <my-component {^$child-attr}="value"/>
 ```
 
+> __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+
 #### [can-stache-bindings.twoWay two-way]
 
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope] and vice versa:
@@ -84,4 +88,27 @@ in the [can-view-scope scope] and vice versa:
 
 ```
 <my-component {($child-attr)}="value"/>
+```
+
+## One Way Binding With Objects
+
+`{child-prop}="key"` ([can-stache-bindings.toChild one-way to child]) or `{^child-prop}="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component or vice versa, respectively.
+
+Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
+
+```javascript
+function component(bar) {
+	// changes to bar's properties are preserved
+	bar.quux = 'barfoo';
+
+	// but replacing bar is not
+	bar = {
+		quux: 'hello world'
+	};
+}
+
+var foo = {
+	quux: 'foobar'
+};
+component(foo);
 ```
