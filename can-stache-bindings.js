@@ -351,7 +351,7 @@ var behaviors = {
 		// and can-xxx (anything starting with can-), this callback will be run.  Inside, its setting up an event handler
 		// that calls a method identified by the value of this attribute.
 		event: function(el, data) {
-			
+
 			// Get the `event` name and if we are listening to the element or viewModel.
 			// The attribute name is the name of the event.
 			var attributeName = data.attributeName,
@@ -857,7 +857,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 
 		// check new binding syntaxes
 		if(endsWith.call(attributeName, ":from")) {
-			childName = attributeName.substr(0, attributeName.length - ":from".length)
+			childName = attributeName.substr(0, attributeName.length - ":from".length);
 			return {
 				parent: "scope",
 				child: "viewModel",
@@ -870,7 +870,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 				syncChildWithParent: false
 			};
 		} else if(endsWith.call(attributeName, ":to")) {
-			childName = attributeName.substr(0, attributeName.length - ":to".length)
+			childName = attributeName.substr(0, attributeName.length - ":to".length);
 			return {
 				parent: "scope",
 				child: "viewModel",
@@ -883,7 +883,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 				syncChildWithParent: false
 			};
 		} else if(endsWith.call(attributeName, ":bind")) {
-			childName = attributeName.substr(0, attributeName.length - ":bind".length)
+			childName = attributeName.substr(0, attributeName.length - ":bind".length);
 			return {
 				parent: "scope",
 				child: "viewModel",

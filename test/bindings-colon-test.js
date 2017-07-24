@@ -1,5 +1,3 @@
-
-
 var QUnit = require("steal-qunit");
 
 var makeDocument = require('can-vdom/make-document/make-document');
@@ -11,8 +9,6 @@ var domData = require('can-util/dom/data/data');
 var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
-var canEvent = require('can-event');
-
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -30,8 +26,6 @@ makeTest("can-stache-bindings - colon - dom", document, MUT_OBS);
 makeTest("can-stache-bindings - colon - vdom", makeDocument(), null);
 
 function makeTest(name, doc, mutObs){
-
-
 
 QUnit.module(name, {
 	setup: function() {
@@ -96,7 +90,7 @@ test("basics", 5, function(){
 		valueC: 'C'
 	});
 
-	var frag = template(parent);
+	template(parent);
 
 	QUnit.deepEqual(parent.get(), {
 		valueA: 'A',
@@ -115,7 +109,7 @@ test("basics", 5, function(){
 		valueA: 'a',
 		valueB: 'b',
 		valueC: 'c'
-	})
+	});
 
 	QUnit.deepEqual(viewModel.get(), {
 		toChild: "a",
