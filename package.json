@@ -1,6 +1,6 @@
 {
   "name": "can-stache-bindings",
-  "version": "3.4.4",
+  "version": "3.4.5",
   "description": "Default binding syntaxes for can-stache",
   "homepage": "http://canjs.com",
   "author": {
@@ -36,10 +36,10 @@
     "can-event": "^3.5.0",
     "can-event-dom-enter": "^1.0.0",
     "can-event-dom-radiochange": "^1.0.0",
-    "can-observation": "^3.3.0",
+    "can-observation": "^3.3.1",
     "can-reflect": "^1.2.1",
     "can-simple-map": "^3.3.0",
-    "can-stache": "^3.2.0",
+    "can-stache": "^3.3.0",
     "can-symbol": "^1.0.0",
     "can-types": "^1.1.0",
     "can-util": "^3.9.0",
@@ -60,6 +60,6 @@
     "steal": "^1.2.9",
     "steal-qunit": "^1.0.1",
     "steal-tools": "^1.1.2",
-    "testee": "^0.6.1"
+    "testee": "^0.7.0"
   }
 }
