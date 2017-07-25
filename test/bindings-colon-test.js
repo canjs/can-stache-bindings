@@ -9,6 +9,7 @@ var domData = require('can-util/dom/data/data');
 var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
+var DefineMap = require("can-define/map/map");
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -132,6 +133,30 @@ test("basics", 5, function(){
 
 	viewModel.dispatch({type: "vmevent"});
 
+});
+
+test('scope method called when scope property changes on DefineMap (#197)', function(){
+	stop();
+	expect(1);
+
+	MockComponent.extend({
+		tag: "view-model-able"
+	});
+
+	var template = stache("<view-model-able on:subprop:by:prop='someMethod'/>");
+
+	var map = new DefineMap({
+		prop: {
+			subprop: "Mercury"
+		},
+		someMethod: function(scope, el, ev, newVal){
+			start();
+			equal(newVal, "Venus", "method called");
+		}
+	});
+
+	template(map);
+	map.prop.subprop = "Venus";
 });
 
 }
