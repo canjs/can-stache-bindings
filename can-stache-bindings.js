@@ -381,8 +381,8 @@ var behaviors = {
 					event = event.substr(1);
 					bindingContext = el;
 				} else {
-					if(event.indexOf(" ") >= 0) {
-						var eventSplit = event.split(" ");
+					if(event.indexOf("\\s") >= 0) {
+						var eventSplit = event.split("\\s");
 						bindingContext = data.scope.get(decodeAttrName(eventSplit[0]));
 						event = eventSplit[1];
 					}else{

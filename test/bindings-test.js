@@ -1,3 +1,4 @@
+require("./bindings-colon-test");
 require("./bindings-define-test");
 
 var stacheBindings = require('can-stache-bindings');
