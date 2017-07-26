@@ -1,5 +1,7 @@
 var QUnit = require("steal-qunit");
 
+var stacheBindings = require('can-stache-bindings');
+
 var makeDocument = require('can-vdom/make-document/make-document');
 var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
 var DOCUMENT = require("can-util/dom/document/document");
@@ -157,6 +159,89 @@ test('scope method called when scope property changes on DefineMap (#197)', func
 
 	template(map);
 	map.prop.subprop = "Venus";
+});
+
+test("getBindingInfo", function(){
+	var info;
+//	info = stacheBindings.getBindingInfo({name: "{$foo-ed}", value: "bar"});
+//	deepEqual(info, {
+//		parent: "scope",
+//		child: "attribute",
+//		childToParent: false,
+//		parentToChild: true,
+//		parentName: "bar",
+//		childName: "foo-ed",
+//		bindingAttributeName: "{$foo-ed}",
+//		initializeValues: true,
+//		syncChildWithParent: false
+//	}, "new el binding");
+//
+//	info = stacheBindings.getBindingInfo({name: "{($foo-ed)}", value: "bar"});
+//	deepEqual(info, {
+//		parent: "scope",
+//		child: "attribute",
+//		childToParent: true,
+//		parentToChild: true,
+//		parentName: "bar",
+//		childName: "foo-ed",
+//		bindingAttributeName: "{($foo-ed)}",
+//		initializeValues: true,
+//		syncChildWithParent: true
+//	}, "new el binding");
+//
+//	info = stacheBindings.getBindingInfo({name: "{^$foo-ed}", value: "bar"});
+//	deepEqual(info, {
+//		parent: "scope",
+//		child: "attribute",
+//		childToParent: true,
+//		parentToChild: false,
+//		parentName: "bar",
+//		childName: "foo-ed",
+//		bindingAttributeName: "{^$foo-ed}",
+//		initializeValues: true,
+//		syncChildWithParent: false
+//	}, "new el binding");
+//
+//	// vm based
+	info = stacheBindings.getBindingInfo({name: "foo-ed:from", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		parentToChild: true,
+		childToParent: false,
+		childName: "fooEd",
+		parentName: "bar",
+		bindingAttributeName: "foo-ed:from",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, "new vm binding");
+
+	info = stacheBindings.getBindingInfo({name: "foo-ed:bind", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		parentToChild: true,
+		childToParent: true,
+		childName: "fooEd",
+		parentName: "bar",
+		bindingAttributeName: "foo-ed:bind",
+		initializeValues: true,
+		syncChildWithParent: true
+	}, "new el binding");
+
+	info = stacheBindings.getBindingInfo({name: "foo-ed:to", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		parentToChild: false,
+		childToParent: true,
+		childName: "fooEd",
+		parentName: "bar",
+		bindingAttributeName: "foo-ed:to",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, "new el binding");
+
 });
 
 }
