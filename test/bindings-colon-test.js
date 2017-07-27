@@ -12,6 +12,7 @@ var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
 var DefineMap = require("can-define/map/map");
+var canEvent = require("can-event");
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -162,51 +163,10 @@ test('scope method called when scope property changes on DefineMap (#197)', func
 });
 
 test("getBindingInfo", function(){
-	var info;
-//	info = stacheBindings.getBindingInfo({name: "{$foo-ed}", value: "bar"});
-//	deepEqual(info, {
-//		parent: "scope",
-//		child: "attribute",
-//		childToParent: false,
-//		parentToChild: true,
-//		parentName: "bar",
-//		childName: "foo-ed",
-//		bindingAttributeName: "{$foo-ed}",
-//		initializeValues: true,
-//		syncChildWithParent: false
-//	}, "new el binding");
-//
-//	info = stacheBindings.getBindingInfo({name: "{($foo-ed)}", value: "bar"});
-//	deepEqual(info, {
-//		parent: "scope",
-//		child: "attribute",
-//		childToParent: true,
-//		parentToChild: true,
-//		parentName: "bar",
-//		childName: "foo-ed",
-//		bindingAttributeName: "{($foo-ed)}",
-//		initializeValues: true,
-//		syncChildWithParent: true
-//	}, "new el binding");
-//
-//	info = stacheBindings.getBindingInfo({name: "{^$foo-ed}", value: "bar"});
-//	deepEqual(info, {
-//		parent: "scope",
-//		child: "attribute",
-//		childToParent: true,
-//		parentToChild: false,
-//		parentName: "bar",
-//		childName: "foo-ed",
-//		bindingAttributeName: "{^$foo-ed}",
-//		initializeValues: true,
-//		syncChildWithParent: false
-//	}, "new el binding");
-//
-//	// vm based
-	info = stacheBindings.getBindingInfo({name: "foo-ed:from", value: "bar"});
+	var info = stacheBindings.getBindingInfo({name: "foo-ed:from", value: "bar"});
 	deepEqual(info, {
 		parent: "scope",
-		child: "viewModel",
+		child: "viewModelOrAttribute",
 		parentToChild: true,
 		childToParent: false,
 		childName: "fooEd",
@@ -219,7 +179,7 @@ test("getBindingInfo", function(){
 	info = stacheBindings.getBindingInfo({name: "foo-ed:bind", value: "bar"});
 	deepEqual(info, {
 		parent: "scope",
-		child: "viewModel",
+		child: "viewModelOrAttribute",
 		parentToChild: true,
 		childToParent: true,
 		childName: "fooEd",
@@ -232,6 +192,44 @@ test("getBindingInfo", function(){
 	info = stacheBindings.getBindingInfo({name: "foo-ed:to", value: "bar"});
 	deepEqual(info, {
 		parent: "scope",
+		child: "viewModelOrAttribute",
+		parentToChild: false,
+		childToParent: true,
+		childName: "fooEd",
+		parentName: "bar",
+		bindingAttributeName: "foo-ed:to",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, "new el binding");
+	info = stacheBindings.getBindingInfo({name: "foo-ed:from", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		parentToChild: true,
+		childToParent: false,
+		childName: "fooEd",
+		parentName: "bar",
+		bindingAttributeName: "foo-ed:from",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, "new vm binding");
+
+	info = stacheBindings.getBindingInfo({name: "foo-ed:bind", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		parentToChild: true,
+		childToParent: true,
+		childName: "fooEd",
+		parentName: "bar",
+		bindingAttributeName: "foo-ed:bind",
+		initializeValues: true,
+		syncChildWithParent: true
+	}, "new el binding");
+
+	info = stacheBindings.getBindingInfo({name: "foo-ed:to", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
 		child: "viewModel",
 		parentToChild: false,
 		childToParent: true,
@@ -241,7 +239,86 @@ test("getBindingInfo", function(){
 		initializeValues: true,
 		syncChildWithParent: false
 	}, "new el binding");
+});
 
+test("value:from", function() {
+	var template = stache("<input value:from='age'/>");
+
+	var map = new SimpleMap({});
+
+	var frag = template(map);
+
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	map.attr("age", "30");
+
+	equal(input.value, "30", "input value set correctly");
+
+	map.attr("age", "31");
+
+	equal(input.value, "31", "input value update correctly");
+
+	input.value = "32";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(map.attr("age"), "31", "NOT updated from input");
+
+});
+
+test("value:to", function() {
+	var template = stache("<input value:to='age'/>");
+
+	var map = new SimpleMap({});
+
+	var frag = template(map);
+
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+
+	input.value = "32";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(map.attr("age"), "32", "updated from input");
+
+	map.attr("age", "30");
+
+	equal(input.value, "32", "input value NOT updated");
+});
+
+test("value:bind", function() {
+	var template = stache("<input value:bind='age'/>");
+
+	var map = new SimpleMap({});
+
+	var frag = template(map);
+
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	map.attr("age", "30");
+
+	equal(input.value, "30", "input value set correctly");
+
+	map.attr("age", "31");
+
+	equal(input.value, "31", "input value update correctly");
+
+	input.value = "32";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(map.attr("age"), "32", "updated from input");
 });
 
 }

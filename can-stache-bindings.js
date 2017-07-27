@@ -176,7 +176,10 @@ var behaviors = {
 					},
 					attributeViewModelBindings: attributeViewModelBindings,
 					alreadyUpdatedChild: true,
-					nodeList: tagData.parentNodeList
+					nodeList: tagData.parentNodeList,
+					// force viewModel bindings in cases when it is ambiguous whether you are binding
+					// on viewModel or an attribute (:to, :from, :bind)
+					favorViewModel: true
 				});
 
 				if(dataBinding) {
@@ -265,13 +268,17 @@ var behaviors = {
 			if(domData.get.call(el, "preventDataBindings")) {
 				return;
 			}
-			var viewModel = canViewModel(el),
+			var viewModel,
+				getViewModel = function() {
+					return viewModel || (viewModel = canViewModel(el));
+				},
 				semaphore = {},
 				teardown;
 
 			// If a two-way binding, take extra measure to ensure
 			//  that parent and child sync values properly.
-			var twoWay = bindingsRegExp.exec(attrData.attributeName)[1];
+			var legacyBindings = bindingsRegExp.exec(attrData.attributeName);
+			var twoWay = legacyBindings && legacyBindings[1];
 
 			// Setup binding
 			var dataBinding = makeDataBinding({
@@ -282,9 +289,7 @@ var behaviors = {
 				templateType: attrData.templateType,
 				scope: attrData.scope,
 				semaphore: semaphore,
-				getViewModel: function() {
-					return viewModel;
-				},
+				getViewModel: getViewModel,
 				syncChildWithParent: twoWay
 			});
 
@@ -312,9 +317,7 @@ var behaviors = {
 							templateType: attrData.templateType,
 							scope: attrData.scope,
 							semaphore: semaphore,
-							getViewModel: function() {
-								return viewModel;
-							},
+							getViewModel: getViewModel,
 							// always update the viewModel accordingly.
 							initializeValues: true,
 							nodeList: attrData.nodeList,
@@ -590,6 +593,9 @@ var behaviors = {
 
 // `{}="bar"` data bindings.
 viewCallbacks.attr(/^\{[^\}]+\}$/, behaviors.data);
+viewCallbacks.attr(/[\w\.]+:to/, behaviors.data);
+viewCallbacks.attr(/[\w\.]+:from/, behaviors.data);
+viewCallbacks.attr(/[\w\.]+:bind/, behaviors.data);
 
 // `*ref-export` shorthand.
 viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
@@ -615,6 +621,17 @@ viewCallbacks.attr("can-value", behaviors.value);
 // An object of helper functions that make a getter/setter observable
 // on different types of objects.
 var getObservableFrom = {
+	// ### getObservableFrom.viewModelOrAttribute
+	viewModelOrAttribute: function(el, scope, vmNameOrProp, bindingData, mustBeSettable, stickyCompute, event) {
+		var viewModel = domData.get.call(el, 'viewModel');
+
+		// if we have a viewModel, use it; otherwise, setup attribute binding
+		if (viewModel) {
+			return this.viewModel.apply(this, arguments);
+		} else {
+			return this.attribute.apply(this, arguments);
+		}
+	},
 	// ### getObservableFrom.scope
 	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
 	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
@@ -848,7 +865,7 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 // - `bindingAttributeName` - the attribute name that created this binding.
 // - `initializeValues` - should parent and child be initialized to their counterpart.
 // If undefined is return, there is no binding.
-var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName) {
+var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName, favorViewModel) {
 
 		var bindingInfo,
 			attributeName = node.name,
@@ -860,7 +877,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			childName = attributeName.substr(0, attributeName.length - ":from".length);
 			return {
 				parent: "scope",
-				child: "viewModel",
+				child: favorViewModel ? "viewModel" : "viewModelOrAttribute",
 				childToParent: false,
 				parentToChild: true,
 				bindingAttributeName: attributeName,
@@ -873,7 +890,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			childName = attributeName.substr(0, attributeName.length - ":to".length);
 			return {
 				parent: "scope",
-				child: "viewModel",
+				child: favorViewModel ? "viewModel" : "viewModelOrAttribute",
 				childToParent: true,
 				parentToChild: false,
 				bindingAttributeName: attributeName,
@@ -886,7 +903,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			childName = attributeName.substr(0, attributeName.length - ":bind".length);
 			return {
 				parent: "scope",
-				child: "viewModel",
+				child: favorViewModel ? "viewModel" : "viewModelOrAttribute",
 				childToParent: true,
 				parentToChild: true,
 				bindingAttributeName: attributeName,
@@ -896,7 +913,6 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 				syncChildWithParent: true
 			};
 		}
-
 
 		// Does this match the new binding syntax?
 		var matches = attributeName.match(bindingsRegExp);
@@ -1014,7 +1030,7 @@ var decodeAttrName = function(name){
 // - `object` - An object with information about the binding.
 var makeDataBinding = function(node, el, bindingData) {
 	// Get information about the binding.
-	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase());
+	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
 	if(!bindingInfo) {
 		return;
 	}
