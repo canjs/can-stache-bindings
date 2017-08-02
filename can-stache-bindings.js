@@ -40,6 +40,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
 var singleReference = require("can-util/js/single-reference/single-reference");
+var encoder = require("can-attribute-encoder");
 
 var addEnterEvent = require('can-event-dom-enter/compat');
 addEnterEvent(domEvents);
@@ -357,7 +358,7 @@ var behaviors = {
 
 			// Get the `event` name and if we are listening to the element or viewModel.
 			// The attribute name is the name of the event.
-			var attributeName = data.attributeName,
+			var attributeName = encoder.decode( data.attributeName ),
 				// the name of the event we are binding
 				event,
 				// if we are binding on the element or the VM
@@ -376,7 +377,7 @@ var behaviors = {
 				} else {
 					// bind on the element if there is not a viewModel
 					var viewModel = domData.get.call(el, "viewModel");
-					bindingContext = viewModel !== undefined ? viewModel : el;
+					bindingContext = viewModel || el;
 				}
 			} else {
 				event = removeBrackets(attributeName, '(', ')');
@@ -384,8 +385,8 @@ var behaviors = {
 					event = event.substr(1);
 					bindingContext = el;
 				} else {
-					if(event.indexOf("\\s") >= 0) {
-						var eventSplit = event.split("\\s");
+					if(event.indexOf(" ") >= 0) {
+						var eventSplit = event.split(" ");
 						bindingContext = data.scope.get(decodeAttrName(eventSplit[0]));
 						event = eventSplit[1];
 					}else{
@@ -400,7 +401,7 @@ var behaviors = {
 			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
 			var handler = function (ev) {
-					var attrVal = el.getAttribute(attributeName);
+					var attrVal = el.getAttribute( encoder.encode(attributeName) );
 					if (!attrVal) { return; }
 
 					var viewModel = canViewModel(el);
@@ -591,27 +592,27 @@ var behaviors = {
 // The following sets up the bindings functions to be called
 // when called in a template.
 
+//!steal-remove-start
+function syntaxWarning(el, attrData) {
+	dev.warn('can-stache-bindings: mismatched binding syntax - ' + encoder.decode(attrData.attributeName));
+}
+viewCallbacks.attr(/^(:lp:).+(:rb:)$/, syntaxWarning);
+viewCallbacks.attr(/^(:lb:).+(:rp:)$/, syntaxWarning);
+viewCallbacks.attr(/^(:lp:)(:lb:).+(:rb:)(:rp:)$/, syntaxWarning);
+//!steal-remove-end
+
 // `{}="bar"` data bindings.
-viewCallbacks.attr(/^\{[^\}]+\}$/, behaviors.data);
-viewCallbacks.attr(/[\w\.]+:to/, behaviors.data);
-viewCallbacks.attr(/[\w\.]+:from/, behaviors.data);
-viewCallbacks.attr(/[\w\.]+:bind/, behaviors.data);
+viewCallbacks.attr(/^(:lb:)[(:c:)\w-]+(:rb:)$/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:to/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:from/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:bind/, behaviors.data);
 
 // `*ref-export` shorthand.
 viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
 
 // `(EVENT)` event bindings.
-viewCallbacks.attr(/on:[\w\.]+/, behaviors.event);
-viewCallbacks.attr(/^\([\$?\w\.\\]+\)$/, behaviors.event);
-
-//!steal-remove-start
-function syntaxWarning(el, attrData) {
-		dev.warn('can-stache-bindings: mismatched binding syntax - ' + attrData.attributeName);
-}
-viewCallbacks.attr(/^\(.+\}$/, syntaxWarning);
-viewCallbacks.attr(/^\{.+\)$/, syntaxWarning);
-viewCallbacks.attr(/^\(\{.+\}\)$/, syntaxWarning);
-//!steal-remove-end
+viewCallbacks.attr(/on:[\w\.:]+/, behaviors.event);
+viewCallbacks.attr(/^(:lp:)[(:d:)?\w\.\\]+(:rp:)$/, behaviors.event);
 
 // Legacy bindings.
 viewCallbacks.attr(/can-[\w\.]+/, behaviors.event);
@@ -868,7 +869,7 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName, favorViewModel) {
 
 		var bindingInfo,
-			attributeName = node.name,
+			attributeName = encoder.decode( node.name ),
 			attributeValue = node.value || "",
 			childName;
 

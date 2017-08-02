@@ -1908,7 +1908,7 @@ if (System.env.indexOf('production') < 0) {
 		var thisTest = QUnit.config.current;
 		dev.warn = function(text) {
 			if(QUnit.config.current === thisTest) {
-				equal(text, message, 'Got expected message logged.');
+				equal(text, message, 'Got expected message: ' + message);
 			}
 		};
 

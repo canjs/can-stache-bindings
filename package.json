@@ -31,6 +31,7 @@
     "main": "can-stache-bindings"
   },
   "dependencies": {
+    "can-attribute-encoder": "^0.3.0",
     "can-cid": "^1.0.3",
     "can-compute": "^3.3.1",
     "can-event": "^3.5.0",
@@ -39,15 +40,15 @@
     "can-observation": "^3.3.1",
     "can-reflect": "^1.2.1",
     "can-simple-map": "^3.3.0",
-    "can-stache": "^3.3.0",
+    "can-stache": "^3.4.0-pre.0",
+    "can-stache-key": "^0.0.2",
     "can-symbol": "^1.0.0",
     "can-types": "^1.1.0",
     "can-util": "^3.9.0",
     "can-view-callbacks": "^3.2.0",
     "can-view-live": "^3.2.0",
     "can-view-model": "^3.4.0",
-    "can-view-scope": "^3.3.0",
-    "can-stache-key": "^0.0.2"
+    "can-view-scope": "^3.3.0"
   },
   "devDependencies": {
     "bit-docs": "0.0.7",

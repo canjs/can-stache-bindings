@@ -84,7 +84,7 @@ test("basics", 5, function(){
 
 	var MySimpleMap = SimpleMap.extend({
 		methodD: function(){
-			QUnit.ok(true, "on:vmEvent bindings work");
+			QUnit.ok(true, "on:vmevent bindings work");
 		}
 	});
 
@@ -136,30 +136,6 @@ test("basics", 5, function(){
 
 	viewModel.dispatch({type: "vmevent"});
 
-});
-
-test('scope method called when scope property changes on DefineMap (#197)', function(){
-	stop();
-	expect(1);
-
-	MockComponent.extend({
-		tag: "view-model-able"
-	});
-
-	var template = stache("<view-model-able on:subprop:by:prop='someMethod'/>");
-
-	var map = new DefineMap({
-		prop: {
-			subprop: "Mercury"
-		},
-		someMethod: function(scope, el, ev, newVal){
-			start();
-			equal(newVal, "Venus", "method called");
-		}
-	});
-
-	template(map);
-	map.prop.subprop = "Venus";
 });
 
 test("getBindingInfo", function(){
@@ -319,6 +295,91 @@ test("value:bind", function() {
 	canEvent.trigger.call(input, "change");
 
 	equal(map.attr("age"), "32", "updated from input");
+});
+
+test('can listen to camelCase events using on:', function(){
+	QUnit.stop();
+	expect(1);
+
+	var map = new DefineMap({
+		someProp: 'foo',
+
+		someMethod: function() {
+			QUnit.start();
+			ok(true);
+		}
+	});
+
+	var template = stache("<div on:someProp:by:this='someMethod'/>");
+	template(map);
+
+	map.someProp = "baz";
+});
+
+test('can listen to kebab-case events using on:', function(){
+	QUnit.stop();
+	expect(1);
+
+	var map = new DefineMap({
+		'some-prop': 'foo',
+
+		someMethod: function() {
+			QUnit.start();
+			ok(true);
+		}
+	});
+
+	var template = stache("<div on:some-prop:by:this='someMethod'/>");
+	template(map);
+
+	map['some-prop'] = "baz";
+});
+
+test('can bind to property on scope using :by:', function(){
+	stop();
+	expect(1);
+
+	MockComponent.extend({
+		tag: "view-model-able"
+	});
+
+	var template = stache("<view-model-able on:prop:by:obj='someMethod'/>");
+
+	var map = new DefineMap({
+		obj: {
+			prop: "Mercury"
+		},
+		someMethod: function(scope, el, ev, newVal){
+			start();
+			equal(newVal, "Venus", "method called");
+		}
+	});
+
+	template(map);
+	map.obj.prop = "Venus";
+});
+
+test('can bind to entire scope using :by:this', function(){
+	stop();
+	expect(1);
+
+	MockComponent.extend({
+		tag: "view-model-able"
+	});
+
+	var template = stache("<view-model-able on:prop:by:this='someMethod'/>");
+
+	var map = new DefineMap({
+		prop: "Mercury",
+
+		someMethod: function(scope, el, ev, newVal){
+			start();
+			equal(newVal, "Venus", "method called");
+		}
+	});
+
+	template(map);
+	map.prop = "Venus";
 });
 
 }
