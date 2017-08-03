@@ -1,9 +1,10 @@
-@module can-stache-bindings
-@parent can-core
-@group can-stache-bindings.syntaxes Syntaxes
-@package ../package.json
+@module legacy\ \{\(\$\^\)\}\ bindings can-stache-bindings Legacy Syntaxes
+@group can-stache-bindings.legacy-syntaxes Legacy Syntaxes
+@parent can-stache-bindings.syntaxes 5
 
 Provides template event, one-way bindings, and two-way bindings.
+
+> Note: this syntax will be deprecated in an upcoming release and you should use the [can-stache-bindings new syntax] instead
 
 @body
 
@@ -13,12 +14,14 @@ The `can-stache-bindings` plugin provides useful [can-view-callbacks.attr custom
 bindings on element attributes, component [can-component::ViewModel ViewModels], and the [can-view-scope scope]. Bindings look like:
 
 
-- `on:event="key()"` for event binding.
-- `prop:from="key"` for one-way binding to a child.
-- `prop:to="key"` for one-way binding to a parent.
-- `prop:bind="key"` for two-way binding.
+- `(event)="key()"` for event binding.
+- `{prop}="key"` for one-way binding to a child.
+- `{^prop}="key"` for one-way binding to a parent.
+- `{(prop)}="key"` for two-way binding.
 
-__Note:__ DOM attribute names are case-insensitive, but [can-component::ViewModel ViewModel] or [can-view-scope scope] properties can be `camelCase` and [can-stache stache] will encode them so they work correctly in the DOM.
+Prepending `$` to a binding like `($event)="key()"` changes the binding from the `ViewModel` to the element’s attributes or properties.
+
+> __Note:__ DOM attribute names are case-insensitive, use hypens (-) to in the attribute name to setup camelCase bindings.
 
 The following are the bindings that should be used with [can-stache]:
 
@@ -28,14 +31,14 @@ Binds to `childEvent` on `<my-component>`'s [can-component::ViewModel ViewModel]
 `method` on the [can-view-scope scope] with the specified arguments:
 
 ```
-<my-component on:childEvent="method('primitive', key, hash1=key1)"/>
+<my-component (child-event)="method('primitive', key, hash1=key1)"/>
 ```
 
-If the element does not have a [can-component::ViewModel ViewModel], binds to `domEvent` on the element and calls
+Binds to `domEvent` on `<my-component>` and calls
 `method` on the [can-view-scope scope] with the specified arguments.
 
 ```
-<div on:domEvent="method('primitive', key, hash1=key1)"/>
+<my-component ($dom-event)="method('primitive', key, hash1=key1)"/>
 ```
 
 #### [can-stache-bindings.toChild one-way to child]
@@ -43,16 +46,14 @@ If the element does not have a [can-component::ViewModel ViewModel], binds to `d
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope]:
 
 ```
-<my-component childProp:from="value"/>
+<my-component {child-prop}="value"/>
 ```
 
-> This can be read as "set `childProp` _from_ `value`".
-
-If the element does not have a [can-component::ViewModel ViewModel], updates the `child-attr` attribute or property of the
-element with `value` in the [can-view-scope scope]:
+Updates the `child-attr` attribute or property on `<my-component>` with `value`
+in the [can-view-scope scope]:
 
 ```
-<div child-attr:from="value"/>
+<my-component {$child-attr}="value"/>
 ```
 
 > __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
@@ -63,16 +64,14 @@ Updates `value` in the [can-view-scope scope]  with `childProp`
 in `<my-component>`’s [can-component::ViewModel ViewModel]:
 
 ```
-<my-component childProp:to="value"/>
+<my-component {^child-prop}="value"/>
 ```
 
-> This can be read as "send `childProp` _to_ `value`".
-
-If the element does not have a [can-component::ViewModel ViewModel], updates `value`
-in the [can-view-scope scope] with the `child-attr` attribute or property of the element.
+Updates `value`
+in the [can-view-scope scope] with the `child-attr` attribute or property on `<my-component>`:
 
 ```
-<div child-attr:to="value"/>
+<my-component {^$child-attr}="value"/>
 ```
 
 > __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
@@ -82,19 +81,19 @@ in the [can-view-scope scope] with the `child-attr` attribute or property of the
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope] and vice versa:
 
 ```
-<my-component childProp:bind="value"/>
+<my-component {(child-prop)}="value"/>
 ```
 
-Updates the `child-attr` attribute or property of the element with `value`
+Updates the `child-attr` attribute or property on `<my-component>` with `value`
 in the [can-view-scope scope] and vice versa:
 
 ```
-<div child-attr:bind="value"/>
+<my-component {($child-attr)}="value"/>
 ```
 
 ## One Way Binding With Objects
 
-`childProp:from="key"` ([can-stache-bindings.toChild one-way to child]) or `child-prop:to="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component or vice versa, respectively.
+`{child-prop}="key"` ([can-stache-bindings.toChild one-way to child]) or `{^child-prop}="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component or vice versa, respectively.
 
 Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
 

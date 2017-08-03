@@ -1,16 +1,16 @@
-@function can-stache-bindings.twoWay twoWay:bind
-@parent can-stache-bindings.syntaxes 3
+@function can-stache-bindings.legacy-twoWay {\(two-way\)}
+@parent can-stache-bindings.legacy-syntaxes 3
 
 @description Two-way bind a value in the [can-component.prototype.view-model viewModel] or the element to the parent scope.
 
-@signature `childProp:bind="key"`
+@signature `{(child-prop)}="key"`
 
   Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
   ```
-  <my-component someProp:bind="value"/>
+  <my-component {(some-prop)}="value"/>
   ```
 
   When setting up the binding:
@@ -21,18 +21,18 @@
 
 
 
-  @param {String} childProp The name of the property of the viewModel to two-way bind.
+  @param {String} child-prop The name of the property of the viewModel to two-way bind.
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
 
-@signature `child-prop:bind="key"`
+@signature `{($child-prop)}="key"`
 
-  Two-way binds the element’s `child-prop` property or attribute to
-  [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated `key` will be updated
+  Two-way binds the element’s `childProp` property or attribute to
+  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
   ```
-  <input value:bind="name"/>
+  <input {($value)}="name"/>
   ```
 
   @param {String} child-prop The name of the element’s property or attribute to two-way bind.
@@ -43,7 +43,7 @@
 
 ## Use
 
-`childProp:bind="key"` is used to two-way bind a value in a [can-component.prototype.ViewModel ViewModel] to
+`{(child-prop)}="key"` is used to two-way bind a value in a [can-component.prototype.ViewModel ViewModel] to
 a value in the  [can-view-scope scope].  If one value changes, the other value is updated.
 
 The following two-way binds the `<edit-plate>` element’s `plateName` to the `editing.licensePlate`
