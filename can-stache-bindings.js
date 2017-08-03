@@ -50,6 +50,9 @@ addRadioChange(domEvents);
 
 var noop = function() {};
 
+var onMatchStr = "on:",
+	byMatchStr = ":by:";
+
 var reflectiveValue = function(value) {
 	var handlers = [];
 
@@ -368,11 +371,11 @@ var behaviors = {
 			if(attributeName.indexOf('can-') === 0) {
 				event = attributeName.substr("can-".length);
 				bindingContext = el;
-			} else if(attributeName.indexOf("on:") === 0 ) {
-				event = attributeName.substr("on:".length);
-				var byIndex = event.indexOf(":by:");
+			} else if(attributeName.indexOf(onMatchStr) === 0 ) {
+				event = attributeName.substr(onMatchStr.length);
+				var byIndex = event.indexOf(byMatchStr);
 				if( byIndex >= 0 ) {
-					bindingContext = data.scope.get(decodeAttrName(event.substr(byIndex+ ":by:".length)));
+					bindingContext = data.scope.get(decodeAttrName(event.substr(byIndex + byMatchStr.length)));
 					event = event.substr(0, byIndex);
 				} else {
 					// bind on the element if there is not a viewModel
