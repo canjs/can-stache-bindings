@@ -6,21 +6,22 @@
 
 Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 
-  - _syntaxes_
-    - <code>[{(child-prop)}="key"](#child-propkey)</code>
-    - <code>[{($child-prop)}="key"](#child-propkey)</code>
-    - <code>[{child-prop}="key"](#child-propkey)</code>
-    - <code>[{$child-prop}="key"](#child-propkey)</code>
-    - <code>[{^child-prop}="key"](#child-propkey)</code>
-    - <code>[{^$child-prop}="key"](#child-propkey)</code>
-    - <code>[($DOM_EVENT)='CALL_EXPRESSION'](#dom_eventcall_expression)</code>
-    - <code>[(VIEW_MODEL_EVENT)='CALL_EXPRESSION'](#view_model_eventcall_expression)</code>
-    - <code>[*ref-prop](#ref-prop)</code>
-  - _converters_
-    - <code>[boolean-to-inList(item, list)](#boolean-to-inlistitem-list)</code>
-    - <code>[string-to-any(~item)](#string-to-anyitem)</code>
-    - <code>[not(~value)](#notvalue)</code>
-    - <code>[index-to-selected(~item, list)](#index-to-selecteditem-list)</code>
+	- _syntaxes_
+		- <code>[{(child-prop)}="key"](#child-propkey)</code>
+		- <code>[{($child-prop)}="key"](#child-propkey)</code>
+		- <code>[{child-prop}="key"](#child-propkey)</code>
+		- <code>[{$child-prop}="key"](#child-propkey)</code>
+		- <code>[{^child-prop}="key"](#child-propkey)</code>
+		- <code>[{^$child-prop}="key"](#child-propkey)</code>
+		- <code>[($DOM_EVENT)='CALL_EXPRESSION'](#dom_eventcall_expression)</code>
+		- <code>[(VIEW_MODEL_EVENT)='CALL_EXPRESSION'](#view_model_eventcall_expression)</code>
+		- <code>[(KEY_LOOKUP EVENT)='CALL_EXPRESSION'](#key_lookup-eventcall_expression)</code>
+		- <code>[*ref-prop](#ref-prop)</code>
+	- _converters_
+		- <code>[boolean-to-inList(item, list)](#boolean-to-inlistitem-list)</code>
+		- <code>[string-to-any(~item)](#string-to-anyitem)</code>
+		- <code>[not(~value)](#notvalue)</code>
+		- <code>[index-to-selected(~item, list)](#index-to-selecteditem-list)</code>
 
 ## API
 
@@ -28,81 +29,81 @@ Default binding syntaxes for [can-stache](https://github.com/canjs/can-stache).
 ### <code>{(child-prop)}="key"</code>
 
 
-  Two-way binds `childProp` in the  [can-component::ViewModel ViewModel] to
-  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
-  and vice-versa.
+	Two-way binds `childProp` in the  [can-component::ViewModel ViewModel] to
+	[can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
+	and vice-versa.
 
-  ```
-  <my-component {(some-prop)}="value"/>
-  ```
+	```
+	<my-component {(some-prop)}="value"/>
+	```
 
-  When setting up the binding:
+	When setting up the binding:
 
-  - If `childProp` is `undefined`, `key` will be set to `childProp`.
-  - If `key` is `undefined`, `childProp` will be set to `key`.
-  - If both `childProp` and `key` are defined, `key` will be set to `childProp`.
+	- If `childProp` is `undefined`, `key` will be set to `childProp`.
+	- If `key` is `undefined`, `childProp` will be set to `key`.
+	- If both `childProp` and `key` are defined, `key` will be set to `childProp`.
 
 
 
 
 1. __child-prop__ <code>{String}</code>:
-  The name of the property of the viewModel to two-way bind.
+	The name of the property of the viewModel to two-way bind.
 
 1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
-  A call expression whose value will be used to two-way bind in the parent scope.
+	A call expression whose value will be used to two-way bind in the parent scope.
 
 
 ### <code>{($child-prop)}="key"</code>
 
 
-  Two-way binds the element's `childProp` property or attribute to
-  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
-  and vice-versa.
+	Two-way binds the element's `childProp` property or attribute to
+	[can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
+	and vice-versa.
 
-  ```
-  <input {($value)}="name"/>
-  ```
+	```
+	<input {($value)}="name"/>
+	```
 
 
 1. __child-prop__ <code>{String}</code>:
-  The name of the element's property or attribute to two-way bind.
+	The name of the element's property or attribute to two-way bind.
 
 1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
-  A call expression whose value will be used to two-way bind in the parent scope.
+	A call expression whose value will be used to two-way bind in the parent scope.
 
 
 ### <code>{child-prop}="key"</code>
 
 
-  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component::ViewModel ViewModel]. It also updates `childProp` with the value of `key` when `key` changes.
+	Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component::ViewModel ViewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
-  ```
-  <my-component {some-prop}="value"/>
-  ```
+	```
+	<my-component {some-prop}="value"/>
+	```
 
 
 1. __child-prop__ <code>{String}</code>:
-  The name of the property to set in the
-  component's viewmodel.
+	The name of the property to set in the
+	component's viewmodel.
 
 1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
-  An expression whose resulting value is used to set as `childProp`.
+	An expression whose resulting value is used to set as `childProp`.
 
 
 ### <code>{$child-prop}="key"</code>
 
 
-  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` property or attribute on the element.
+	Imports [can-stache.key] in the [can-view-scope scope] to `childProp` property or attribute on the element.
 
-  ```
-  <input {$value}="name"/>
-  ```
+	```
+	<input {$value}="name"/>
+	```
 
-  This signature works, but the following should be used instead:
+	This signature works, but the following should be used instead:
 
-  ```
-  <input value="{{name}}"/>
-  ```
+	```
+	<input value="{{name}}"/>
+	```
 
 
 ### <code>{^child-prop}="key"</code>
@@ -117,29 +118,29 @@ Exports `childProp` in the [can-component::ViewModel ViewModel] to [can-stache.k
 
 
 1. __child-prop__ <code>{String}</code>:
-  The name of the property to export from the
-  child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewModel.
+	The name of the property to export from the
+	child components viewmodel. Use `{^this}` or `{^.}` to export the entire viewModel.
 
 1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
-  An expression that will be used to set in the parent scope.
+	An expression that will be used to set in the parent scope.
 
 
 ### <code>{^$child-prop}="key"</code>
 
 
-  Exports the element's `childProp` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
-  `key` with the value of `childProp` when `childProp` changes.
+	Exports the element's `childProp` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
+	`key` with the value of `childProp` when `childProp` changes.
 
-  ```
-  <input {^$value}="name"/>
-  ```
+	```
+	<input {^$value}="name"/>
+	```
 
 
 1. __child-prop__ <code>{String}</code>:
-  The name of the element's property or attribute to export.
+	The name of the element's property or attribute to export.
 
 1. __key__ <code>{can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper}</code>:
-  An expression whose resulting value with be used to set in the parent scope.
+	An expression whose resulting value with be used to set in the parent scope.
 
 
 
@@ -154,17 +155,17 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
 
 
 1. __DOM_EVENT__ <code>{String}</code>:
-  A DOM event name like "click".
+	A DOM event name like "click".
 
 1. __CALL_EXPRESSION__ <code>{can-stache/expressions/call}</code>:
-  A call expression like `method(key)` that is called when the `DOM_EVENT` is fired. The following key values are also supported:
+	A call expression like `method(key)` that is called when the `DOM_EVENT` is fired. The following key values are also supported:
 
-   - `%element` - The element the event happened upon.
-   - `$element` - The element the event happened upon.
-   - `%event` - The event object.
-   - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
-   - `%context` - The current context.
-   - `%scope` - The current [can-view-scope scope].
+	 - `%element` - The element the event happened upon.
+	 - `$element` - The element the event happened upon.
+	 - `%event` - The event object.
+	 - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
+	 - `%context` - The current context.
+	 - `%scope` - The current [can-view-scope scope].
 
 
 ### <code>(VIEW_MODEL_EVENT)='CALL_EXPRESSION'</code>
@@ -178,29 +179,53 @@ Listens to an event on the element's [can-component::ViewModel ViewModel] and ca
 
 
 1. __VIEW_MODEL_EVENT__ <code>{String}</code>:
-  A view model event name.
+	A view model event name.
 
 1. __CALL_EXPRESSION__ <code>{can-stache.expressions}</code>:
-  A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
-  is fired. The following key values are also supported:
+	A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
+	is fired. The following key values are also supported:
 
-   - `%element` - The element the event happened upon.
-   - `$element` - The [can.$] wrapped element the event happened upon.
-   - `%event` - The event object.
-   - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
-   - `%context` - The current context.
-   - `%scope` - The current [can-view-scope].
+	 - `%element` - The element the event happened upon.
+	 - `$element` - The [can.$] wrapped element the event happened upon.
+	 - `%event` - The event object.
+	 - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
+	 - `%context` - The current context.
+	 - `%scope` - The current [can-view-scope].
+
+### <code>(KEY_LOOKUP EVENT)='CALL_EXPRESSION'</code>
+
+Listens to an event in the [can-stache/expressions/key-lookup specified scope] and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<div (./someprop someevent)="doSomething()"/>
+```
+
+1. __KEY_LOOKUP__ <code>{String}</code>:
+	A key to specify the context for the `EVENT` binding.  The object spcified by `key` will have its event named `EVENT` bound.
+
+1. __EVENT__ <code>{String}</code>:
+	The name of the event on an event emitter specified by `KEY_LOOKUP`.
+
+1. __CALL_EXPRESSION__ <code>{can-stache.expressions}</code>:
+	A call expression like `method(key)` that is called when the `EVENT` is fired. The following key values are also supported:
+
+	 - `%element` - The element the event happened upon.
+	 - `$element` - The [can.$] wrapped element the event happened upon.
+	 - `%event` - The event object.
+	 - `%viewModel` - If the element is a [can-component], the component's [can-component::ViewModel ViewModel].
+	 - `%context` - The current context.
+	 - `%scope` - The current [can-view-scope].
 
 
 
 ### <code>*ref-prop</code>
 
 
-  A shorthand for exporting an element's viewModel to the reference scope.
+	A shorthand for exporting an element's viewModel to the reference scope.
 
 
 1. __ref-prop__ <code>{String}</code>:
-  The name of the property to set in the template's 'references' scope.
+	The name of the property to set in the template's 'references' scope.
 
 
 ### <code>boolean-to-inList(item, list)</code>
@@ -216,12 +241,12 @@ When the setter is called, if the new value is truthy then the item will be adde
 
 
 1. __item__ <code>{*}</code>:
-  The item to which to check
+	The item to which to check
 1. __list__ <code>{can-define/list/list|can-list|Array}</code>:
-  The list
+	The list
 
 - __returns__ <code>{can-compute}</code>:
-  A compute that will be used by undefined as a getter/setter when the element's value changes.
+	A compute that will be used by undefined as a getter/setter when the element's value changes.
 
 
 ### <code>string-to-any(~item)</code>
@@ -233,17 +258,17 @@ When the setter is called, takes the new value and converts it to the primitive 
 
 ```handlebars
 <select {($value)}="string-to-any(~favePlayer)">
-  <option value="23">Michael Jordan</option>
+	<option value="23">Michael Jordan</option>
 	<option value="32">Magic Johnson</option>
 </select>
 ```
 
 
 1. __item__ <code>{can-compute}</code>:
-  A compute holding a primitive value.
+	A compute holding a primitive value.
 
 - __returns__ <code>{can-compute}</code>:
-  A compute that will be used by undefined as a getter/setter when the element's value changes.
+	A compute that will be used by undefined as a getter/setter when the element's value changes.
 
 
 ### <code>not(~value)</code>
@@ -261,10 +286,10 @@ When the setter is called, sets the compute's value to the negation of the new v
 
 
 1. __value__ <code>{can-compute}</code>:
-  A value stored in a [can-compute].
+	A value stored in a [can-compute].
 
 - __returns__ <code>{can-compute}</code>:
-  A compute that will be two-way bound by undefined as a getter/setter on the element.
+	A compute that will be two-way bound by undefined as a getter/setter on the element.
 
 
 ### <code>index-to-selected(~item, list)</code>
@@ -288,12 +313,12 @@ When the setter is called, takes the selected index value and finds the item fro
 
 
 1. __item__ <code>{can-compute}</code>:
-  A compute whose item is in the list.
+	A compute whose item is in the list.
 1. __list__ <code>{can-define/list/list|can-list|Array}</code>:
-  A list used to find the `item`.
+	A list used to find the `item`.
 
 - __returns__ <code>{can-compute}</code>:
-  A compute that will be two-way bound to the select's value.
+	A compute that will be two-way bound to the select's value.
 
 
 ## Contributing
