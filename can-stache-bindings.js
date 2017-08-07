@@ -265,7 +265,7 @@ var behaviors = {
 			if(domData.get.call(el, "preventDataBindings")) {
 				return;
 			}
-			var viewModel = canViewModel(el),
+			var viewModel,
 				semaphore = {},
 				teardown;
 
@@ -287,6 +287,14 @@ var behaviors = {
 				},
 				syncChildWithParent: twoWay
 			});
+
+			//!steal-remove-start
+			if(dataBinding.bindingInfo.child === "viewModel" && !domData.get(el, "viewModel")) {
+				dev.warn('This element does not have a viewModel. (Attempting to bind `' + dataBinding.bindingInfo.bindingAttributeName + '="' + dataBinding.bindingInfo.parentName + '"`)');
+			}
+			//!steal-remove-end
+
+			viewModel = canViewModel(el);
 
 			if(dataBinding.onCompleteBinding) {
 				dataBinding.onCompleteBinding();
