@@ -310,6 +310,12 @@ var behaviors = {
 				syncChildWithParent: twoWay
 			});
 
+			//!steal-remove-start
+			if(dataBinding.bindingInfo.child === "viewModel" && !domData.get(el, "viewModel")) {
+				dev.warn('This element does not have a viewModel. (Attempting to bind `' + dataBinding.bindingInfo.bindingAttributeName + '="' + dataBinding.bindingInfo.parentName + '"`)');
+			}
+			//!steal-remove-end
+
 			if(dataBinding.onCompleteBinding) {
 				dataBinding.onCompleteBinding();
 			}
