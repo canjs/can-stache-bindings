@@ -414,6 +414,7 @@ var behaviors = {
 						"%viewModel": viewModel,
 						"%scope": data.scope,
 						"%context": data.scope._context,
+						"this": data.scope._context,
 						"%arguments": arguments
 					},{
 						notContext: true
