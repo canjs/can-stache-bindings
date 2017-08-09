@@ -40,6 +40,7 @@ var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
 var singleReference = require("can-util/js/single-reference/single-reference");
+var encoder = require("can-attribute-encoder");
 
 var addEnterEvent = require('can-event-dom-enter/compat');
 addEnterEvent(domEvents);
@@ -48,6 +49,22 @@ var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
 
 var noop = function() {};
+
+var onMatchStr = "on:",
+	byMatchStr = ":by:",
+	toMatchStr = ":to",
+	fromMatchStr = ":from",
+	bindMatchStr = ":bind",
+	attributesEventStr = "attributes",
+	removedStr = "removed",
+	viewModelBindingStr = "viewModel",
+	attributeBindingStr = "attribute",
+	scopeBindingStr = "scope",
+	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
+	getValueSymbol = "can.getValue",
+	setValueSymbol = "can.setValue",
+	onValueSymbol = "can.onValue",
+	offValueSymbol = "can.offValue";
 
 var reflectiveValue = function(value) {
 	var handlers = [];
@@ -64,17 +81,17 @@ var reflectiveValue = function(value) {
 		}
 	};
 	CID(fn);
-	canReflect.set(fn, canSymbol.for("can.onValue"), function(handler) {
+	canReflect.set(fn, canSymbol.for(onValueSymbol), function(handler) {
 		handlers.push(handler);
 	});
-	canReflect.set(fn, canSymbol.for("can.offValue"), function(handler) {
+	canReflect.set(fn, canSymbol.for(offValueSymbol), function(handler) {
 		var index = handlers.indexOf(handler);
 		handlers.splice(index, 1);
 	});
-	canReflect.set(fn, canSymbol.for("can.setValue"), function(newValue) {
+	canReflect.set(fn, canSymbol.for(setValueSymbol), function(newValue) {
 		return fn(newValue);
 	});
-	canReflect.set(fn, canSymbol.for("can.getValue"), function() {
+	canReflect.set(fn, canSymbol.for(getValueSymbol), function() {
 		return fn();
 	});
 	fn.isComputed = true;
@@ -100,7 +117,7 @@ var throwOnlyOneTypeOfBindingError = function(){
 // set THE viewModel ITSELF.
 // If there is a conflict, an error is thrown.
 var checkBindingState = function(bindingState, dataBinding) {
-	var isSettingOnViewModel = dataBinding.bindingInfo.parentToChild && dataBinding.bindingInfo.child === "viewModel";
+	var isSettingOnViewModel = dataBinding.bindingInfo.parentToChild && dataBinding.bindingInfo.child === viewModelBindingStr;
 	if(isSettingOnViewModel) {
 		var bindingName = dataBinding.bindingInfo.childName;
 		var isSettingViewModel = isSettingOnViewModel && ( bindingName === 'this' || bindingName === '.' );
@@ -176,7 +193,10 @@ var behaviors = {
 					},
 					attributeViewModelBindings: attributeViewModelBindings,
 					alreadyUpdatedChild: true,
-					nodeList: tagData.parentNodeList
+					nodeList: tagData.parentNodeList,
+					// force viewModel bindings in cases when it is ambiguous whether you are binding
+					// on viewModel or an attribute (:to, :from, :bind)
+					favorViewModel: true
 				});
 
 				if(dataBinding) {
@@ -217,7 +237,7 @@ var behaviors = {
 			// Listen to attribute changes and re-initialize
 			// the bindings.
 			if(!bindingsState.isSettingViewModel) {
-				domEvents.addEventListener.call(el, "attributes", function (ev) {
+				domEvents.addEventListener.call(el, attributesEventStr, function (ev) {
 					var attrName = ev.attributeName,
 						value = el.getAttribute(attrName);
 
@@ -225,7 +245,7 @@ var behaviors = {
 						onTeardowns[attrName]();
 					}
 					// Parent attribute bindings we always re-setup.
-					var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === "attribute";
+					var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === attributeBindingStr;
 
 					if(value !== null || parentBindingWasAttribute ) {
 						var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
@@ -266,12 +286,16 @@ var behaviors = {
 				return;
 			}
 			var viewModel,
+				getViewModel = function() {
+					return viewModel || (viewModel = canViewModel(el));
+				},
 				semaphore = {},
 				teardown;
 
 			// If a two-way binding, take extra measure to ensure
 			//  that parent and child sync values properly.
-			var twoWay = bindingsRegExp.exec(attrData.attributeName)[1];
+			var legacyBindings = bindingsRegExp.exec(attrData.attributeName);
+			var twoWay = legacyBindings && legacyBindings[1];
 
 			// Setup binding
 			var dataBinding = makeDataBinding({
@@ -282,9 +306,7 @@ var behaviors = {
 				templateType: attrData.templateType,
 				scope: attrData.scope,
 				semaphore: semaphore,
-				getViewModel: function() {
-					return viewModel;
-				},
+				getViewModel: getViewModel,
 				syncChildWithParent: twoWay
 			});
 
@@ -294,19 +316,17 @@ var behaviors = {
 			}
 			//!steal-remove-end
 
-			viewModel = canViewModel(el);
-
 			if(dataBinding.onCompleteBinding) {
 				dataBinding.onCompleteBinding();
 			}
 
 			teardown = dataBinding.onTeardown;
-			canEvent.one.call(el, 'removed', function() {
+			canEvent.one.call(el, removedStr, function() {
 				teardown();
 			});
 
 			// Listen for changes
-			domEvents.addEventListener.call(el, "attributes", function (ev) {
+			domEvents.addEventListener.call(el, attributesEventStr, function (ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -320,9 +340,7 @@ var behaviors = {
 							templateType: attrData.templateType,
 							scope: attrData.scope,
 							semaphore: semaphore,
-							getViewModel: function() {
-								return viewModel;
-							},
+							getViewModel: getViewModel,
 							// always update the viewModel accordingly.
 							initializeValues: true,
 							nodeList: attrData.nodeList,
@@ -359,115 +377,128 @@ var behaviors = {
 		// and can-xxx (anything starting with can-), this callback will be run.  Inside, its setting up an event handler
 		// that calls a method identified by the value of this attribute.
 		event: function(el, data) {
+
 			// Get the `event` name and if we are listening to the element or viewModel.
 			// The attribute name is the name of the event.
-			var attributeName = data.attributeName,
-			// The old way of binding is can-X
-				legacyBinding = attributeName.indexOf('can-') === 0,
-				event = attributeName.indexOf('can-') === 0 ?
-					attributeName.substr("can-".length) :
-					removeBrackets(attributeName, '(', ')'),
-				onBindElement = legacyBinding;
+			var attributeName = encoder.decode( data.attributeName ),
+				// the name of the event we are binding
+				event,
+				// if we are binding on the element or the VM
+				bindingContext;
 
+			// legacy binding
+			if(attributeName.indexOf('can-') === 0) {
+				event = attributeName.substr("can-".length);
+				bindingContext = el;
+			} else if(attributeName.indexOf(onMatchStr) === 0 ) {
+				event = attributeName.substr(onMatchStr.length);
+				var byIndex = event.indexOf(byMatchStr);
+				if( byIndex >= 0 ) {
+					bindingContext = data.scope.get(decodeAttrName(event.substr(byIndex + byMatchStr.length)));
+					event = event.substr(0, byIndex);
+				} else {
+					// bind on the element if there is not a viewModel
+					var viewModel = domData.get.call(el, viewModelBindingStr);
+					bindingContext = viewModel || el;
+				}
+			} else {
+				event = removeBrackets(attributeName, '(', ')');
+				if(event.charAt(0) === "$") {
+					event = event.substr(1);
+					bindingContext = el;
+				} else {
+					if(event.indexOf(" ") >= 0) {
+						var eventSplit = event.split(" ");
+						bindingContext = data.scope.get(decodeAttrName(eventSplit[0]));
+						event = eventSplit[1];
+					}else{
+						bindingContext = canViewModel(el);
+					}
+				}
+			}
+			// The old way of binding is can-X
 			event = decodeAttrName(event);
 
-			if(event.charAt(0) === "$") {
-				event = event.substr(1);
-				onBindElement = true;
-			}
 
 			// This is the method that the event will initially trigger. It will look up the method by the string name
 			// passed in the attribute and call it.
 			var handler = function (ev) {
-					var attrVal = el.getAttribute(attributeName);
-					if (!attrVal) { return; }
+				var attrVal = el.getAttribute( encoder.encode(attributeName) );
+				if (!attrVal) { return; }
 
-					var viewModel = canViewModel(el);
+				var viewModel = canViewModel(el);
 
-					// expression.parse will read the attribute
-					// value and parse it identically to how mustache helpers
-					// get parsed.
-					var expr = expression.parse(removeBrackets(attrVal),{
-						lookupRule: function() {
-							return expression.Lookup;
-						}, methodRule: "call"});
+				// expression.parse will read the attribute
+				// value and parse it identically to how mustache helpers
+				// get parsed.
+				var expr = expression.parse(removeBrackets(attrVal),{
+					lookupRule: function() {
+						return expression.Lookup;
+					}, methodRule: "call"});
 
-					if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
+				if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
 
-						var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data) {
-							return new expression.Arg(new expression.Literal(data));
-						});
-						expr = new expression.Call(expr, defaultArgs, {} );
-					}
-
-					// make a scope with these things just under
-					var localScope = data.scope.add({
-						"@element": el,
-						"@event": ev,
-						"@viewModel": viewModel,
-						"@scope": data.scope,
-						"@context": data.scope._context,
-
-						"%element": this,
-						"$element": types.wrapElement(el),
-						"%event": ev,
-						"%viewModel": viewModel,
-						"%scope": data.scope,
-						"%context": data.scope._context,
-						"%arguments": arguments
-					},{
-						notContext: true
+					var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data) {
+						return new expression.Arg(new expression.Literal(data));
 					});
+					expr = new expression.Call(expr, defaultArgs, {} );
+				}
+
+				// make a scope with these things just under
+				var localScope = data.scope.add({
+					"@element": el,
+					"@event": ev,
+					"@viewModel": viewModel,
+					"@scope": data.scope,
+					"@context": data.scope._context,
+
+					"%element": this,
+					"$element": types.wrapElement(el),
+					"%event": ev,
+					"%viewModel": viewModel,
+					"%scope": data.scope,
+					"%context": data.scope._context,
+					"%arguments": arguments
+				},{
+					notContext: true
+				});
 
 
-					// We grab the first item and treat it as a method that
-					// we'll call.
-					var scopeData = localScope.read(expr.methodExpr.key, {
-						isArgument: true
-					}), args, stacheHelper, stacheHelperResult;
+				// We grab the first item and treat it as a method that
+				// we'll call.
+				var scopeData = localScope.read(expr.methodExpr.key, {
+					isArgument: true
+				}), args, stacheHelper, stacheHelperResult;
 
-					if (!scopeData.value) {
-						// nothing found yet, look for a stache helper
-						var name = observeReader.reads(expr.methodExpr.key).map(function(part) {
-							return part.key;
-						}).join(".");
+				if (!scopeData.value) {
+					// nothing found yet, look for a stache helper
+					var name = observeReader.reads(expr.methodExpr.key).map(function(part) {
+						return part.key;
+					}).join(".");
 
-						stacheHelper = stacheHelperCore.getHelper(name);
-						if(stacheHelper) {
-							args = expr.args(localScope, null)();
-							stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
-							if(typeof stacheHelperResult === "function") {
-							  stacheHelperResult(el);
-							}
-							return stacheHelperResult;
+					stacheHelper = stacheHelperCore.getHelper(name);
+					if(stacheHelper) {
+						args = expr.args(localScope, null)();
+						stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
+						if(typeof stacheHelperResult === "function") {
+							stacheHelperResult(el);
 						}
-
-						//!steal-remove-start
-						dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
-							element: el,
-							scope: data.scope
-						});
-						//!steal-remove-end
-
-						return null;
+						return stacheHelperResult;
 					}
 
-					args = expr.args(localScope, null)();
-					return scopeData.value.apply(scopeData.parent, args);
-				};
+					//!steal-remove-start
+					dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
+						element: el,
+						scope: data.scope
+					});
+					//!steal-remove-end
 
-			var context;
-			if(onBindElement) {
-				context = el;
-			}else{
-				if(event.indexOf(" ") >= 0) {
-					var eventSplit = event.split(" ");
-					context = data.scope.get(eventSplit[0]);
-					event = eventSplit[1];
-				}else{
-					context = canViewModel(el);
+					return null;
 				}
-			}
+
+				args = expr.args(localScope, null)();
+				return scopeData.value.apply(scopeData.parent, args);
+			};
 
 			// Unbind the event when the attribute is removed from the DOM
 			var attributesHandler = function(ev) {
@@ -483,16 +514,16 @@ var behaviors = {
 				unbindEvent();
 			};
 			var unbindEvent = function() {
-					canEvent.off.call(context, event, handler);
-					canEvent.off.call(el, 'attributes', attributesHandler);
-				canEvent.off.call(el, 'removed', removedHandler);
+					canEvent.off.call(bindingContext, event, handler);
+					canEvent.off.call(el, attributesEventStr, attributesHandler);
+				canEvent.off.call(el, removedStr, removedHandler);
 			};
 
 			// Bind the handler defined above to the element we're currently processing and the event name provided in this
 			// attribute name (can-click="foo")
-			canEvent.on.call(context, event, handler);
-			canEvent.on.call(el, 'attributes', attributesHandler);
-			canEvent.on.call(el, 'removed', removedHandler);
+			canEvent.on.call(bindingContext, event, handler);
+			canEvent.on.call(el, attributesEventStr, attributesHandler);
+			canEvent.on.call(el, removedStr, removedHandler);
 		},
 		// ### bindings.behaviors.value
 		// Behavior for the deprecated can-value
@@ -513,7 +544,7 @@ var behaviors = {
 					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
 						var isSet = arguments.length !== 0;
-						if (property && property[canSymbol.for("can.getValue")]) {
+						if (property && property[canSymbol.for(getValueSymbol)]) {
 							if (isSet) {
 								canReflect.setValue(property, newValue ? trueValue : falseValue);
 							} else {
@@ -533,7 +564,7 @@ var behaviors = {
 					getterSetter = compute(function (newValue) {
 						// jshint eqeqeq: false
 						var isSet = arguments.length !== 0 && newValue;
-					if (property && property[canSymbol.for("can.getValue")]) {
+					if (property && property[canSymbol.for(getValueSymbol)]) {
 							if (isSet) {
 							canReflect.setValue(property, el.value);
 							} else {
@@ -570,7 +601,7 @@ var behaviors = {
 				legacyBindings: true
 			});
 
-			canEvent.one.call(el, "removed", function() {
+			canEvent.one.call(el, removedStr, function() {
 				dataBinding.onTeardown();
 			});
 		}
@@ -581,23 +612,27 @@ var behaviors = {
 // The following sets up the bindings functions to be called
 // when called in a template.
 
+//!steal-remove-start
+function syntaxWarning(el, attrData) {
+	dev.warn('can-stache-bindings: mismatched binding syntax - ' + encoder.decode(attrData.attributeName));
+}
+viewCallbacks.attr(/^(:lp:).+(:rb:)$/, syntaxWarning);
+viewCallbacks.attr(/^(:lb:).+(:rp:)$/, syntaxWarning);
+viewCallbacks.attr(/^(:lp:)(:lb:).+(:rb:)(:rp:)$/, syntaxWarning);
+//!steal-remove-end
+
 // `{}="bar"` data bindings.
-viewCallbacks.attr(/^\{[^\}]+\}$/, behaviors.data);
+viewCallbacks.attr(/^(:lb:)[(:c:)\w-]+(:rb:)$/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:to/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:from/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:bind/, behaviors.data);
 
 // `*ref-export` shorthand.
 viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
 
 // `(EVENT)` event bindings.
-viewCallbacks.attr(/^\([\$?\w\.\\]+\)$/, behaviors.event);
-
-//!steal-remove-start
-function syntaxWarning(el, attrData) {
-		dev.warn('can-stache-bindings: mismatched binding syntax - ' + attrData.attributeName);
-}
-viewCallbacks.attr(/^\(.+\}$/, syntaxWarning);
-viewCallbacks.attr(/^\{.+\)$/, syntaxWarning);
-viewCallbacks.attr(/^\(\{.+\}\)$/, syntaxWarning);
-//!steal-remove-end
+viewCallbacks.attr(/on:[\w\.:]+/, behaviors.event);
+viewCallbacks.attr(/^(:lp:)[(:d:)?\w\.\\]+(:rp:)$/, behaviors.event);
 
 // Legacy bindings.
 viewCallbacks.attr(/can-[\w\.]+/, behaviors.event);
@@ -607,6 +642,17 @@ viewCallbacks.attr("can-value", behaviors.value);
 // An object of helper functions that make a getter/setter observable
 // on different types of objects.
 var getObservableFrom = {
+	// ### getObservableFrom.viewModelOrAttribute
+	viewModelOrAttribute: function(el, scope, vmNameOrProp, bindingData, mustBeSettable, stickyCompute, event) {
+		var viewModel = domData.get.call(el, viewModelBindingStr);
+
+		// if we have a viewModel, use it; otherwise, setup attribute binding
+		if (viewModel) {
+			return this.viewModel.apply(this, arguments);
+		} else {
+			return this.attribute.apply(this, arguments);
+		}
+	},
 	// ### getObservableFrom.scope
 	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
 	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
@@ -619,7 +665,7 @@ var getObservableFrom = {
 			} else {
 				var observation = new Observation(function() {});
 
-				observation[canSymbol.for("can.setValue")] = function(newVal) {
+				observation[canSymbol.for(setValueSymbol)] = function(newVal) {
 					scope.set(cleanVMName(scopeProp), newVal);
 				};
 
@@ -640,7 +686,7 @@ var getObservableFrom = {
 			return observeReader.read(viewModel, keysToRead, {}).value;
 		});
 
-		observation[canSymbol.for("can.setValue")] = function(newVal) {
+		observation[canSymbol.for(setValueSymbol)] = function(newVal) {
 			var viewModel = bindingData.getViewModel();
 
 			if(arguments.length) { // should this check if mustBeSettable is true ???
@@ -707,10 +753,10 @@ var getObservableFrom = {
 
 		var observation = new Observation(get);
 
-		observation[canSymbol.for("can.setValue")] = set;
-		observation[canSymbol.for("can.getValue")] = get;
+		observation[canSymbol.for(setValueSymbol)] = set;
+		observation[canSymbol.for(getValueSymbol)] = get;
 
-		observation[canSymbol.for("can.onValue")] = function(updater) {
+		observation[canSymbol.for(onValueSymbol)] = function(updater) {
 			var translationHandler = function() {
 				updater(get());
 			};
@@ -723,7 +769,7 @@ var getObservableFrom = {
 			canEvent.on.call(el, event, translationHandler);
 		};
 
-		observation[canSymbol.for("can.offValue")] = function(updater) {
+		observation[canSymbol.for(offValueSymbol)] = function(updater) {
 			var translationHandler = singleReference.getAndDelete(updater, this);
 
 			if (event === "radiochange") {
@@ -748,7 +794,7 @@ var bind = {
 		// Updates the parent if
 		var updateParent = function(newVal) {
 			if (!bindingsSemaphore[attrName]) {
-				if (parentObservable && parentObservable[canSymbol.for("can.getValue")]) {
+				if (parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
 					if (canReflect.getValue(parentObservable) !== newVal) {
 						canReflect.setValue(parentObservable, newVal);
 					}
@@ -787,7 +833,7 @@ var bind = {
 			}
 		};
 
-		if(childObservable && childObservable[canSymbol.for("can.getValue")]) {
+		if(childObservable && childObservable[canSymbol.for(getValueSymbol)]) {
 			canReflect.onValue(childObservable, updateParent);
 		}
 
@@ -810,14 +856,16 @@ var bind = {
 //			canBatch.stop();
 		};
 
-		if(parentObservable && parentObservable[canSymbol.for("can.getValue")]) {
+		if(parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
 			canReflect.onValue(parentObservable, updateChild);
 		}
 
 		return updateChild;
 	}
 };
-
+var endsWith = String.prototype.endsWith || function(text){
+	return this.lastIndexOf(text) === (this.length - text.length);
+};
 // Regular expressions for getBindingInfo
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 		ignoreAttributesRegExp = /^(data-view-id|class|name|id|\[[\w\.-]+\]|#[\w\.-])$/i,
@@ -838,10 +886,54 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 // - `bindingAttributeName` - the attribute name that created this binding.
 // - `initializeValues` - should parent and child be initialized to their counterpart.
 // If undefined is return, there is no binding.
-var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName) {
+var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName, favorViewModel) {
+
 		var bindingInfo,
-			attributeName = node.name,
-			attributeValue = node.value || "";
+			attributeName = encoder.decode( node.name ),
+			attributeValue = node.value || "",
+			childName;
+
+		// check new binding syntaxes
+		if(endsWith.call(attributeName, fromMatchStr)) {
+			childName = attributeName.substr(0, attributeName.length - fromMatchStr.length);
+			return {
+				parent: scopeBindingStr,
+				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
+				childToParent: false,
+				parentToChild: true,
+				bindingAttributeName: attributeName,
+				childName: decodeAttrName(string.camelize(childName)),
+				parentName: attributeValue,
+				initializeValues: true,
+				syncChildWithParent: false
+			};
+		} else if(endsWith.call(attributeName, toMatchStr)) {
+			childName = attributeName.substr(0, attributeName.length - toMatchStr.length);
+			return {
+				parent: scopeBindingStr,
+				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
+				childToParent: true,
+				parentToChild: false,
+				bindingAttributeName: attributeName,
+				childName: decodeAttrName(string.camelize(childName)),
+				parentName: attributeValue,
+				initializeValues: true,
+				syncChildWithParent: false
+			};
+		} else if(endsWith.call(attributeName, bindMatchStr)) {
+			childName = attributeName.substr(0, attributeName.length - bindMatchStr.length);
+			return {
+				parent: scopeBindingStr,
+				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
+				childToParent: true,
+				parentToChild: true,
+				bindingAttributeName: attributeName,
+				childName: decodeAttrName(string.camelize(childName)),
+				parentName: attributeValue,
+				initializeValues: true,
+				syncChildWithParent: true
+			};
+		}
 
 		// Does this match the new binding syntax?
 		var matches = attributeName.match(bindingsRegExp);
@@ -868,9 +960,9 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			if(isAttributeToChild) {
 				return {
 					bindingAttributeName: attributeName,
-					parent: "attribute",
+					parent: attributeBindingStr,
 					parentName: attributeName,
-					child: "viewModel",
+					child: viewModelBindingStr,
 					childName: vmName,
 					parentToChild: true,
 					childToParent: true,
@@ -879,9 +971,9 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			} else {
 				return {
 					bindingAttributeName: attributeName,
-					parent: "scope",
+					parent: scopeBindingStr,
 					parentName: scopeName,
-					child: "viewModel",
+					child: viewModelBindingStr,
 					childName: vmName,
 					parentToChild: true,
 					childToParent: true,
@@ -894,12 +986,12 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			childToParent = twoWay || !!matches[2],
 			parentToChild = twoWay || !childToParent;
 
-		var childName = matches[3];
+		childName = matches[3];
 		var isDOM = childName.charAt(0) === "$";
 		if(isDOM) {
 			bindingInfo = {
-				parent: "scope",
-				child: "attribute",
+				parent: scopeBindingStr,
+				child: attributeBindingStr,
 				childToParent: childToParent,
 				parentToChild: parentToChild,
 				bindingAttributeName: attributeName,
@@ -914,8 +1006,8 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			return bindingInfo;
 		} else {
 			bindingInfo = {
-				parent: "scope",
-				child: "viewModel",
+				parent: scopeBindingStr,
+				child: viewModelBindingStr,
 				childToParent: childToParent,
 				parentToChild: parentToChild,
 				bindingAttributeName: attributeName,
@@ -959,7 +1051,7 @@ var decodeAttrName = function(name){
 // - `object` - An object with information about the binding.
 var makeDataBinding = function(node, el, bindingData) {
 	// Get information about the binding.
-	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase());
+	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
 	if(!bindingInfo) {
 		return;
 	}
@@ -1012,7 +1104,7 @@ var makeDataBinding = function(node, el, bindingData) {
 				bindingInfo.syncChildWithParent);
 		}
 		// the child needs to be bound even if
-		else if(bindingInfo.stickyParentToChild && childObservable[canSymbol.for("can.onValue")])  {
+		else if(bindingInfo.stickyParentToChild && childObservable[canSymbol.for(onValueSymbol)])  {
 			canReflect.onValue(childObservable, noop);
 		}
 
@@ -1030,7 +1122,7 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	// If this binding depends on the viewModel, which might not have been created,
 	// return the function to complete the binding as `onCompleteBinding`.
-	if(bindingInfo.child === "viewModel") {
+	if(bindingInfo.child === viewModelBindingStr) {
 		return {
 			value: bindingInfo.stickyParentToChild ? reflectiveValue(getValue(parentObservable)) : getValue(parentObservable),
 			onCompleteBinding: completeBinding,
@@ -1141,10 +1233,10 @@ removeBrackets = function(value, open, close) {
 	return value;
 },
 getValue = function(value) {
-	return value && value[canSymbol.for("can.getValue")] ? canReflect.getValue(value) : value;
+	return value && value[canSymbol.for(getValueSymbol)] ? canReflect.getValue(value) : value;
 },
 unbindUpdate = function(observable, updater) {
-	if(observable && observable[canSymbol.for("can.getValue")] && typeof updater === "function") {
+	if(observable && observable[canSymbol.for(getValueSymbol)] && typeof updater === "function") {
 		canReflect.offValue(observable, updater);
 	}
 },

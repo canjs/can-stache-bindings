@@ -1,3 +1,4 @@
+require("./bindings-colon-test");
 require("./bindings-define-test");
 
 var stacheBindings = require('can-stache-bindings');
@@ -381,6 +382,34 @@ if(typeof doc.getElementsByClassName === 'function') {
 		canEvent.trigger.call(p0, "click");
 	});
 }
+
+test("{($value)} input text", function() {
+	var template = stache("<input {($value)}='age'/>");
+
+	var map = new CanMap();
+
+	var frag = template(map);
+
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var input = ta.getElementsByTagName("input")[0];
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	map.attr("age", "30");
+
+	equal(input.value, "30", "input value set correctly");
+
+	map.attr("age", "31");
+
+	equal(input.value, "31", "input value update correctly");
+
+	input.value = "32";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(map.attr("age"), "32", "updated from input");
+});
 
 test("can-value input text", function() {
 	var template = stache("<input can-value='age'/>");
@@ -1879,7 +1908,7 @@ if (System.env.indexOf('production') < 0) {
 		var thisTest = QUnit.config.current;
 		dev.warn = function(text) {
 			if(QUnit.config.current === thisTest) {
-				equal(text, message, 'Got expected message logged.');
+				equal(text, message, 'Got expected message: ' + message);
 			}
 		};
 
