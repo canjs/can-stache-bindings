@@ -41,7 +41,7 @@
     "can-reflect": "^1.2.1",
     "can-simple-map": "^3.3.0",
     "can-stache": "^3.4.0-pre.0",
-    "can-stache-key": "^0.0.2",
+    "can-stache-key": "0.0.4",
     "can-symbol": "^1.0.0",
     "can-types": "^1.1.0",
     "can-util": "^3.9.0",
