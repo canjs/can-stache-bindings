@@ -217,8 +217,11 @@ test("getBindingInfo", function(){
 	}, "new el binding");
 });
 
-test("value:from", function() {
-	var template = stache("<input value:from='age'/>");
+test("value:from works with camelCase and kebab-case properties", function() {
+	var template = stache(
+		"<input value:from='theProp'/>" +
+		"<input value:from='the-prop'/>"
+	);
 
 	var map = new SimpleMap({});
 
@@ -227,27 +230,44 @@ test("value:from", function() {
 	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var input = ta.getElementsByTagName("input")[0];
-	equal(input.value, "", "input value set correctly if key does not exist in map");
+	var camelPropInput = ta.getElementsByTagName("input")[0];
+	var kebabPropInput = ta.getElementsByTagName("input")[1];
 
-	map.attr("age", "30");
+	equal(camelPropInput.value, "", "input bound to camelCase prop value set correctly if camelCase key does not exist in map");
+	equal(kebabPropInput.value, "", "input bound to kebab-case prop value set correctly if kebab-case key does not exist in map");
 
-	equal(input.value, "30", "input value set correctly");
+	map.attr("theProp", "30");
+	equal(camelPropInput.value, "30", "input bound to camelCase prop value set correctly when camelCase prop changes");
+	equal(kebabPropInput.value, "", "input bound to kebab-case prop value not updated when camelCase prop changes");
 
-	map.attr("age", "31");
+	map.attr("theProp", "31");
+	equal(camelPropInput.value, "31", "input bound to camelCase prop value updated correctly when camelCase prop changes");
+	ok(!kebabPropInput.value, "input bound to kebab-case prop value not updated when camelCase prop changes");
 
-	equal(input.value, "31", "input value update correctly");
+	camelPropInput.value = "32";
+	canEvent.trigger.call(camelPropInput, "change");
+	equal(map.attr("theProp"), "31", "camelCase prop NOT updated when input bound to camelCase prop changes");
+	ok(!map.attr("the-prop"), "kebabCase prop NOT updated when input bound to camelCase prop changes");
 
-	input.value = "32";
+	map.attr("the-prop", "33");
+	equal(kebabPropInput.value, "33", "input bound to kebab-case prop value set correctly when kebab-case prop changes");
+	equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
 
-	canEvent.trigger.call(input, "change");
+	map.attr("the-prop", "34");
+	equal(kebabPropInput.value, "34", "input bound to kebab-case prop value updated correctly when kebab-case prop changes");
+	equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
 
-	equal(map.attr("age"), "31", "NOT updated from input");
-
+	kebabPropInput.value = "35";
+	canEvent.trigger.call(kebabPropInput, "change");
+	equal(map.attr("the-prop"), "34", "kebab-case prop NOT updated from input bound to kebab-case prop");
+	equal(map.attr("theProp"), "31", "camelCase prop NOT updated from input bound to kebab-case prop");
 });
 
-test("value:to", function() {
-	var template = stache("<input value:to='age'/>");
+test("value:to works with camelCase and kebab-case properties", function() {
+	var template = stache(
+		"<input value:to='theProp'/>" +
+		"<input value:to='the-prop'/>"
+	);
 
 	var map = new SimpleMap({});
 
@@ -256,21 +276,33 @@ test("value:to", function() {
 	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var input = ta.getElementsByTagName("input")[0];
+	var camelPropInput = ta.getElementsByTagName("input")[0];
+	var kebabPropInput = ta.getElementsByTagName("input")[1];
 
-	input.value = "32";
+	camelPropInput.value = "32";
+	canEvent.trigger.call(camelPropInput, "change");
+	equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
+	ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
-	canEvent.trigger.call(input, "change");
+	map.attr("theProp", "30");
+	equal(camelPropInput.value, "32", "input bound to camelCase Prop value NOT updated when camelCase prop changes");
+	ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
-	equal(map.attr("age"), "32", "updated from input");
+	kebabPropInput.value = "33";
+	canEvent.trigger.call(kebabPropInput, "change");
+	equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
+	equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
-	map.attr("age", "30");
-
-	equal(input.value, "32", "input value NOT updated");
+	map.attr("theProp", "34");
+	equal(kebabPropInput.value, "33", "input bound to kebabCase Prop value NOT updated when kebabCase prop changes");
+	equal(camelPropInput.value, "32", "input bound to camelCase Prop value NOT updated when kebabCase prop changes");
 });
 
-test("value:bind", function() {
-	var template = stache("<input value:bind='age'/>");
+test("value:bind works with camelCase and kebab-case properties", function() {
+	var template = stache(
+		"<input value:bind='theProp'/>" +
+		"<input value:bind='the-prop'/>"
+	);
 
 	var map = new SimpleMap({});
 
@@ -279,22 +311,26 @@ test("value:bind", function() {
 	var ta = this.fixture;
 	ta.appendChild(frag);
 
-	var input = ta.getElementsByTagName("input")[0];
-	equal(input.value, "", "input value set correctly if key does not exist in map");
+	var camelPropInput = ta.getElementsByTagName("input")[0];
+	var kebabPropInput = ta.getElementsByTagName("input")[1];
 
-	map.attr("age", "30");
+	camelPropInput.value = "32";
+	canEvent.trigger.call(camelPropInput, "change");
+	equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
+	ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
-	equal(input.value, "30", "input value set correctly");
+	map.attr("theProp", "30");
+	equal(camelPropInput.value, "30", "input bound to camelCase Prop value updated when camelCase prop changes");
+	ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
-	map.attr("age", "31");
+	kebabPropInput.value = "33";
+	canEvent.trigger.call(kebabPropInput, "change");
+	equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
+	equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
-	equal(input.value, "31", "input value update correctly");
-
-	input.value = "32";
-
-	canEvent.trigger.call(input, "change");
-
-	equal(map.attr("age"), "32", "updated from input");
+	map.attr("theProp", "34");
+	equal(kebabPropInput.value, "33", "input bound to kebabCase Prop value NOT updated when kebabCase prop changes");
+	equal(camelPropInput.value, "34", "input bound to camelCase Prop value updated when kebabCase prop changes");
 });
 
 test('can listen to camelCase events using on:', function(){
