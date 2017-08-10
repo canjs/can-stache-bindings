@@ -51,6 +51,8 @@ addRadioChange(domEvents);
 var noop = function() {};
 
 var onMatchStr = "on:",
+	vmMatchStr = "vm:",
+	elMatchStr = "el:",
 	byMatchStr = ":by:",
 	toMatchStr = ":to",
 	fromMatchStr = ":from",
@@ -226,8 +228,7 @@ var behaviors = {
 			if(staticDataBindingsOnly && !hasDataBinding) {
 				return;
 			}
-			// Create the `viewModel` and call what needs to be happen after
-			// the `viewModel` is created.
+			// Create the `viewModel` and call what needs to happen after `viewModel` is created.
 			viewModel = makeViewModel(bindingsState.initialViewModelData, hasDataBinding);
 
 			for(var i = 0, len = onCompleteBindings.length; i < len; i++) {
@@ -387,19 +388,46 @@ var behaviors = {
 				bindingContext;
 
 			// legacy binding
-			if(attributeName.indexOf('can-') === 0) {
+			if(startsWith.call(attributeName, 'can-')) {
 				event = attributeName.substr("can-".length);
 				bindingContext = el;
-			} else if(attributeName.indexOf(onMatchStr) === 0 ) {
+			} else if(startsWith.call(attributeName, onMatchStr)) {
 				event = attributeName.substr(onMatchStr.length);
-				var byIndex = event.indexOf(byMatchStr);
-				if( byIndex >= 0 ) {
-					bindingContext = data.scope.get(decodeAttrName(event.substr(byIndex + byMatchStr.length)));
-					event = event.substr(0, byIndex);
+				var viewModel = domData.get.call(el, viewModelBindingStr);
+
+				// when using on:prop:by:obj
+				// bindingContext should be scope.obj
+				var byParent = data.scope;
+
+				// get the bindingContext
+				// on:el:prop -> bindingContext = element
+				// on:vm:prop -> bindingContext = viewModel
+				// otherwise,
+				// bind on the element if there is not a viewModel
+				if (startsWith.call(event, elMatchStr)) {
+					event = event.substr(elMatchStr.length);
+					bindingContext = el;
 				} else {
-					// bind on the element if there is not a viewModel
-					var viewModel = domData.get.call(el, viewModelBindingStr);
-					bindingContext = viewModel || el;
+					if (startsWith.call(event, vmMatchStr)) {
+						event = event.substr(vmMatchStr.length);
+						bindingContext = viewModel;
+
+						// when using on:vm:prop:by:obj
+						// bindingContext should be viewModel.obj
+						byParent = viewModel;
+					} else {
+						bindingContext = viewModel || el;
+					}
+
+					// update the bindingContext and event if using :by:
+					// on:prop:by:obj
+					//   -> bindingContext = byParent.get('obj')
+					//   -> event = 'prop'
+					var byIndex = event.indexOf(byMatchStr);
+					if( byIndex >= 0 ) {
+						bindingContext = byParent.get(decodeAttrName(event.substr(byIndex + byMatchStr.length)));
+						event = event.substr(0, byIndex);
+					}
 				}
 			} else {
 				event = removeBrackets(attributeName, '(', ')');
@@ -514,8 +542,8 @@ var behaviors = {
 				unbindEvent();
 			};
 			var unbindEvent = function() {
-					canEvent.off.call(bindingContext, event, handler);
-					canEvent.off.call(el, attributesEventStr, attributesHandler);
+				canEvent.off.call(bindingContext, event, handler);
+				canEvent.off.call(el, attributesEventStr, attributesHandler);
 				canEvent.off.call(el, removedStr, removedHandler);
 			};
 
@@ -862,6 +890,9 @@ var bind = {
 
 		return updateChild;
 	}
+};
+var startsWith = String.prototype.startsWith || function(text){
+	return this.indexOf(text) === 0;
 };
 var endsWith = String.prototype.endsWith || function(text){
 	return this.lastIndexOf(text) === (this.length - text.length);
