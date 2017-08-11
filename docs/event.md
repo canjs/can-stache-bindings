@@ -3,7 +3,7 @@
 
 @description Respond to events on elements or component ViewModels.
 
-@signature `on:DOM_EVENT='CALL_EXPRESSION'`
+@signature `on:el:DOM_EVENT='CALL_EXPRESSION'`
 
 Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
@@ -22,7 +22,7 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
  - `%scope` - The current [can-view-scope scope].
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
-@signature `on:VIEW_MODEL_EVENT='CALL_EXPRESSION'`
+@signature `on:vm:VIEW_MODEL_EVENT='CALL_EXPRESSION'`
 
 Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
 
@@ -42,6 +42,28 @@ is fired. The following key values are also supported:
  - `%scope` - The current [can-view-scope].
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
+@signature `on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION'`
+
+If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+
+If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<my-component on:show="doSomething()"/>
+```
+
+@param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
+
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
+is fired. The following key values are also supported:
+
+ - `%element` - The element the event happened upon.
+ - `%event` - The event object.
+ - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
+ - `%context` - The current context.
+ - `%scope` - The current [can-view-scope].
+ - `%arguments` - The arguments passed when the event was dispatched/triggered.
+
 
 @body
 
@@ -49,7 +71,7 @@ is fired. The following key values are also supported:
 
 ## DOM events
 
-`on:` will listen for events on the DOM, whenever the element does not have a [can-component::ViewModel ViewModel].
+`on:el:` will listen for events on the DOM, `on:` can also be used to listen for DOM events if the element does not have a [can-component::ViewModel ViewModel].
 
 ```
 <div on:click="doSomething()"/>
@@ -86,7 +108,7 @@ the user hits the enter key on this input.
 
 ## viewModel events
 
-To listen on a [can-component Component’s] [can-component.prototype.ViewModel ViewModel], prepend the event with `on:` like:
+To listen on a [can-component Component’s] [can-component.prototype.ViewModel ViewModel], prepend the event with `on:` (`on:vm:` can also be used to be make this more explicit) like:
 
 ```
 <player-edit
