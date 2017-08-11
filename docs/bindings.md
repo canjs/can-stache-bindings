@@ -38,6 +38,8 @@ If the element does not have a [can-component::ViewModel ViewModel], binds to `d
 <div on:domEvent="method('primitive', key, hash1=key1)"/>
 ```
 
+You can also explicitly listen to events on the [can-component::ViewModel ViewModel] using `on:vm:childEvent` or on the element using `on:el:domEvent`.
+
 #### [can-stache-bindings.toChild one-way to child]
 
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope]:
