@@ -895,7 +895,8 @@ var startsWith = String.prototype.startsWith || function(text){
 	return this.indexOf(text) === 0;
 };
 var endsWith = String.prototype.endsWith || function(text){
-	return this.lastIndexOf(text) === (this.length - text.length);
+	var lastIndex = this.lastIndexOf(text);
+	return lastIndex !== -1 && lastIndex === (this.length - text.length);
 };
 // Regular expressions for getBindingInfo
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
