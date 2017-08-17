@@ -39,6 +39,42 @@
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
 
+@signature `vm:childProp:bind="key"`
+
+  Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
+  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
+  and vice-versa.
+
+  ```
+  <my-component vm:someProp:bind="value"/>
+  ```
+
+  When setting up the binding:
+
+  - If `childProp` is `undefined`, `key` will be set to `childProp`.
+  - If `key` is `undefined`, `childProp` will be set to `key`.
+  - If both `childProp` and `key` are defined, `key` will be set to `childProp`.
+
+
+
+  @param {String} childProp The name of the property of the viewModel to two-way bind.
+
+  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
+
+@signature `el:child-prop:bind="key"`
+
+  Two-way binds the element’s `child-prop` property or attribute to
+  [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated `key` will be updated
+  and vice-versa.
+
+  ```
+  <input el:value:bind="name"/>
+  ```
+
+  @param {String} child-prop The name of the element’s property or attribute to two-way bind.
+
+  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
+
 @body
 
 ## Use

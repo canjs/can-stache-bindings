@@ -963,6 +963,17 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 		encodedSpacesRegExp = /\\s/g,
 		encodedForwardSlashRegExp = /\\f/g;
 
+// ## getChildBindingStr
+var getChildBindingStr = function(tokens, favorViewModel) {
+	if (tokens.indexOf('vm') >= 0) {
+		return viewModelBindingStr;
+	} else if (tokens.indexOf('el') >= 0) {
+		return attributeBindingStr;
+	} else {
+		return favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr;
+	}
+};
+
 // ## getBindingInfo
 // takes a node object like {name, value} and returns
 // an object with information about that binding.
@@ -977,7 +988,6 @@ var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 // - `initializeValues` - should parent and child be initialized to their counterpart.
 // If undefined is return, there is no binding.
 var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName, favorViewModel) {
-
 		var bindingInfo,
 			attributeName = encoder.decode( node.name ),
 			attributeValue = node.value || "",
@@ -998,17 +1008,16 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 		});
 
 		if(dataBindingName) {
-
 			return assign({
 				parent: scopeBindingStr,
-				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
+				child: getChildBindingStr(result.tokens, favorViewModel),
 				// the child is going to be the token before the special location
 				childName: result.tokens[specialIndex-1],
 				childEvent: getEventName(result),
 				bindingAttributeName: attributeName,
 				parentName: attributeValue,
 				initializeValues: true
-			},bindingRules[dataBindingName]);
+			}, bindingRules[dataBindingName]);
 		}
 		// END: check new binding syntaxes ======
 
@@ -1144,7 +1153,8 @@ var makeDataBinding = function(node, el, bindingData) {
 		el,
 		bindingData.scope,
 		bindingInfo.parentName,
-		bindingData, bindingInfo.parentToChild
+		bindingData,
+		bindingInfo.parentToChild
 	),
 	childObservable = getObservableFrom[bindingInfo.child](
 		el,

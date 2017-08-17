@@ -57,6 +57,8 @@ element with `value` in the [can-view-scope scope]:
 <div child-attr:from="value"/>
 ```
 
+You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:from="value"` or the element using `el:child-attr:from="value"`.
+
 > __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.toParent one-way to parent]
@@ -77,6 +79,8 @@ in the [can-view-scope scope] with the `child-attr` attribute or property of the
 <div child-attr:to="value"/>
 ```
 
+You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:to="value"` or the element using `el:child-attr:to="value"`.
+
 > __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.twoWay two-way]
@@ -93,6 +97,8 @@ in the [can-view-scope scope] and vice versa:
 ```
 <div child-attr:bind="value"/>
 ```
+
+You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:bind="value"` or the element using `el:child-attr:bind="value"`.
 
 ## One Way Binding With Objects
 
