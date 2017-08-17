@@ -503,4 +503,28 @@ test('can bind to element using on:el:prop', function() {
 	canEvent.trigger.call(element, "prop");
 });
 
+QUnit.test("on:el:click works inside {{#if}} on element with a viewModel (#279)", function() {
+	var map = new SimpleMap({
+	});
+
+	var MySimpleMap = SimpleMap.extend({
+		show: true,
+		method: function(){
+			ok(true, "method called");
+		}
+	});
+	var parent = new MySimpleMap();
+
+	MockComponent.extend({
+		tag: "view-model-able",
+		viewModel: map
+	});
+
+	var template = stache("<view-model-able {{#if show}} on:el:click='method()' {{/if}} />");
+
+	var frag = template(parent);
+	var el = frag.firstChild;
+	canEvent.trigger.call(el, "click");
+});
+
 }
