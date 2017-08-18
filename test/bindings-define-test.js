@@ -441,3 +441,26 @@ test(".viewModel() can bypass dynamic bindings", function(){
 	var template = stache('<export-this/>');
 	template(myMap);
 });
+
+QUnit.test("($click) works inside {{#if}} on element with a viewModel (#279)", function() {
+	var ViewModel = DefineMap.extend({});
+
+	MockComponent.extend({
+		tag: 'view-model-able',
+		viewModel: ViewModel
+	});
+
+	var template = stache("<view-model-able {{#if show}} ($click)='method()' {{/if}} />");
+
+	var Parent = DefineMap.extend({
+		show: { value: true },
+		method: function() {
+			QUnit.ok(true, '($click) worked');
+		}
+	});
+	var parent = new Parent();
+
+	var frag = template(parent);
+	var el = frag.firstChild;
+	canEvent.trigger.call(el, "click");
+});

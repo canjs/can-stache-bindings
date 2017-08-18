@@ -1029,7 +1029,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			//!steal-remove-end
 
 			// if this is handled by another binding or a attribute like `id`.
-			if ( ignoreAttribute || viewCallbacks.attr(attributeName) ) {
+			if ( ignoreAttribute || viewCallbacks.attr( encoder.encode(attributeName) ) ) {
 				return;
 			}
 			var syntaxRight = attributeValue[0] === "{" && last(attributeValue) === "}";
