@@ -387,6 +387,14 @@ var behaviors = {
 				// if we are binding on the element or the VM
 				bindingContext;
 
+			// check for `on:event:value:to` type things and call data bindings
+			if(attributeName.indexOf(toMatchStr+":") !== -1 ||
+				attributeName.indexOf(fromMatchStr+":") !== -1 ||
+				attributeName.indexOf(bindMatchStr+":") !== -1
+				) {
+				return this.data(el, data);
+			}
+
 			// legacy binding
 			if(startsWith.call(attributeName, 'can-')) {
 				event = attributeName.substr("can-".length);
@@ -894,10 +902,60 @@ var bind = {
 var startsWith = String.prototype.startsWith || function(text){
 	return this.indexOf(text) === 0;
 };
-var endsWith = String.prototype.endsWith || function(text){
-	var lastIndex = this.lastIndexOf(text);
-	return lastIndex !== -1 && lastIndex === (this.length - text.length);
+
+// Gets an event name in the after part.
+function getEventName(result) {
+	if(result.special.on !== undefined) {
+		return result.tokens[result.special.on+1];
+	}
+}
+
+var bindingRules = {
+	to: {
+		childToParent: true,
+		parentToChild: false,
+		syncChildWithParent: false
+	},
+	from: {
+		childToParent: false,
+		parentToChild: true,
+		syncChildWithParent: false,
+	},
+	bind: {
+		childToParent: true,
+		parentToChild: true,
+		syncChildWithParent: true,
+	}
 };
+var bindingNames = [];
+var special = {
+	vm: true,
+	on: true
+};
+each(bindingRules, function(value, key){
+	bindingNames.push(key);
+	special[key] = true;
+});
+
+// "on:click:value:to" //-> {tokens: [...], special: {on: 0, to: 3}}
+function tokenize(source) {
+	var splitByColon = source.split(":");
+	// combine tokens that are not to, from, vm,
+	var result = {
+		tokens: [],
+		special: {}
+	};
+	splitByColon.forEach(function(token){
+		if(special[token]) {
+			result.special[token] = result.tokens.push(token) - 1;
+		} else {
+			result.tokens.push(token);
+		}
+	});
+
+	return result;
+}
+
 // Regular expressions for getBindingInfo
 var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
 		ignoreAttributesRegExp = /^(data-view-id|class|name|id|\[[\w\.-]+\]|#[\w\.-])$/i,
@@ -925,47 +983,35 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			attributeValue = node.value || "",
 			childName;
 
-		// check new binding syntaxes
-		if(endsWith.call(attributeName, fromMatchStr)) {
-			childName = attributeName.substr(0, attributeName.length - fromMatchStr.length);
-			return {
+		// START: check new binding syntaxes ======
+		var result = tokenize(attributeName),
+			dataBindingName,
+			specialIndex;
+
+		// check if there's a match of a binding name with at least a value before it
+		bindingNames.forEach(function(name){
+			if(result.special[name] !== undefined && result.special[name] > 0) {
+				dataBindingName = name;
+				specialIndex = result.special[name];
+				return false;
+			}
+		});
+
+		if(dataBindingName) {
+
+			return assign({
 				parent: scopeBindingStr,
 				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
-				childToParent: false,
-				parentToChild: true,
+				// the child is going to be the token before the special location
+				childName: result.tokens[specialIndex-1],
+				childEvent: getEventName(result),
 				bindingAttributeName: attributeName,
-				childName: decodeAttrName(string.camelize(childName)),
 				parentName: attributeValue,
-				initializeValues: true,
-				syncChildWithParent: false
-			};
-		} else if(endsWith.call(attributeName, toMatchStr)) {
-			childName = attributeName.substr(0, attributeName.length - toMatchStr.length);
-			return {
-				parent: scopeBindingStr,
-				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
-				childToParent: true,
-				parentToChild: false,
-				bindingAttributeName: attributeName,
-				childName: decodeAttrName(string.camelize(childName)),
-				parentName: attributeValue,
-				initializeValues: true,
-				syncChildWithParent: false
-			};
-		} else if(endsWith.call(attributeName, bindMatchStr)) {
-			childName = attributeName.substr(0, attributeName.length - bindMatchStr.length);
-			return {
-				parent: scopeBindingStr,
-				child: favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr,
-				childToParent: true,
-				parentToChild: true,
-				bindingAttributeName: attributeName,
-				childName: decodeAttrName(string.camelize(childName)),
-				parentName: attributeValue,
-				initializeValues: true,
-				syncChildWithParent: true
-			};
+				initializeValues: true
+			},bindingRules[dataBindingName]);
 		}
+		// END: check new binding syntaxes ======
+
 
 		// Does this match the new binding syntax?
 		var matches = attributeName.match(bindingsRegExp);
@@ -1106,7 +1152,8 @@ var makeDataBinding = function(node, el, bindingData) {
 		bindingInfo.childName,
 		bindingData,
 		bindingInfo.childToParent,
-		bindingInfo.stickyParentToChild && parentObservable
+		bindingInfo.stickyParentToChild && parentObservable,
+		bindingInfo.childEvent
 	),
 	// these are the functions bound to one compute that update the other.
 	updateParent,

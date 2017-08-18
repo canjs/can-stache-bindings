@@ -143,9 +143,10 @@ test("getBindingInfo", function(){
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModelOrAttribute",
+		childEvent: undefined,
 		parentToChild: true,
 		childToParent: false,
-		childName: "fooEd",
+		childName: "foo-ed",
 		parentName: "bar",
 		bindingAttributeName: "foo-ed:from",
 		initializeValues: true,
@@ -156,9 +157,10 @@ test("getBindingInfo", function(){
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModelOrAttribute",
+		childEvent: undefined,
 		parentToChild: true,
 		childToParent: true,
-		childName: "fooEd",
+		childName: "foo-ed",
 		parentName: "bar",
 		bindingAttributeName: "foo-ed:bind",
 		initializeValues: true,
@@ -169,9 +171,10 @@ test("getBindingInfo", function(){
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModelOrAttribute",
+		childEvent: undefined,
 		parentToChild: false,
 		childToParent: true,
-		childName: "fooEd",
+		childName: "foo-ed",
 		parentName: "bar",
 		bindingAttributeName: "foo-ed:to",
 		initializeValues: true,
@@ -181,9 +184,10 @@ test("getBindingInfo", function(){
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModel",
+		childEvent: undefined,
 		parentToChild: true,
 		childToParent: false,
-		childName: "fooEd",
+		childName: "foo-ed",
 		parentName: "bar",
 		bindingAttributeName: "foo-ed:from",
 		initializeValues: true,
@@ -194,9 +198,10 @@ test("getBindingInfo", function(){
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModel",
+		childEvent: undefined,
 		parentToChild: true,
 		childToParent: true,
-		childName: "fooEd",
+		childName: "foo-ed",
 		parentName: "bar",
 		bindingAttributeName: "foo-ed:bind",
 		initializeValues: true,
@@ -207,9 +212,10 @@ test("getBindingInfo", function(){
 	deepEqual(info, {
 		parent: "scope",
 		child: "viewModel",
+		childEvent: undefined,
 		parentToChild: false,
 		childToParent: true,
-		childName: "fooEd",
+		childName: "foo-ed",
 		parentName: "bar",
 		bindingAttributeName: "foo-ed:to",
 		initializeValues: true,
@@ -501,6 +507,48 @@ test('can bind to element using on:el:prop', function() {
 	var element = frag.firstChild;
 
 	canEvent.trigger.call(element, "prop");
+});
+
+QUnit.test("getBindingInfo works for value:to:on:click (#269)", function(){
+
+	var info = stacheBindings.getBindingInfo({name: "value:to:on:click", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModelOrAttribute",
+		childEvent: "click",
+		parentToChild: false,
+		childToParent: true,
+		childName: "value",
+		parentName: "bar",
+		bindingAttributeName: "value:to:on:click",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, "new vm binding");
+
+});
+test("value:to:on:click and on:click:value:to work (#269)", function() {
+	var template = stache(
+		"<input value:to:on:click='theProp'/>" +
+		"<input on:click:value:to='theProp'/>"
+	);
+
+	var map = new SimpleMap({});
+
+	var frag = template(map);
+
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var bindFirstInput = ta.getElementsByTagName("input")[0];
+	bindFirstInput.value = "22";
+	canEvent.trigger.call(bindFirstInput, "click");
+	QUnit.equal(map.get('theProp'), "22");
+
+
+	var eventFirstInput = ta.getElementsByTagName("input")[1];
+	eventFirstInput.value = "23";
+	canEvent.trigger.call(eventFirstInput, "click");
+	QUnit.equal(map.get('theProp'), "23");
 });
 
 QUnit.test("on:el:click works inside {{#if}} on element with a viewModel (#279)", function() {
