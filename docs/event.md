@@ -64,6 +64,48 @@ is fired. The following key values are also supported:
  - `%scope` - The current [can-view-scope].
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
+@signature `on:SCOPE_EVENT:by:this='CALL_EXPRESSION'`
+
+Listens to an event on the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<my-component on:show:by:this="doSomething()"/>
+```
+
+@param {String} SCOPE_EVENT a scope event.
+
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
+is fired. The following key values are also supported:
+
+ - `%element` - The element the event happened upon.
+ - `%event` - The event object.
+ - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
+ - `%context` - The current context.
+ - `%scope` - The current [can-view-scope].
+ - `%arguments` - The arguments passed when the event was dispatched/triggered.
+
+@signature `on:SCOPE_PROP_EVENT:by:SCOPE_PROP='CALL_EXPRESSION'`
+
+Listens to an event on a property of the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<my-component on:show:by:obj="doSomething()"/>
+```
+
+@param {String} SCOPE_PROP_EVENT an event triggered by a scope property.
+
+@param {String} SCOPE_PROP a scope property.
+
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
+is fired. The following key values are also supported:
+
+ - `%element` - The element the event happened upon.
+ - `%event` - The event object.
+ - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
+ - `%context` - The current context.
+ - `%scope` - The current [can-view-scope].
+ - `%arguments` - The arguments passed when the event was dispatched/triggered.
+
 
 @body
 

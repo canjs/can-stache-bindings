@@ -624,35 +624,6 @@ test('can bind to viewModel using on:vm:prop', function() {
 	map.attr("prop", "Venus");
 });
 
-test('can bind to property on viewModel using on:vm:prop:by:obj', function() {
-	stop();
-	expect(1);
-
-	var map = new SimpleMap({
-		obj: new SimpleMap({
-			prop: "Mercury"
-		})
-	});
-
-	var MySimpleMap = SimpleMap.extend({
-		someMethod: function(scope, el, ev, newVal){
-			start();
-			equal(newVal, "Venus", "method called");
-		}
-	});
-	var parent = new MySimpleMap();
-
-	MockComponent.extend({
-		tag: "view-model-able",
-		viewModel: map
-	});
-
-	var template = stache("<view-model-able on:vm:prop:by:obj='someMethod'/>");
-
-	template(parent);
-	map.attr("obj").attr("prop", "Venus");
-});
-
 test('can bind to element using on:el:prop', function() {
 	stop();
 	expect(1);
