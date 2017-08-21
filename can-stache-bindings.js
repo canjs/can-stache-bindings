@@ -659,9 +659,16 @@ viewCallbacks.attr(/^(:lp:)(:lb:).+(:rb:)(:rp:)$/, syntaxWarning);
 
 // `{}="bar"` data bindings.
 viewCallbacks.attr(/^(:lb:)[(:c:)\w-]+(:rb:)$/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:to/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:from/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:bind/, behaviors.data);
+// value:to="bar" data bindings
+// these are separate so that they only capture at the end
+// to avoid (toggle)="bar" which is encoded as :lp:toggle:rp:="bar"
+viewCallbacks.attr(/[\w\.:]+:to$/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:from$/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:bind$/, behaviors.data);
+// value:to:on:input="bar" data bindings
+viewCallbacks.attr(/[\w\.:]+:to:on:[\w\.:]+/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:from:on:[\w\.:]+/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:bind:on:[\w\.:]+/, behaviors.data);
 
 // `*ref-export` shorthand.
 viewCallbacks.attr(/\*[\w\.\-_]+/, behaviors.reference);
