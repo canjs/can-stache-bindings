@@ -151,7 +151,7 @@ test("getBindingInfo", function(){
 		bindingAttributeName: "foo-ed:from",
 		initializeValues: true,
 		syncChildWithParent: false
-	}, "new vm binding");
+	}, ":from");
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed:bind", value: "bar"});
 	deepEqual(info, {
@@ -165,7 +165,7 @@ test("getBindingInfo", function(){
 		bindingAttributeName: "foo-ed:bind",
 		initializeValues: true,
 		syncChildWithParent: true
-	}, "new el binding");
+	}, ":bind");
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed:to", value: "bar"});
 	deepEqual(info, {
@@ -179,7 +179,8 @@ test("getBindingInfo", function(){
 		bindingAttributeName: "foo-ed:to",
 		initializeValues: true,
 		syncChildWithParent: false
-	}, "new el binding");
+	}, ":to");
+
 	info = stacheBindings.getBindingInfo({name: "foo-ed:from", value: "bar"}, null, null, null, true);
 	deepEqual(info, {
 		parent: "scope",
@@ -192,7 +193,7 @@ test("getBindingInfo", function(){
 		bindingAttributeName: "foo-ed:from",
 		initializeValues: true,
 		syncChildWithParent: false
-	}, "new vm binding");
+	}, ":from, favorViewModel=true");
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed:bind", value: "bar"}, null, null, null, true);
 	deepEqual(info, {
@@ -206,7 +207,7 @@ test("getBindingInfo", function(){
 		bindingAttributeName: "foo-ed:bind",
 		initializeValues: true,
 		syncChildWithParent: true
-	}, "new el binding");
+	}, ":bind, favorViewModel=true");
 
 	info = stacheBindings.getBindingInfo({name: "foo-ed:to", value: "bar"}, null, null, null, true);
 	deepEqual(info, {
@@ -220,7 +221,179 @@ test("getBindingInfo", function(){
 		bindingAttributeName: "foo-ed:to",
 		initializeValues: true,
 		syncChildWithParent: false
-	}, "new el binding");
+	}, ":to, favorViewModel=true");
+});
+
+test("getBindingInfo for vm:", function() {
+	var info = stacheBindings.getBindingInfo({name: "vm:foo-ed:from", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: false,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "vm:foo-ed:from",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":from");
+
+	info = stacheBindings.getBindingInfo({name: "vm:foo-ed:bind", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "vm:foo-ed:bind",
+		initializeValues: true,
+		syncChildWithParent: true
+	}, ":bind");
+
+	info = stacheBindings.getBindingInfo({name: "vm:foo-ed:to", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		childEvent: undefined,
+		parentToChild: false,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "vm:foo-ed:to",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":to");
+
+	info = stacheBindings.getBindingInfo({name: "vm:foo-ed:from", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: false,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "vm:foo-ed:from",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":from, favorViewModel=true");
+
+	info = stacheBindings.getBindingInfo({name: "vm:foo-ed:bind", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "vm:foo-ed:bind",
+		initializeValues: true,
+		syncChildWithParent: true
+	}, ":bind, favorViewModel=true");
+
+	info = stacheBindings.getBindingInfo({name: "vm:foo-ed:to", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "viewModel",
+		childEvent: undefined,
+		parentToChild: false,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "vm:foo-ed:to",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":to, favorViewModel=true");
+});
+
+test("getBindingInfo for el:", function() {
+	var info = stacheBindings.getBindingInfo({name: "el:foo-ed:from", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "attribute",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: false,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "el:foo-ed:from",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":from");
+
+	info = stacheBindings.getBindingInfo({name: "el:foo-ed:bind", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "attribute",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "el:foo-ed:bind",
+		initializeValues: true,
+		syncChildWithParent: true
+	}, ":bind");
+
+	info = stacheBindings.getBindingInfo({name: "el:foo-ed:to", value: "bar"});
+	deepEqual(info, {
+		parent: "scope",
+		child: "attribute",
+		childEvent: undefined,
+		parentToChild: false,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "el:foo-ed:to",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":to");
+
+	info = stacheBindings.getBindingInfo({name: "el:foo-ed:from", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "attribute",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: false,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "el:foo-ed:from",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":from, favorViewModel=true");
+
+	info = stacheBindings.getBindingInfo({name: "el:foo-ed:bind", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "attribute",
+		childEvent: undefined,
+		parentToChild: true,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "el:foo-ed:bind",
+		initializeValues: true,
+		syncChildWithParent: true
+	}, ":bind, favorViewModel=true");
+
+	info = stacheBindings.getBindingInfo({name: "el:foo-ed:to", value: "bar"}, null, null, null, true);
+	deepEqual(info, {
+		parent: "scope",
+		child: "attribute",
+		childEvent: undefined,
+		parentToChild: false,
+		childToParent: true,
+		childName: "foo-ed",
+		parentName: "bar",
+		bindingAttributeName: "el:foo-ed:to",
+		initializeValues: true,
+		syncChildWithParent: false
+	}, ":to, favorViewModel=true");
 });
 
 test("value:from works with camelCase and kebab-case properties", function() {
@@ -451,35 +624,6 @@ test('can bind to viewModel using on:vm:prop', function() {
 	map.attr("prop", "Venus");
 });
 
-test('can bind to property on viewModel using on:vm:prop:by:obj', function() {
-	stop();
-	expect(1);
-
-	var map = new SimpleMap({
-		obj: new SimpleMap({
-			prop: "Mercury"
-		})
-	});
-
-	var MySimpleMap = SimpleMap.extend({
-		someMethod: function(scope, el, ev, newVal){
-			start();
-			equal(newVal, "Venus", "method called");
-		}
-	});
-	var parent = new MySimpleMap();
-
-	MockComponent.extend({
-		tag: "view-model-able",
-		viewModel: map
-	});
-
-	var template = stache("<view-model-able on:vm:prop:by:obj='someMethod'/>");
-
-	template(parent);
-	map.attr("obj").attr("prop", "Venus");
-});
-
 test('can bind to element using on:el:prop', function() {
 	stop();
 	expect(1);
@@ -573,6 +717,116 @@ QUnit.test("on:el:click works inside {{#if}} on element with a viewModel (#279)"
 	var frag = template(parent);
 	var el = frag.firstChild;
 	canEvent.trigger.call(el, "click");
+});
+
+QUnit.test("vm:prop:to/:from/:bind work (#280)", function() {
+	var vm1 = new SimpleMap({ value: 'vm1' });
+	var vm2 = new SimpleMap({ value: 'vm2' });
+	var vm3 = new SimpleMap({ value: 'vm3' });
+
+	MockComponent.extend({
+		tag: "comp-1",
+		viewModel: vm1
+	});
+	MockComponent.extend({
+		tag: "comp-2",
+		viewModel: vm2
+	});
+	MockComponent.extend({
+		tag: "comp-3",
+		viewModel: vm3
+	});
+
+	var template = stache(
+		"<comp-1 vm:value:to='scope1'/>" +
+		"<comp-2 vm:value:from='scope2'/>" +
+		"<comp-3 vm:value:bind='scope3'/>"
+	);
+
+	var scope = new SimpleMap({
+		scope1: 'scope1',
+		scope2: 'scope2',
+		scope3: 'scope3'
+	});
+	template(scope);
+
+	// vm:value:to
+	equal(scope.attr('scope1'), 'vm1', 'vm:value:to - scope value set from vm');
+
+	vm1.attr('value', 'vm4');
+	equal(scope.attr('scope1'), 'vm4', 'vm:value:to - scope updated when vm changes');
+
+	scope.attr('scope1', 'scope4');
+	equal(vm1.attr('value'), 'vm4', 'vm:value:to - vm not updated when scope changes');
+
+	// vm:value:from
+	equal(vm2.attr('value'), 'scope2', 'vm:value:from - vm value set from scope');
+
+	scope.attr('scope2', 'scope5');
+	equal(vm2.attr('value'), 'scope5', 'vm:value:from - vm updated when scope changes');
+
+	vm2.attr('value', 'vm5');
+	equal(scope.attr('scope2'), 'scope5', 'vm:value:from - scope not updated when vm changes');
+
+	// vm:value:bind
+	equal(vm3.attr('value'), 'scope3', 'vm:value:bind - vm value set from scope');
+
+	scope.attr('scope3', 'scope6');
+	equal(vm3.attr('value'), 'scope6', 'vm:value:bind - vm updated when scope changes');
+
+	vm3.attr('value', 'vm6');
+	equal(scope.attr('scope3'), 'vm6', 'vm:value:bind - scope updated when vm changes');
+});
+
+QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
+	var template = stache(
+		"<input el:value:to='scope1' value='1'/>" +
+		"<input el:value:from='scope2' value='2'/>" +
+		"<input el:value:bind='scope3' value='3'/>"
+	);
+
+	var scope = new SimpleMap({
+		scope1: 'scope1',
+		scope2: 'scope2',
+		scope3: 'scope3'
+	});
+	var frag = template(scope);
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var inputTo = ta.getElementsByTagName('input')[0];
+	var inputFrom = ta.getElementsByTagName('input')[1];
+	var inputBind = ta.getElementsByTagName('input')[2];
+
+	// el:value:to
+	equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
+
+	inputTo.value = '4';
+	canEvent.trigger.call(inputTo, 'change');
+	equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
+
+	scope.attr('scope1', 'scope4');
+	equal(inputTo.value, '4', 'el:value:to - attribute not updated when scope changed');
+
+	// el:value:from
+	equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
+
+	inputFrom.value = 'scope5';
+	canEvent.trigger.call(inputFrom, 'change');
+	equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
+
+	scope.attr('scope2', 'scope6');
+	equal(inputFrom.value, 'scope6', 'el:value:from - attribute updated when scope changed');
+
+	// el:value:bind
+	equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
+
+	inputBind.value = 'scope6';
+	canEvent.trigger.call(inputBind, 'change');
+	equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
+
+	scope.attr('scope3', 'scope7');
+	equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
 });
 
 }
