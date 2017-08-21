@@ -464,3 +464,41 @@ QUnit.test("($click) works inside {{#if}} on element with a viewModel (#279)", f
 	var el = frag.firstChild;
 	canEvent.trigger.call(el, "click");
 });
+
+QUnit.test("events starting with `to`, `from`, and `bind` work (#285)", function() {
+	expect(3);
+	var ViewModel = DefineMap.extend({
+		toevent: '1',
+		fromevent: '1',
+		bindevent: '1',
+	});
+
+	MockComponent.extend({
+		tag: 'view-model-able',
+		viewModel: ViewModel
+	});
+
+	var template = stache("<view-model-able (toevent)='toMethod()' (fromevent)='fromMethod()' (bindevent)='bindMethod()' />");
+
+	var Parent = DefineMap.extend({
+		toMethod: function() {
+			QUnit.ok(true, '(toevent) worked');
+		},
+		fromMethod: function() {
+			QUnit.ok(true, '(fromevent) worked');
+		},
+		bindMethod: function() {
+			QUnit.ok(true, '(bindevent) worked');
+		}
+	});
+	var parent = new Parent();
+
+	var frag = template(parent);
+	var el = frag.firstChild;
+
+	var vm = canViewModel(el);
+
+	vm.toevent = '2';
+	vm.fromevent = '2';
+	vm.bindevent = '2';
+});
