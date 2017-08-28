@@ -110,4 +110,4 @@ Check it out in this demo:
 
 @demo demos/can-stache-bindings/to-parent-function.html
 
-Notice that `@` is used to prevent reading the function.  
+Notice that `@` is used to prevent reading the function. You can read more about the [@ operator in the can-stache docs](https://canjs.com/doc/can-stache/keys/at.html).
