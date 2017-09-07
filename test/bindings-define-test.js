@@ -156,6 +156,101 @@ test("two-way - DOM - input text (#1700)", function () {
 	equal(map.age, "32", "updated from input");
 });
 
+
+test("Bracket expression with `this` root and 2 way binding", function () {
+	var div = document.getElementById("qunit-fixture");
+
+	var template = stache('<input {($value)}="this[\'two.hops\']" >');
+
+	var data = new DefineMap({
+		"two.hops": undefined
+	});
+
+	var dom = template(data);
+	div.appendChild(dom);
+	var input = div.getElementsByTagName('input')[0];
+
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	data["two.hops"] = "slide to the left";
+
+	equal(input.value, "slide to the left", "input value set correctly");
+
+	data["two.hops"] = "slide to the right";
+
+	equal(input.value, "slide to the right", "input value update correctly");
+
+	input.value = "REVERSE REVERSE";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(data["two.hops"], "REVERSE REVERSE", "updated from input");
+});
+
+test("Bracket expression with `.` root and 2 way binding", function () {
+	var div = document.getElementById("qunit-fixture");
+
+	var template = stache('<input {($value)}=".[\'two.hops\']" >');
+
+	var data = new DefineMap({
+		"two.hops": undefined
+	});
+
+	var dom = template(data);
+	div.appendChild(dom);
+	var input = div.getElementsByTagName('input')[0];
+
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	data["two.hops"] = "slide to the left";
+
+	equal(input.value, "slide to the left", "input value set correctly");
+
+	data["two.hops"] = "slide to the right";
+
+	equal(input.value, "slide to the right", "input value update correctly");
+
+	input.value = "REVERSE REVERSE";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(data["two.hops"], "REVERSE REVERSE", "updated from input");
+});
+
+test("Bracket expression with no explicit root and 2 way binding", function () {
+	var div = document.getElementById("qunit-fixture");
+
+	var template = stache('<input {($value)}="[\'two.hops\']" >');
+
+	//var Data = DefineMap.extend({
+	//	'two.hops': 'string'
+	//});
+	//var data = new Data();
+	var data = new DefineMap({
+		"two.hops": undefined
+	});
+
+	var dom = template(data);
+	div.appendChild(dom);
+	var input = div.getElementsByTagName('input')[0];
+
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	data["two.hops"] = "slide to the left";
+
+	equal(input.value, "slide to the left", "input value set correctly");
+
+	data["two.hops"] = "slide to the right";
+
+	equal(input.value, "slide to the right", "input value update correctly");
+
+	input.value = "REVERSE REVERSE";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(data["two.hops"], "REVERSE REVERSE", "updated from input");
+});
+
 test("Binding to a special property - values", function(){
 	var template = stache("<select multiple {($values)}='values'><option value='one'>One</option><option value='two'></option></select>");
 	var map = new DefineMap({

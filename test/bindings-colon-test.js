@@ -512,6 +512,78 @@ test("value:bind works with camelCase and kebab-case properties", function() {
 	equal(camelPropInput.value, "34", "input bound to camelCase Prop value updated when kebabCase prop changes");
 });
 
+test("Bracket expression with dot and no explicit root and value:bind", function () {
+	var template;
+	var div = this.fixture;
+
+	template = stache('<input value:bind="[\'two.hops\']" >');
+
+	var Data = DefineMap.extend({
+		'two.hops': 'string'
+	});
+
+	var data = new Data();
+	// var data = new DefineMap({
+	// 	"two.hops": ""
+	// });
+
+	var dom = template(data);
+	div.appendChild(dom);
+	var input = div.getElementsByTagName('input')[0];
+
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	data["two.hops"] = "slide to the left";
+
+	equal(input.value, "slide to the left", "input value set correctly");
+
+	data["two.hops"] = "slide to the right";
+
+	equal(input.value, "slide to the right", "input value update correctly");
+
+	input.value = "REVERSE REVERSE";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(data["two.hops"], "REVERSE REVERSE", "updated from input");
+});
+
+test("Bracket expression with colon and no explicit root and value:bind", function () {
+	var template;
+	var div = this.fixture;
+
+	template = stache('<input value:bind="[\'two:hops\']" >');
+
+	var Data = DefineMap.extend({
+		'two:hops': 'string'
+	});
+
+	var data = new Data();
+	// var data = new DefineMap({
+	// 	"two.hops": ""
+	// });
+
+	var dom = template(data);
+	div.appendChild(dom);
+	var input = div.getElementsByTagName('input')[0];
+
+	equal(input.value, "", "input value set correctly if key does not exist in map");
+
+	data["two:hops"] = "slide to the left";
+
+	equal(input.value, "slide to the left", "input value set correctly");
+
+	data["two:hops"] = "slide to the right";
+
+	equal(input.value, "slide to the right", "input value update correctly");
+
+	input.value = "REVERSE REVERSE";
+
+	canEvent.trigger.call(input, "change");
+
+	equal(data["two:hops"], "REVERSE REVERSE", "updated from input");
+});
+
 test('can listen to camelCase events using on:', function(){
 	QUnit.stop();
 	expect(1);
