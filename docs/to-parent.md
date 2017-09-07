@@ -43,10 +43,7 @@ Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can
 
 > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
-@param {String} childProp The name of the property to export from the
-child components viewmodel. Use `this:to` or `.:to` to export the entire viewModel.
-
-@param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression that will be used to set in the parent scope.
+Parameters are the same as [can-stache-bindings.toParent#childProp_to__key_ childProp:to="key"]
 
 @signature `el:child-prop:to="key"`
 
@@ -57,9 +54,7 @@ child components viewmodel. Use `this:to` or `.:to` to export the entire viewMod
   <input el:value:to="name"/>
   ```
 
-  @param {String} child-prop The name of the element’s property or attribute to export.
-
-  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value with be used to set in the parent scope.
+Parameters are the same as [can-stache-bindings.toParent#child_prop_to__key_ child-prop:to="key"]
 
 
 @body

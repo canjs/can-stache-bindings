@@ -42,10 +42,7 @@
 
   > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
-  @param {String} childProp The name of the property to set in the
-  component’s viewmodel.
-
-  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value is used to set as `childProp`.
+Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ childProp:from="key"]
 
 @signature `el:child-prop:from="key"`
 
@@ -60,6 +57,8 @@
   ```
   <input value="{{name}}"/>
   ```
+
+Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ child-prop:from="key"]
 
 @body
 
