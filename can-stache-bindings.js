@@ -1015,15 +1015,17 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 		});
 
 		if(dataBindingName) {
+			var childEventName = getEventName(result);
+			var initializeValues = childEventName ? false : true;
 			return assign({
 				parent: scopeBindingStr,
 				child: getChildBindingStr(result.tokens, favorViewModel),
 				// the child is going to be the token before the special location
 				childName: result.tokens[specialIndex-1],
-				childEvent: getEventName(result),
+				childEvent: childEventName,
 				bindingAttributeName: attributeName,
 				parentName: attributeValue,
-				initializeValues: true
+				initializeValues: initializeValues
 			}, bindingRules[dataBindingName]);
 		}
 		// END: check new binding syntaxes ======
