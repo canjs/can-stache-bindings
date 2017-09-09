@@ -111,7 +111,7 @@ function setPriority(observable, priority){
 }
 
 var throwOnlyOneTypeOfBindingError = function(){
-	throw new Error("can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.");
+	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
 };
 
 // This function checks if there bindings that are trying
@@ -439,6 +439,22 @@ var behaviors = {
 				}
 			} else {
 				event = removeBrackets(attributeName, '(', ')');
+
+				//!steal-dev-start
+				// Warn about using old style (paren-delimited) event binding syntax.  We've moved to using on:
+				dev.warn(
+					"can-stache-bindings: the event binding format (" +
+					event +
+					") is deprecated. Use on:" +
+					string.camelize(
+						event[0] === "$" ?
+						event.slice(1) :
+						event.split(" ").reverse().filter(function(s) { return s; }).join(":by:")
+						) +
+					" instead"
+				);
+				//!steal-dev-end
+
 				if(event.charAt(0) === "$") {
 					event = event.substr(1);
 					bindingContext = el;
@@ -627,7 +643,7 @@ var behaviors = {
 			}
 
 			var dataBinding = makeDataBinding({
-				name: "{(" + propName + "})",
+				name: "{(" + propName + ")}",
 				value: attrValue
 			}, el, {
 				templateType: data.templateType,
@@ -1005,6 +1021,8 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			dataBindingName,
 			specialIndex;
 
+
+
 		// check if there's a match of a binding name with at least a value before it
 		bindingNames.forEach(function(name){
 			if(result.special[name] !== undefined && result.special[name] > 0) {
@@ -1081,6 +1099,22 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			parentToChild = twoWay || !childToParent;
 
 		childName = matches[3];
+		//!steal-dev-start
+		// Warn about using old style (brace-delimited) binding syntax.  We've moved to using
+		// :bind, :from, and :to instead.
+		var newLookup = {
+			"^": ":to",
+			"(": ":bind"
+		};
+		dev.warn(
+			"can-stache-bindings: the data binding format " +
+			attributeName +
+			" is deprecated. Use " +
+			string.camelize(matches[3][0] === "$" ? matches[3].slice(1) : matches[3]) +
+			(newLookup[attributeName.charAt(1)] || ":from") +
+			" instead"
+		);
+		//!steal-dev-end
 		var isDOM = childName.charAt(0) === "$";
 		if(isDOM) {
 			bindingInfo = {
