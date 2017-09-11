@@ -1,10 +1,10 @@
-@module legacy\ \{\(\$\^\)\}\ bindings can-stache-bindings Legacy Syntaxes
-@group can-stache-bindings.legacy-syntaxes Legacy Syntaxes
+@module deprecated\ \{\(\$\^\)\}\ bindings can-stache-bindings Deprecated Syntaxes
+@group can-stache-bindings.legacy-syntaxes Deprecated Syntaxes
 @parent can-stache-bindings.syntaxes 5
 
 Provides template event, one-way bindings, and two-way bindings.
 
-> Note: this syntax will be deprecated in an upcoming release and you should use the [can-stache-bindings new syntax] instead
+> Note: This syntax is **deprecated** and you should use the [can-stache-bindings new syntax] instead
 
 @body
 

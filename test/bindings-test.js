@@ -2891,7 +2891,7 @@ if (System.env.indexOf('production') < 0) {
 			ok(true, message);
 		};
 
-		var template = stache("<div {(target)}='source.bar'/>");
+		var template = stache("<div target:vm:bind='source.bar'/>");
 
 		expect(1);
 		var map = new CanMap({ source: { foo: "foo" } });
@@ -3041,6 +3041,59 @@ test("call expressions work (#208)", function(){
 	canEvent.trigger.call(p0, "click");
 
 });
+
+if(System.env.indexOf("production") < 0) {
+	test("warn when using bracket syntax for data bindings (#294)", function() {
+		expect(4);
+		var valid = {};
+		var oldWarn = dev.warn;
+		dev.warn = function(mesg) {
+			var res = /foo:(\w+)\b/.exec(mesg);
+			if(res) {
+				ok(true, mesg);
+				valid[res[1]] = true;
+			}
+		};
+
+		var vm = new CanMap();
+
+		// first, third, and fifth should generate warnings
+		// and the content of those warnings should indicate
+		// that they should look like second, fourth, sixth
+		stache('<div {$foo}="bar"/>')(vm);
+		stache('<div foo:from="bar"/>')(vm);
+		stache('<div {^$foo}="bar"/>')(vm);
+		stache('<div foo:to="bar"/>')(vm);
+		stache('<div {($foo)}="bar"/>')(vm);
+		stache('<div foo:bind="bar"/>')(vm);
+
+		ok(valid.from && valid.to && valid.bind, ":from, :to, and :bind warnings generated");
+		dev.warn = oldWarn;
+	});
+
+	test("warn when using bracket syntax for event bindings (#294)", function() {
+		expect(3);
+		var valid = {};
+		var oldWarn = dev.warn;
+		dev.warn = function(mesg) {
+			var res = /\w+:(\w+)\b/.exec(mesg);
+			if(res) {
+				ok(true, mesg);
+				valid[res[1]] = true;
+			}
+		};
+
+		var vm = new CanMap();
+
+		stache('<div ($foo)="bar"/>')(vm);
+		stache('<div on:foo="bar"/>')(vm);
+		stache('<div (foo baz)="bar"/>')(vm);
+		stache('<div on:baz:by:foo="bar"/>')(vm);
+
+		ok(valid.foo && valid.baz, "element and object event warnings generated");
+		dev.warn = oldWarn;
+	});
+}
 
 // Add new tests above this line
 

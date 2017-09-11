@@ -506,14 +506,14 @@ test("Will not accept more than one data binding if this is bound", function() {
 	try {
 		template(myMap);
 	} catch (error) {
-		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.", "Succesfully errored");
 	}
 
 	template = stache('<export-this {foo}="bar" {this}="value" />');
 	try {
 		template(myMap);
 	} catch (error) {
-		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( {this}='value' ) and key bindings ( {prop}='value' ) on one element.", "Succesfully errored");
+		QUnit.equal(error.message, "can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.", "Succesfully errored");
 	}
 });
 
