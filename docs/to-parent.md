@@ -43,10 +43,7 @@ Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can
 
 > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
-@param {String} childProp The name of the property to export from the
-child components viewmodel. Use `this:to` or `.:to` to export the entire viewModel.
-
-@param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression that will be used to set in the parent scope.
+Parameters are the same as [can-stache-bindings.toParent#childProp_to__key_ childProp:to="key"]
 
 @signature `el:child-prop:to="key"`
 
@@ -57,9 +54,21 @@ child components viewmodel. Use `this:to` or `.:to` to export the entire viewMod
   <input el:value:to="name"/>
   ```
 
-  @param {String} child-prop The name of the element’s property or attribute to export.
+Parameters are the same as [can-stache-bindings.toParent#child_prop_to__key_ child-prop:to="key"]
 
-  @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value with be used to set in the parent scope.
+@signature `on:VIEW_MODEL_OR_DOM_EVENT:value:to='SCOPE_VALUE'`
+
+If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element's value to the SCOPE_VALUE when that event occurs.
+
+If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element's value to the SCOPE_VALUE when that event occurs.
+
+```
+<my-component on:show:value:to="myScopeProp"/>
+```
+
+@param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
+
+@param {String} SCOPE_VALUE A value in the current scope.
 
 
 @body

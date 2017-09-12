@@ -3,45 +3,6 @@
 
 @description Respond to events on elements or component ViewModels.
 
-@signature `on:el:DOM_EVENT='CALL_EXPRESSION'`
-
-Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
-
-```
-<div on:click="doSomething()"/>
-```
-
-@param {String} DOM_EVENT A DOM event name like `click`.
-
-@param {can-stache/expressions/call} CALL_EXPRESSION A call expression (e.g. `method(key)`) that is called when the `DOM_EVENT` is fired. The following key values are also supported:
-
- - `%element` - The element the event happened upon.
- - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
- - `%context` - The current context.
- - `%scope` - The current [can-view-scope scope].
- - `%arguments` - The arguments passed when the event was dispatched/triggered.
-
-@signature `on:vm:VIEW_MODEL_EVENT='CALL_EXPRESSION'`
-
-Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
-
-```
-<my-component on:show="doSomething()"/>
-```
-
-@param {String} VIEW_MODEL_EVENT A view model event.
-
-@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
-is fired. The following key values are also supported:
-
- - `%element` - The element the event happened upon.
- - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
- - `%context` - The current context.
- - `%scope` - The current [can-view-scope].
- - `%arguments` - The arguments passed when the event was dispatched/triggered.
-
 @signature `on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION'`
 
 If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
@@ -64,6 +25,40 @@ is fired. The following key values are also supported:
  - `%scope` - The current [can-view-scope].
  - `%arguments` - The arguments passed when the event was dispatched/triggered.
 
+@signature `on:el:DOM_EVENT='CALL_EXPRESSION'`
+
+Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<div on:el:click="doSomething()"/>
+```
+
+Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
+
+@signature `on:vm:VIEW_MODEL_EVENT='CALL_EXPRESSION'`
+
+Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+
+```
+<my-component on:vm:show="doSomething()"/>
+```
+
+Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
+
+@signature `on:VIEW_MODEL_OR_DOM_EVENT:value:to='SCOPE_VALUE'`
+
+If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element's value to the SCOPE_VALUE when that event occurs.
+
+If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element's value to the SCOPE_VALUE when that event occurs.
+
+```
+<my-component on:show:value:to="myScopeProp"/>
+```
+
+@param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
+
+@param {String} SCOPE_VALUE A value in the current scope.
+
 @signature `on:SCOPE_EVENT:by:this='CALL_EXPRESSION'`
 
 Listens to an event on the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
@@ -74,15 +69,7 @@ Listens to an event on the [can-view-scope scope] and calls the [can-stache/expr
 
 @param {String} SCOPE_EVENT a scope event.
 
-@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
-is fired. The following key values are also supported:
-
- - `%element` - The element the event happened upon.
- - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
- - `%context` - The current context.
- - `%scope` - The current [can-view-scope].
- - `%arguments` - The arguments passed when the event was dispatched/triggered.
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT` is fired. Same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
 
 @signature `on:SCOPE_PROP_EVENT:by:SCOPE_PROP='CALL_EXPRESSION'`
 
@@ -97,14 +84,7 @@ Listens to an event on a property of the [can-view-scope scope] and calls the [c
 @param {String} SCOPE_PROP a scope property.
 
 @param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
-is fired. The following key values are also supported:
-
- - `%element` - The element the event happened upon.
- - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
- - `%context` - The current context.
- - `%scope` - The current [can-view-scope].
- - `%arguments` - The arguments passed when the event was dispatched/triggered.
+is fired. Same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
 
 
 @body
@@ -177,3 +157,14 @@ The following demo uses this ability to create a close button that
 hides the player editor:
 
 @demo demos/can-component/paginate_next_event.html
+
+## Changing a property when an event occurs
+
+An event on either the element or viewModel can be set to bind the element's value to a property 
+on the scope like:
+
+```
+<input type="text" value="" on:blur:value:to="myScopeProp">
+```
+
+This will set the value of myScopeProp to the input's value anytime the input loses focus.
