@@ -737,7 +737,7 @@ QUnit.test("getBindingInfo works for value:to:on:click (#269)", function(){
 		childName: "value",
 		parentName: "bar",
 		bindingAttributeName: "value:to:on:click",
-		initializeValues: true,
+		initializeValues: false,
 		syncChildWithParent: false
 	}, "new vm binding");
 
@@ -899,6 +899,37 @@ QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
 
 	scope.attr('scope3', 'scope7');
 	equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
+});
+
+QUnit.test("on:input:value:to works (#289)", function() {
+	var scope = new SimpleMap({
+		myProp: ""
+	});
+
+	var renderer = stache("<input type='text' value='hai' on:input:value:to='myProp' />");
+	
+	var view = renderer(scope);
+
+	var ta = this.fixture;
+	ta.appendChild(view);
+
+	var inputTo = ta.getElementsByTagName('input')[0];
+
+	inputTo.value = 'wurld';
+	canEvent.trigger.call(inputTo, 'input');
+
+	equal(scope.get('myProp'), 'wurld', "Got the value on the scope");
+
+});
+
+QUnit.test("on:input:value:to does not initialize values (#289)", function() {
+	try {
+		stache("<input on:input:value:to='*editing.licensePlate'/>")();
+		ok(true, "renderer was made without error");
+	}
+	catch(e) {
+		ok(false, e.message);
+	}
 });
 
 }
