@@ -158,7 +158,7 @@ hides the player editor:
 
 @demo demos/can-component/paginate_next_event.html
 
-## Changing a viewModel value from event triggering
+## Changing a property when an event occurs
 
 An event on either the element or viewModel can be set to bind the element's value to a property 
 on the scope like:
@@ -167,4 +167,4 @@ on the scope like:
 <input type="text" value="" on:blur:value:to="myScopeProp">
 ```
 
-This will set the value of myScopeProp to the input's value anytime the input looses focus.
+This will set the value of myScopeProp to the input's value anytime the input loses focus.
