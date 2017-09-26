@@ -32,3 +32,4 @@ node_modules
 
 doc/
 dist/
+package-lock.json
