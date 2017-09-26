@@ -2660,7 +2660,7 @@ test("one-way pass computes to components with ~", function(assert) {
 	this.fixture.appendChild(stache("<foo-bar {compute}=\"~foo\"></foo-bar>")(baseVm));
 
 	var vm = canViewModel(this.fixture.firstChild);
-	ok(vm.attr("compute").isComputed, "Compute returned");
+	ok(vm.attr("compute")[canSymbol.for('can.getValue')], "observable returned");
 	equal(vm.attr("compute")(), "bar", "Compute has correct value");
 
 	canReflect.onValue(vm.attr("compute"), function() {

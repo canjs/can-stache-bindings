@@ -16,11 +16,10 @@ var live = require('can-view-live');
 var Scope = require('can-view-scope');
 var canViewModel = require('can-view-model');
 var canEvent = require('can-event');
-var canBatch = require('can-event/batch/batch');
 var compute = require('can-compute');
 var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
-var CID = require('can-cid');
+var observable = require('can-simple-observable');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
@@ -67,38 +66,6 @@ var onMatchStr = "on:",
 	setValueSymbol = "can.setValue",
 	onValueSymbol = "can.onValue",
 	offValueSymbol = "can.offValue";
-
-var reflectiveValue = function(value) {
-	var handlers = [];
-
-	var fn = function(newValue) {
-		if(arguments.length) {
-			value = newValue;
-			handlers.forEach(function(handler) {
-				canBatch.queue([handler, fn, [newValue]]);
-			}, this);
-		} else {
-			Observation.add(fn);
-			return value;
-		}
-	};
-	CID(fn);
-	canReflect.set(fn, canSymbol.for(onValueSymbol), function(handler) {
-		handlers.push(handler);
-	});
-	canReflect.set(fn, canSymbol.for(offValueSymbol), function(handler) {
-		var index = handlers.indexOf(handler);
-		handlers.splice(index, 1);
-	});
-	canReflect.set(fn, canSymbol.for(setValueSymbol), function(newValue) {
-		return fn(newValue);
-	});
-	canReflect.set(fn, canSymbol.for(getValueSymbol), function() {
-		return fn();
-	});
-	fn.isComputed = true;
-	return fn;
-};
 
 function setPriority(observable, priority){
 	if(observable instanceof Observation) {
@@ -716,7 +683,7 @@ var getObservableFrom = {
 	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
 	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
 		if(!scopeProp) {
-			return reflectiveValue();
+			return observable();
 		} else {
 			if(mustBeSettable) {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
@@ -755,7 +722,7 @@ var getObservableFrom = {
 					if (canReflect.isObservableLike(oldValue)) {
 						canReflect.setValue(oldValue, newVal);
 					} else {
-						canReflect.setKeyValue(viewModel, setName, reflectiveValue(canReflect.getValue(stickyCompute)));
+						canReflect.setKeyValue(viewModel, setName, observable(canReflect.getValue(stickyCompute)));
 					}
 				} else {
 					if(isBoundToContext) {
@@ -905,14 +872,12 @@ var bind = {
 			// Save the viewModel property name so it is not updated multiple times.
 			// We listen for when the batch has ended, and all observation updates have ended.
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
-//			canBatch.start();
 			canReflect.setValue(childUpdate, newValue);
 
 			// only after computes have been updated, reduce the update counter
 			Observation.afterUpdateAndNotify(function() {
 				--bindingsSemaphore[attrName];
 			});
-//			canBatch.stop();
 		};
 
 		if(parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
@@ -1256,7 +1221,7 @@ var makeDataBinding = function(node, el, bindingData) {
 	// return the function to complete the binding as `onCompleteBinding`.
 	if(bindingInfo.child === viewModelBindingStr) {
 		return {
-			value: bindingInfo.stickyParentToChild ? reflectiveValue(getValue(parentObservable)) : getValue(parentObservable),
+			value: bindingInfo.stickyParentToChild ? observable(getValue(parentObservable)) : getValue(parentObservable),
 			onCompleteBinding: completeBinding,
 			bindingInfo: bindingInfo,
 			onTeardown: onTeardown
