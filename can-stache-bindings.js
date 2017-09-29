@@ -29,7 +29,7 @@ var dev = require('can-util/js/dev/dev');
 var types = require('can-types');
 var last = require('can-util/js/last/last');
 
-var getMutationObserver = require('can-util/dom/mutation-observer/mutation-observer');
+var getMutationObserver = require('can-globals/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
