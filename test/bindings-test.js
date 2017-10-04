@@ -22,10 +22,8 @@ var domMutate = require('can-util/dom/mutate/mutate');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/inserted/inserted');
 
+var globals = require('can-globals');
 var makeDocument = require('can-vdom/make-document/make-document');
-var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
-var DOCUMENT = require("can-util/dom/document/document");
-
 
 var dev = require('can-util/js/dev/dev');
 var canEach = require('can-util/js/each/each');
@@ -36,7 +34,7 @@ var MockComponent = require("./mock-component");
 var DefaultMap = types.DefaultMap;
 
 function afterMutation(cb) {
-	var doc = DOCUMENT();
+	var doc = globals.getKeyValue('document');
 	var div = doc.createElement("div");
 	domEvents.addEventListener.call(div, "inserted", function(){
 		doc.body.removeChild(div);
@@ -45,12 +43,10 @@ function afterMutation(cb) {
 	domMutate.appendChild.call(doc.body, div);
 }
 
-var DOC = DOCUMENT();
-var MUT_OBS = MUTATION_OBSERVER();
-makeTest("can-stache-bindings - dom", document, MUT_OBS);
-makeTest("can-stache-bindings - vdom", makeDocument(), null);
+makeTest("can-stache-bindings - dom", document, true);
+makeTest("can-stache-bindings - vdom", makeDocument(), false);
 
-function makeTest(name, doc, mutObs){
+function makeTest(name, doc, enableMO){
 
 var testIfRealDocument = function(/* args */) {
 	if(doc === document) {
@@ -66,8 +62,11 @@ var isRealDocument = function(){
 
 QUnit.module(name, {
 	setup: function() {
-		DOCUMENT(doc);
-		MUTATION_OBSERVER(mutObs);
+		
+		globals.setKeyValue('document', doc);
+		if(!enableMO){
+			globals.setKeyValue('MutationObserver', null);
+		}
 
 		types.DefaultMap = CanMap;
 
@@ -86,8 +85,9 @@ QUnit.module(name, {
 		stop();
 		afterMutation(function() {
 			types.DefaultMap = DefaultMap;
-			DOCUMENT(DOC);
-			MUTATION_OBSERVER(MUT_OBS);
+			
+			globals.deleteKeyValue('document');
+			globals.deleteKeyValue('MutationObserver');
 
 			var fixture = document.getElementById("qunit-fixture");
 			while (fixture && fixture.hasChildNodes()) {
