@@ -907,7 +907,7 @@ QUnit.test("on:input:value:to works (#289)", function() {
 	});
 
 	var renderer = stache("<input type='text' value='hai' on:input:value:to='myProp' />");
-	
+
 	var view = renderer(scope);
 
 	var ta = this.fixture;
@@ -925,6 +925,16 @@ QUnit.test("on:input:value:to works (#289)", function() {
 QUnit.test("on:input:value:to does not initialize values (#289)", function() {
 	try {
 		stache("<input on:input:value:to='*editing.licensePlate'/>")();
+		ok(true, "renderer was made without error");
+	}
+	catch(e) {
+		ok(false, e.message);
+	}
+});
+
+QUnit.test("errors subproperties of undefined properties (#298)", function() {
+	try {
+		stache("<input value:to='prop.subprop'/>")();
 		ok(true, "renderer was made without error");
 	}
 	catch(e) {
