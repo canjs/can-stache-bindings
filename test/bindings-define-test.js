@@ -517,7 +517,6 @@ test("Will not accept more than one data binding if this is bound", function() {
 	}
 });
 
-
 test(".viewModel() can bypass dynamic bindings", function(){
 	expect(1);
 
@@ -596,4 +595,14 @@ QUnit.test("events starting with `to`, `from`, and `bind` work (#285)", function
 	vm.toevent = '2';
 	vm.fromevent = '2';
 	vm.bindevent = '2';
+});
+
+QUnit.test("errors on subproperties of undefined properties (#298)", function() {
+	try {
+		stache("<input {($value)}='prop.subprop'/>")();
+		ok(true, "renderer was made without error");
+	}
+	catch(e) {
+		ok(false, e.message);
+	}
 });
