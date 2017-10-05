@@ -62,7 +62,7 @@ var isRealDocument = function(){
 
 QUnit.module(name, {
 	setup: function() {
-		
+
 		globals.setKeyValue('document', doc);
 		if(!enableMO){
 			globals.setKeyValue('MutationObserver', null);
@@ -85,7 +85,7 @@ QUnit.module(name, {
 		stop();
 		afterMutation(function() {
 			types.DefaultMap = DefaultMap;
-			
+
 			globals.deleteKeyValue('document');
 			globals.deleteKeyValue('MutationObserver');
 
@@ -3094,6 +3094,32 @@ if(System.env.indexOf("production") < 0) {
 		dev.warn = oldWarn;
 	});
 }
+
+QUnit.test("legacy events should bind when using a plain object", function () {
+	var flip = false;
+	var template = stache("<div {{#if test}}($foo)=\"log()\"{{/if}}>Test</div>");
+
+	var frag = template({
+		log: function() {flip = true;},
+		test: true
+	});
+
+	canEvent.trigger.call(frag.firstChild, 'foo')
+	QUnit.ok(flip, "Plain object method successfully called");
+});
+
+QUnit.test("events should bind when using a plain object", function () {
+	var flip = false;
+	var template = stache("<div {{#if test}}on:foo=\"log()\"{{/if}}>Test</div>");
+
+	var frag = template({
+		log: function() {flip = true;},
+		test: true
+	});
+
+	canEvent.trigger.call(frag.firstChild, 'foo')
+	QUnit.ok(flip, "Plain object method successfully called");
+});
 
 // Add new tests above this line
 
