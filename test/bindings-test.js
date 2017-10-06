@@ -3104,7 +3104,7 @@ QUnit.test("legacy events should bind when using a plain object", function () {
 		test: true
 	});
 
-	canEvent.trigger.call(frag.firstChild, 'foo')
+	canEvent.trigger.call(frag.firstChild, 'foo');
 	QUnit.ok(flip, "Plain object method successfully called");
 });
 
@@ -3117,7 +3117,7 @@ QUnit.test("events should bind when using a plain object", function () {
 		test: true
 	});
 
-	canEvent.trigger.call(frag.firstChild, 'foo')
+	canEvent.trigger.call(frag.firstChild, 'foo');
 	QUnit.ok(flip, "Plain object method successfully called");
 });
 
