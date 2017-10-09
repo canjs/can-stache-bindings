@@ -1,18 +1,19 @@
-@module deprecated\ \{\(\$\^\)\}\ bindings can-stache-bindings Deprecated Syntaxes
+@module deprecated\ \{\(\$\^\)\}\ bindings Deprecated Syntaxes
 @group can-stache-bindings.legacy-syntaxes Deprecated Syntaxes
 @parent can-stache-bindings.syntaxes 5
 
 Provides template event, one-way bindings, and two-way bindings.
 
-> Note: This syntax is **deprecated** and you should use the [can-stache-bindings new syntax] instead
+> Note: This syntax is **deprecated** and you should use the [can-stache-bindings new syntax] instead.
 
 @body
 
 ## Use
 
 The `can-stache-bindings` plugin provides useful [can-view-callbacks.attr custom attributes] for template declarative event, one-way bindings, and two-way
-bindings on element attributes, component [can-component::ViewModel ViewModels], and the [can-view-scope scope]. Bindings look like:
+bindings on element attributes, component [can-component::ViewModel ViewModels], and the [can-view-scope scope].
 
+The deprecated bindings are as follows:
 
 - `(event)="key()"` for event binding.
 - `{prop}="key"` for one-way binding to a child.
@@ -23,7 +24,7 @@ Prepending `$` to a binding like `($event)="key()"` changes the binding from the
 
 > __Note:__ DOM attribute names are case-insensitive, use hypens (-) to in the attribute name to setup camelCase bindings.
 
-The following are the bindings that should be used with [can-stache]:
+The following are the deprecated bindings that can be used with [can-stache]:
 
 #### [can-stache-bindings.event event]
 
@@ -95,7 +96,7 @@ in the [can-view-scope scope] and vice versa:
 
 `{child-prop}="key"` ([can-stache-bindings.toChild one-way to child]) or `{^child-prop}="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component or vice versa, respectively.
 
-Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
+Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, [can-define/map/map DefineMap], etc), it is passed as a reference, behaving in much the same way as the following snippet.
 
 ```javascript
 function component(bar) {
