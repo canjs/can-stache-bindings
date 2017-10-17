@@ -17,14 +17,13 @@ var Scope = require('can-view-scope');
 var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
-var observable = require('can-simple-observable');
+var SimpleObservable = require('can-simple-observable');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var string = require('can-util/js/string/string');
 var dev = require('can-util/js/dev/dev');
-var types = require('can-types');
 var last = require('can-util/js/last/last');
 
 var getMutationObserver = require('can-globals/mutation-observer/mutation-observer');
@@ -39,6 +38,8 @@ var canReflect = require("can-reflect");
 var singleReference = require("can-util/js/single-reference/single-reference");
 var encoder = require("can-attribute-encoder");
 var queues = require("can-queues");
+var SettableObservable = require("can-simple-observable/setter/setter");
+var makeCompute = require("can-view-scope/make-compute-like");
 
 var addEnterEvent = require('can-event-dom-enter/compat');
 addEnterEvent(domEvents);
@@ -274,9 +275,9 @@ var behaviors = {
 				return;
 			}
 			var viewModel,
-				getViewModel = function() {
+				getViewModel = Observation.ignore(function() {
 					return viewModel || (viewModel = canViewModel(el));
-				},
+				}),
 				semaphore = {},
 				teardown;
 
@@ -492,7 +493,6 @@ var behaviors = {
 					"@context": data.scope._context,
 
 					"%element": this,
-					"$element": types.wrapElement(el),
 					"%event": ev,
 					"%viewModel": viewModel,
 					"%scope": data.scope,
@@ -622,7 +622,7 @@ var getObservableFrom = {
 	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
 	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
 		if(!scopeProp) {
-			return observable();
+			return new SimpleObservable();
 		} else {
 			if(mustBeSettable) {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
@@ -646,33 +646,29 @@ var getObservableFrom = {
 		var isBoundToContext = vmName === "." || vmName === "this";
 		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
 
-		var observation = new Observation(function() {
+
+		var observation = new SettableObservable(function getViewModelProperty() {
 			var viewModel = bindingData.getViewModel();
 			return observeReader.read(viewModel, keysToRead, {}).value;
-		});
-
-		observation[canSymbol.for(setValueSymbol)] = function(newVal) {
+		},function setViewModelProperty(newVal){
 			var viewModel = bindingData.getViewModel();
-
-			if(arguments.length) { // should this check if mustBeSettable is true ???
-				if(stickyCompute) {
-					// TODO: Review what this is used for.
-					var oldValue = canReflect.getKeyValue(viewModel, setName);
-					if (canReflect.isObservableLike(oldValue)) {
-						canReflect.setValue(oldValue, newVal);
-					} else {
-						canReflect.setKeyValue(viewModel, setName, observable(canReflect.getValue(stickyCompute)));
-					}
+			if(stickyCompute) {
+				// TODO: Review what this is used for.
+				var oldValue = canReflect.getKeyValue(viewModel, setName);
+				if (canReflect.isObservableLike(oldValue)) {
+					canReflect.setValue(oldValue, newVal);
 				} else {
-					if(isBoundToContext) {
-						canReflect.setValue(viewModel, newVal);
-					} else {
-						canReflect.setKeyValue(viewModel, setName, newVal);
-					}
-
+					canReflect.setKeyValue(viewModel, setName, new SimpleObservable(canReflect.getValue(stickyCompute)));
 				}
+			} else {
+				if(isBoundToContext) {
+					canReflect.setValue(viewModel, newVal);
+				} else {
+					canReflect.setKeyValue(viewModel, setName, newVal);
+				}
+
 			}
-		};
+		});
 
 		return observation;
 	},
@@ -770,11 +766,13 @@ var bind = {
 						// This is used by `can-value`.
 						if(canReflect.getValue(parentObservable) !== canReflect.getValue(childObservable)) {
 							bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
+							queues.batch.start();
 							canReflect.setValue(childObservable, canReflect.getValue(parentObservable));
 
 							queues.mutateQueue.enqueue(function decrementChildToParentSemaphore() {
 								--bindingsSemaphore[attrName];
 							},null,[],{});
+							queues.batch.stop();
 						}
 					}
 				}
@@ -805,18 +803,20 @@ var bind = {
 		return updateParent;
 	},
 	// parent -> child binding
-	parentToChild: function(el, parentObservable, childUpdate, bindingsSemaphore, attrName) {
+	parentToChild: function(el, parentObservable, childObservable, bindingsSemaphore, attrName) {
 		// setup listening on parent and forwarding to viewModel
 		var updateChild = function(newValue) {
 			// Save the viewModel property name so it is not updated multiple times.
 			// We listen for when the batch has ended, and all observation updates have ended.
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
-			canReflect.setValue(childUpdate, newValue);
+			queues.batch.start();
+			canReflect.setValue(childObservable, newValue);
 
 			// only after computes have been updated, reduce the update counter
 			queues.mutateQueue.enqueue(function decrementParentToChildSemaphore() {
 				--bindingsSemaphore[attrName];
 			},null,[],{});
+			queues.batch.stop();
 		};
 
 		if(parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
@@ -939,7 +939,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 		if(dataBindingName) {
 			var childEventName = getEventName(result);
 			var initializeValues = childEventName ? false : true;
-			return assign({
+			bindingInfo = assign({
 				parent: scopeBindingStr,
 				child: getChildBindingStr(result.tokens, favorViewModel),
 				// the child is going to be the token before the special location
@@ -947,8 +947,12 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 				childEvent: childEventName,
 				bindingAttributeName: attributeName,
 				parentName: attributeValue,
-				initializeValues: initializeValues
+				initializeValues: initializeValues,
 			}, bindingRules[dataBindingName]);
+			if(attributeValue.trim().charAt(0) === "~") {
+				bindingInfo.stickyParentToChild = true
+			}
+			return bindingInfo;
 		}
 		// END: check new binding syntaxes ======
 
@@ -984,7 +988,8 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 					childName: vmName,
 					parentToChild: true,
 					childToParent: true,
-					syncChildWithParent: true
+					syncChildWithParent: true,
+
 				};
 			} else {
 				return {
@@ -1160,7 +1165,7 @@ var makeDataBinding = function(node, el, bindingData) {
 	// return the function to complete the binding as `onCompleteBinding`.
 	if(bindingInfo.child === viewModelBindingStr) {
 		return {
-			value: bindingInfo.stickyParentToChild ? observable(getValue(parentObservable)) : getValue(parentObservable),
+			value: bindingInfo.stickyParentToChild ? makeCompute(parentObservable) : getValue(parentObservable),
 			onCompleteBinding: completeBinding,
 			bindingInfo: bindingInfo,
 			onTeardown: onTeardown

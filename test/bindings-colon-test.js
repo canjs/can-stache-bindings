@@ -12,7 +12,14 @@ var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
 var DefineMap = require("can-define/map/map");
+var DefineList = require("can-define/list/list");
 var canEvent = require("can-util/dom/events/events");
+var queues = require("can-queues");
+var dev = require('can-util/js/dev/dev');
+var viewCallbacks = require('can-view-callbacks');
+var canViewModel = require('can-view-model');
+var canSymbol = require('can-symbol');
+var canReflect = require('can-reflect');
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -940,6 +947,424 @@ QUnit.test("errors subproperties of undefined properties (#298)", function() {
 	catch(e) {
 		ok(false, e.message);
 	}
+});
+
+if (System.env.indexOf('production') < 0) {
+	test("Warning happens when changing the map that a to-parent binding points to.", function() {
+		var tagName = "merge-warn-test";
+
+		// Delete previous tags, to avoid warnings from can-view-callbacks.
+		delete viewCallbacks._tags[tagName];
+
+		expect(2);
+
+		var step1 = { "baz": "quux" };
+		var overwrite = { "plonk": "waldo" };
+
+		var oldlog = dev.warn,
+			message = 'can-view-scope: Merging data into "bar" because its parent is non-observable';
+
+		var thisTest = QUnit.config.current;
+		dev.warn = function(text) {
+			if(QUnit.config.current === thisTest) {
+				if(text === message) {
+					ok(true, 'Got expected message logged.');
+				}
+			}
+		};
+		var viewModel;
+		MockComponent.extend({
+			tag: tagName,
+			viewModel: function() {
+				return viewModel = new SimpleMap({
+					"foo": new SimpleMap({})
+				});
+
+			}
+		});
+
+		var template = stache("<merge-warn-test foo:bind='bar'/>");
+
+		var data = {
+			bar: new SimpleMap(step1)
+		};
+		this.fixture.appendChild(template(data));
+		viewModel.set("foo", overwrite);
+		deepEqual(data.bar.get(), { "baz": undefined, "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
+
+		dev.warn = oldlog;
+	});
+}
+
+test("updates happen on two-way even when one binding is satisfied", function() {
+	var template = stache('<input value:bind="firstName"/>');
+
+	var ViewModel = DefineMap.extend({
+		firstName: {
+			set: function(newValue) {
+				if(newValue) {
+					return newValue.toLowerCase();
+				}
+			}
+		}
+	});
+	var viewModel = new ViewModel({ firstName: "jeffrey" });
+	stop(); // Stop here just to ensure the attributes event generated here is handled before the next test.
+	var frag = template(viewModel);
+	domMutate.appendChild.call(this.fixture, frag);
+	equal(this.fixture.firstChild.value, "jeffrey");
+
+	this.fixture.firstChild.value = "JEFFREY";
+	domEvents.dispatch.call(this.fixture.firstChild, "change");
+	equal(this.fixture.firstChild.value, "jeffrey");
+	afterMutation(start);
+});
+
+QUnit.test("updates happen on changed two-way even when one binding is satisfied", function() {
+	stop();
+	var template = stache('<input value:bind="{{bindValue}}"/>');
+
+	var ViewModel = DefineMap.extend({
+		firstName: {
+			set: function(newValue) {
+				if(newValue) {
+					return newValue.toLowerCase();
+				}
+			}
+		},
+		lastName: {
+			set: function(newValue) {
+				if(newValue) {
+					return newValue.toLowerCase();
+				}
+			}
+		},
+		bindValue: "string"
+	});
+	var viewModel = new ViewModel({ firstName: "Jeffrey", lastName: "King", bindValue: "firstName" });
+
+	var frag = template(viewModel);
+	domMutate.appendChild.call(this.fixture, frag);
+	afterMutation(function() {
+		equal(this.fixture.firstChild.value, "jeffrey");
+
+		viewModel.bindValue = "lastName";
+		afterMutation(function() {
+			equal(this.fixture.firstChild.value, "king");
+
+			this.fixture.firstChild.value = "KING";
+			domEvents.dispatch.call(this.fixture.firstChild, "change");
+			equal(this.fixture.firstChild.value, "king");
+			start();
+		}.bind(this));
+	}.bind(this));
+});
+
+if (System.env.indexOf('production') < 0) {
+	test("warning when binding to non-existing value (#136) (#119)", function() {
+		var oldWarn = dev.warn;
+		dev.warn = function(message) {
+			ok(true, message);
+		};
+
+		var template = stache("<div target:vm:bind='source.bar'/>");
+
+		expect(1);
+		var map = new SimpleMap({ source: new SimpleMap({ foo: "foo" }) });
+		template(map);
+
+		dev.warn = oldWarn;
+	});
+}
+
+
+QUnit.test("changing a scope property calls registered stache helper's returned function", function(){
+	expect(1);
+	stop();
+	var scope = new SimpleMap({
+		test: "testval"
+	});
+	MockComponent.extend({
+		tag: "test-component",
+		viewModel: scope,
+		template: stache('<span>Hello world</span>')
+
+	});
+
+	stache.registerHelper("propChangeEventStacheHelper", function(){
+		return function(){
+			start();
+			ok(true, "helper's returned function called");
+		};
+	});
+
+	var template = stache('<test-component on:test="propChangeEventStacheHelper()" />');
+
+	template({});
+
+	scope.set('test', 'changed');
+
+});
+
+
+
+test("call expressions work (#208)", function(){
+	expect(2);
+
+	stache.registerHelper("addTwo", function(arg){
+		return arg+2;
+	});
+
+	stache.registerHelper("helperWithArgs", function(arg){
+		QUnit.equal(arg, 3, "got the helper");
+		ok(true, "helper called");
+	});
+
+	var template = stache("<p on:click='helperWithArgs(addTwo(arg))'></p>");
+	var frag = template({arg: 1});
+
+
+	this.fixture.appendChild(frag);
+	var p0 = this.fixture.getElementsByTagName("p")[0];
+	domEvents.dispatch.call(p0, "click");
+
+});
+
+
+QUnit.test("events should bind when using a plain object", function () {
+	var flip = false;
+	var template = stache("<div {{#if test}}on:foo=\"log()\"{{/if}}>Test</div>");
+
+	var frag = template({
+		log: function() {flip = true;},
+		test: true
+	});
+
+	domEvents.dispatch.call(frag.firstChild, 'foo');
+	QUnit.ok(flip, "Plain object method successfully called");
+});
+
+QUnit.test('change event handler set up when binding on radiochange (#206)', function() {
+
+	var template = stache('<input type="radio" checked:bind="attending" />');
+
+	var map = new SimpleMap({
+		attending: false
+	});
+
+	var frag = template(map);
+	var input = frag.firstChild;
+
+	input.checked = true;
+	domEvents.dispatch.call(input, "change");
+
+	QUnit.equal(map.get('attending'), true, "now it is true");
+});
+
+QUnit.test("%arguments gives the event arguments", function(){
+	var template = stache("<button on:click='doSomething(%event, %arguments)'>Default Args</button>");
+
+	var MyMap = SimpleMap.extend({
+		doSomething: function(ev, args){
+			equal(args[0], ev, 'default arg is ev');
+		}
+	});
+
+	var frag = template(new MyMap());
+	var button = frag.firstChild;
+
+	domEvents.dispatch.call(button, "click");
+});
+
+
+test("one-way pass computes to components with ~", function(assert) {
+	expect(6);
+	MockComponent.extend({
+		tag: "foo-bar"
+	});
+
+	var baseVm = new SimpleMap({foo : "bar"});
+
+	this.fixture.appendChild(stache("<foo-bar compute:from=\"~foo\"></foo-bar>")(baseVm));
+
+	var vm = canViewModel(this.fixture.firstChild);
+	ok(vm.get("compute")[canSymbol.for('can.getValue')], "observable returned");
+	equal(vm.get("compute")(), "bar", "Compute has correct value");
+
+	canReflect.onValue(vm.get("compute"), function() {
+		// NB: This gets called twice below, once by
+		//  the parent and once directly.
+		ok(true, "Change handler called");
+	});
+
+	baseVm.set("foo", "quux");
+	equal(vm.get("compute")(), "quux", "Compute updates");
+
+	vm.get("compute")("xyzzy");
+	equal(baseVm.get("foo"), "xyzzy", "Compute does update the other direction");
+});
+
+test("special values get called", function(assert) {
+	assert.expect(2);
+	var done = assert.async(1);
+
+	MockComponent.extend({
+		tag: 'ref-syntax',
+		template: stache("<input on:change=\"%scope.set('*foo', %element.value)\">"),
+		viewModel: new ( SimpleMap.extend({
+			method: function() {
+				assert.ok(true, "method called");
+
+				done();
+			}
+		}) )
+	});
+
+	var template = stache("<ref-syntax on:el:inserted=\"%viewModel.method()\"></ref-syntax>");
+	var frag = template({});
+	domMutate.appendChild.call(this.fixture, frag);
+	QUnit.stop();
+
+	afterMutation(function() {
+		var input = doc.getElementsByTagName("input")[0];
+		input.value = "bar";
+		domEvents.dispatch.call(input, "change");
+
+		// Read from mock component's shadow scope for refs.
+		var scope = domData.get.call(this.fixture.firstChild).shadowScope;
+		assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
+		start();
+	}.bind(this));
+});
+
+test("Multi-select empty string works(#1263)", function(){
+
+		var data = new SimpleMap({
+				isMultiple: 1,
+				isSelect: 1,
+				name: "attribute_ 0",
+				options: new DefineList([
+						{label: 'empty', value: ""},
+						{label: 'zero', value: 0},
+						{label: 'one', value: 1},
+						{label: 'two', value: 2},
+						{label: 'three', value: 3},
+						{label: 'four', value: 4}
+				]),
+				value: new DefineList(["1"])
+		});
+
+		var template = stache("<select {{#if isMultiple}}multiple{{/if}} values:bind='value'> " +
+				"{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
+
+		var frag = template(data);
+
+		equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
+		equal(frag.firstChild.getElementsByTagName("option")[2].selected, true, "One is selected");
+
+});
+
+
+test("converters work (#2299)", function(){
+	stache.registerConverter("numberToString",{
+		get: function(source){
+			return source() + "";
+		},
+		set: function(newVal, source){
+			source(newVal === "" ? null : +newVal );
+		}
+	});
+
+	var template = stache('<input value:bind="numberToString(~age)">');
+
+	var map = new SimpleMap({age: 25});
+
+	var frag = template(map);
+
+	equal(frag.firstChild.value, "25");
+	equal(map.get("age"), 25);
+
+	map.set("age",33);
+
+	equal(frag.firstChild.value, "33");
+	equal(map.get("age"), 33);
+
+	frag.firstChild.value = "1";
+
+	domEvents.dispatch.call(frag.firstChild, "change");
+
+	stop();
+	afterMutation(function() {
+		start();
+		equal(frag.firstChild.value, "1");
+		equal(map.get("age"), 1);
+	});
+
+});
+
+test("value:bind memory leak (#2270)", function() {
+
+	var template = stache('<div><input value:bind="foo"></div>');
+
+	var vm = new SimpleMap({foo: ''});
+
+	var frag = template(vm);
+
+	var ta = this.fixture;
+	domMutate.appendChild.call(ta,frag);
+
+	stop();
+	afterMutation(function(){
+		domMutate.removeChild.call(ta, ta.firstChild);
+		// still 1 binding, should be 0
+		afterMutation(function(){
+			var checkLifecycleBindings = function(){
+				var meta = vm[canSymbol.for("can.meta")]
+				if( meta.handlers.get([]).length === 0 ) {
+					QUnit.ok(true, "no bindings");
+					start();
+				} else {
+					setTimeout(checkLifecycleBindings, 10);
+				}
+			};
+			checkLifecycleBindings();
+		});
+	});
+
+});
+
+test("Child bindings updated before parent (#2252)", function(){
+	var template = stache("{{#eq page 'view'}}<child-binder page:from='page' title:from='title'/>{{/eq}}");
+	MockComponent.extend({
+		tag: 'child-binder',
+		template: stache('<span/>'),
+		viewModel: function(props){
+			var map = new SimpleMap(props);
+			canReflect.assignSymbols(map,{
+				"can.setKeyValue": function(key, value){
+					if(key === "page"){
+						equal(value, "view", "value should not be edit");
+					} else {
+						QUnit.equal(key, "title", "title was set, we are trapping right");
+					}
+
+					this.set(key, value);
+				}
+			});
+			return map;
+		}
+	});
+
+	var data = new SimpleMap({
+		page : 'view'
+	});
+	template(data);
+
+	data.set('title', 'foo');
+
+	queues.batch.start();
+	data.set('page', 'edit');
+	queues.batch.stop();
 });
 
 }
