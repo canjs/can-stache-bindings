@@ -12,7 +12,7 @@ var MockComponent = require("./mock-component-simple-map");
 var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
 var DefineMap = require("can-define/map/map");
-var canEvent = require("can-event");
+var canEvent = require("can-util/dom/events/events");
 
 function afterMutation(cb) {
 	var doc = DOCUMENT();
@@ -424,7 +424,7 @@ test("value:from works with camelCase and kebab-case properties", function() {
 	ok(!kebabPropInput.value, "input bound to kebab-case prop value not updated when camelCase prop changes");
 
 	camelPropInput.value = "32";
-	canEvent.trigger.call(camelPropInput, "change");
+	canEvent.dispatch.call(camelPropInput, "change");
 	equal(map.attr("theProp"), "31", "camelCase prop NOT updated when input bound to camelCase prop changes");
 	ok(!map.attr("the-prop"), "kebabCase prop NOT updated when input bound to camelCase prop changes");
 
@@ -437,7 +437,7 @@ test("value:from works with camelCase and kebab-case properties", function() {
 	equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
 
 	kebabPropInput.value = "35";
-	canEvent.trigger.call(kebabPropInput, "change");
+	canEvent.dispatch.call(kebabPropInput, "change");
 	equal(map.attr("the-prop"), "34", "kebab-case prop NOT updated from input bound to kebab-case prop");
 	equal(map.attr("theProp"), "31", "camelCase prop NOT updated from input bound to kebab-case prop");
 });
@@ -459,7 +459,7 @@ test("value:to works with camelCase and kebab-case properties", function() {
 	var kebabPropInput = ta.getElementsByTagName("input")[1];
 
 	camelPropInput.value = "32";
-	canEvent.trigger.call(camelPropInput, "change");
+	canEvent.dispatch.call(camelPropInput, "change");
 	equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
 	ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -468,7 +468,7 @@ test("value:to works with camelCase and kebab-case properties", function() {
 	ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
 	kebabPropInput.value = "33";
-	canEvent.trigger.call(kebabPropInput, "change");
+	canEvent.dispatch.call(kebabPropInput, "change");
 	equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
 	equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -494,7 +494,7 @@ test("value:bind works with camelCase and kebab-case properties", function() {
 	var kebabPropInput = ta.getElementsByTagName("input")[1];
 
 	camelPropInput.value = "32";
-	canEvent.trigger.call(camelPropInput, "change");
+	canEvent.dispatch.call(camelPropInput, "change");
 	equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
 	ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -503,7 +503,7 @@ test("value:bind works with camelCase and kebab-case properties", function() {
 	ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
 	kebabPropInput.value = "33";
-	canEvent.trigger.call(kebabPropInput, "change");
+	canEvent.dispatch.call(kebabPropInput, "change");
 	equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
 	equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -543,7 +543,7 @@ test("Bracket expression with dot and no explicit root and value:bind", function
 
 	input.value = "REVERSE REVERSE";
 
-	canEvent.trigger.call(input, "change");
+	canEvent.dispatch.call(input, "change");
 
 	equal(data["two.hops"], "REVERSE REVERSE", "updated from input");
 });
@@ -579,7 +579,7 @@ test("Bracket expression with colon and no explicit root and value:bind", functi
 
 	input.value = "REVERSE REVERSE";
 
-	canEvent.trigger.call(input, "change");
+	canEvent.dispatch.call(input, "change");
 
 	equal(data["two:hops"], "REVERSE REVERSE", "updated from input");
 });
@@ -630,15 +630,15 @@ test('can bind to property on scope using :by:', function(){
 		tag: "view-model-able"
 	});
 
-	var template = stache("<view-model-able on:prop:by:obj='someMethod'/>");
+	var template = stache("<view-model-able on:prop:by:obj='someMethod(%arguments)'/>");
 
 	var map = new DefineMap({
 		obj: {
 			prop: "Mercury"
 		},
-		someMethod: function(scope, el, ev, newVal){
+		someMethod: function(args){
 			start();
-			equal(newVal, "Venus", "method called");
+			equal(args[0], "Venus", "method called");
 		}
 	});
 
@@ -659,7 +659,7 @@ test('can bind to entire scope using :by:this', function(){
 	var map = new DefineMap({
 		prop: "Mercury",
 
-		someMethod: function(scope, el, ev, newVal){
+		someMethod: function(scope, el, newVal){
 			start();
 			equal(newVal, "Venus", "method called");
 		}
@@ -678,7 +678,7 @@ test('can bind to viewModel using on:vm:prop', function() {
 	});
 
 	var MySimpleMap = SimpleMap.extend({
-		someMethod: function(scope, el, ev, newVal){
+		someMethod: function(scope, el, newVal){
 			start();
 			equal(newVal, "Venus", "method called");
 		}
@@ -722,7 +722,7 @@ test('can bind to element using on:el:prop', function() {
 	var frag = template(parent);
 	var element = frag.firstChild;
 
-	canEvent.trigger.call(element, "prop");
+	canEvent.dispatch.call(element, "prop");
 });
 
 QUnit.test("getBindingInfo works for value:to:on:click (#269)", function(){
@@ -757,13 +757,13 @@ test("value:to:on:click and on:click:value:to work (#269)", function() {
 
 	var bindFirstInput = ta.getElementsByTagName("input")[0];
 	bindFirstInput.value = "22";
-	canEvent.trigger.call(bindFirstInput, "click");
+	canEvent.dispatch.call(bindFirstInput, "click");
 	QUnit.equal(map.get('theProp'), "22");
 
 
 	var eventFirstInput = ta.getElementsByTagName("input")[1];
 	eventFirstInput.value = "23";
-	canEvent.trigger.call(eventFirstInput, "click");
+	canEvent.dispatch.call(eventFirstInput, "click");
 	QUnit.equal(map.get('theProp'), "23");
 });
 
@@ -788,7 +788,7 @@ QUnit.test("on:el:click works inside {{#if}} on element with a viewModel (#279)"
 
 	var frag = template(parent);
 	var el = frag.firstChild;
-	canEvent.trigger.call(el, "click");
+	canEvent.dispatch.call(el, "click");
 });
 
 QUnit.test("vm:prop:to/:from/:bind work (#280)", function() {
@@ -874,7 +874,7 @@ QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
 	equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
 
 	inputTo.value = '4';
-	canEvent.trigger.call(inputTo, 'change');
+	canEvent.dispatch.call(inputTo, 'change');
 	equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
 
 	scope.attr('scope1', 'scope4');
@@ -884,7 +884,7 @@ QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
 	equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
 
 	inputFrom.value = 'scope5';
-	canEvent.trigger.call(inputFrom, 'change');
+	canEvent.dispatch.call(inputFrom, 'change');
 	equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
 
 	scope.attr('scope2', 'scope6');
@@ -894,7 +894,7 @@ QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
 	equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
 
 	inputBind.value = 'scope6';
-	canEvent.trigger.call(inputBind, 'change');
+	canEvent.dispatch.call(inputBind, 'change');
 	equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
 
 	scope.attr('scope3', 'scope7');
@@ -916,7 +916,7 @@ QUnit.test("on:input:value:to works (#289)", function() {
 	var inputTo = ta.getElementsByTagName('input')[0];
 
 	inputTo.value = 'wurld';
-	canEvent.trigger.call(inputTo, 'input');
+	canEvent.dispatch.call(inputTo, 'input');
 
 	equal(scope.get('myProp'), 'wurld', "Got the value on the scope");
 

@@ -15,8 +15,6 @@ var viewCallbacks = require('can-view-callbacks');
 var live = require('can-view-live');
 var Scope = require('can-view-scope');
 var canViewModel = require('can-view-model');
-var canEvent = require('can-event');
-var compute = require('can-compute');
 var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
 var observable = require('can-simple-observable');
@@ -40,12 +38,43 @@ var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
 var singleReference = require("can-util/js/single-reference/single-reference");
 var encoder = require("can-attribute-encoder");
+var queues = require("can-queues");
 
 var addEnterEvent = require('can-event-dom-enter/compat');
 addEnterEvent(domEvents);
 
 var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
+
+var canEvent = {
+	on: function(eventName, handler, queue) {
+		var listenWithDOM = domEvents.canAddEventListener.call(this);
+		if(listenWithDOM) {
+			domEvents.addEventListener.call(this, eventName, handler, queue);
+		} else {
+			canReflect.onKeyValue(this, eventName, handler, queue)
+		}
+	},
+	off: function(eventName, handler, queue) {
+		var listenWithDOM = domEvents.canAddEventListener.call(this);
+		if(listenWithDOM) {
+			domEvents.removeEventListener.call(this, eventName, handler, queue);
+		} else {
+			canReflect.offKeyValue(this, eventName, handler, queue)
+		}
+	},
+	one: function(event, handler, queue) {
+		// Unbind the listener after it has been executed
+		var one = function() {
+			canEvent.off.call(this, event, one, queue);
+			return handler.apply(this, arguments);
+		};
+
+		// Bind the altered listener
+		canEvent.on.call(this, event, one, queue);
+		return this;
+	}
+};
 
 var noop = function() {};
 
@@ -67,15 +96,6 @@ var onMatchStr = "on:",
 	onValueSymbol = "can.onValue",
 	offValueSymbol = "can.offValue";
 
-function setPriority(observable, priority){
-	if(observable instanceof Observation) {
-	    observable.compute._primaryDepth = priority;
-	} else if(observable.computeInstance) {
-	    observable.computeInstance.setPrimaryDepth(priority);
-	} else if(observable.observation) {
-	    observable.observation.compute._primaryDepth = priority;
-	}
-}
 
 var throwOnlyOneTypeOfBindingError = function(){
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
@@ -543,86 +563,6 @@ var behaviors = {
 			canEvent.on.call(bindingContext, event, handler);
 			canEvent.on.call(el, attributesEventStr, attributesHandler);
 			canEvent.on.call(el, removedStr, removedHandler);
-		},
-		// ### bindings.behaviors.value
-		// Behavior for the deprecated can-value
-		value: function(el, data) {
-			var propName = "$value",
-				attrValue = removeBrackets(el.getAttribute("can-value")).trim(),
-				nodeName = el.nodeName.toLowerCase(),
-				elType = nodeName === "input" && (el.type || el.getAttribute("type")),
-				getterSetter;
-
-			if (nodeName === "input" && (elType === "checkbox" || elType === "radio")) {
-				var property = getObservableFrom.scope(el, data.scope, attrValue, {}, true);
-				if (el.type === "checkbox") {
-
-					var trueValue = attr.has(el, "can-true-value") ? el.getAttribute("can-true-value") : true,
-						falseValue = attr.has(el, "can-false-value") ? el.getAttribute("can-false-value") : false;
-
-					getterSetter = compute(function (newValue) {
-						// jshint eqeqeq: false
-						var isSet = arguments.length !== 0;
-						if (property && property[canSymbol.for(getValueSymbol)]) {
-							if (isSet) {
-								canReflect.setValue(property, newValue ? trueValue : falseValue);
-							} else {
-								return canReflect.getValue(property) == trueValue;
-							}
-						} else {
-							if (isSet) {
-								// TODO: https://github.com/canjs/can-stache-bindings/issues/180
-							} else {
-								return property == trueValue;
-							}
-						}
-					});
-			}	else if(elType === "radio") {
-					// radio is two-way bound to if the property value
-					// equals the element value
-					getterSetter = compute(function (newValue) {
-						// jshint eqeqeq: false
-						var isSet = arguments.length !== 0 && newValue;
-					if (property && property[canSymbol.for(getValueSymbol)]) {
-							if (isSet) {
-							canReflect.setValue(property, el.value);
-							} else {
-							return canReflect.getValue(property) == el.value;
-							}
-						} else {
-							if (isSet) {
-								// TODO: https://github.com/canjs/can-stache-bindings/issues/180
-							} else {
-								return property == el.value;
-							}
-						}
-					});
-				}
-				propName = "$checked";
-				attrValue = "getterSetter";
-				data.scope = new Scope({
-					getterSetter: getterSetter
-				});
-			}
-			// For contenteditable elements, we instantiate a Content control.
-			else if (isContentEditable(el)) {
-				propName = "$innerHTML";
-			}
-
-			var dataBinding = makeDataBinding({
-				name: "{(" + propName + ")}",
-				value: attrValue
-			}, el, {
-				templateType: data.templateType,
-				scope: data.scope,
-				semaphore: {},
-				initializeValues: true,
-				legacyBindings: true
-			});
-
-			canEvent.one.call(el, removedStr, function() {
-				dataBinding.onTeardown();
-			});
 		}
 };
 
@@ -662,7 +602,6 @@ viewCallbacks.attr(/^(:lp:)[(:d:)?\w\.\\]+(:rp:)$/, behaviors.event);
 
 // Legacy bindings.
 viewCallbacks.attr(/can-[\w\.]+/, behaviors.event);
-viewCallbacks.attr("can-value", behaviors.value);
 
 // ## getObservableFrom
 // An object of helper functions that make a getter/setter observable
@@ -833,9 +772,9 @@ var bind = {
 							bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
 							canReflect.setValue(childObservable, canReflect.getValue(parentObservable));
 
-							Observation.afterUpdateAndNotify(function() {
+							queues.mutateQueue.enqueue(function decrementChildToParentSemaphore() {
 								--bindingsSemaphore[attrName];
-							});
+							},null,[],{});
 						}
 					}
 				}
@@ -860,7 +799,7 @@ var bind = {
 		};
 
 		if(childObservable && childObservable[canSymbol.for(getValueSymbol)]) {
-			canReflect.onValue(childObservable, updateParent);
+			canReflect.onValue(childObservable, updateParent,"notify");
 		}
 
 		return updateParent;
@@ -875,13 +814,13 @@ var bind = {
 			canReflect.setValue(childUpdate, newValue);
 
 			// only after computes have been updated, reduce the update counter
-			Observation.afterUpdateAndNotify(function() {
+			queues.mutateQueue.enqueue(function decrementParentToChildSemaphore() {
 				--bindingsSemaphore[attrName];
-			});
+			},null,[],{});
 		};
 
 		if(parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
-			canReflect.onValue(parentObservable, updateChild);
+			canReflect.onValue(parentObservable, updateChild,"notify");
 		}
 
 		return updateChild;
@@ -1179,11 +1118,11 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	if(bindingData.nodeList) {
 		if(parentObservable) {
-			setPriority(parentObservable, bindingData.nodeList.nesting+1);
+			canReflect.setPriority(parentObservable, bindingData.nodeList.nesting+1);
 		}
 
 		if(childObservable) {
-			setPriority(childObservable, bindingData.nodeList.nesting+1);
+			canReflect.setPriority(childObservable, bindingData.nodeList.nesting+1);
 		}
 	}
 
@@ -1202,7 +1141,7 @@ var makeDataBinding = function(node, el, bindingData) {
 		}
 		// the child needs to be bound even if
 		else if(bindingInfo.stickyParentToChild && childObservable[canSymbol.for(onValueSymbol)])  {
-			canReflect.onValue(childObservable, noop);
+			canReflect.onValue(childObservable, noop,"notify");
 		}
 
 		if(bindingInfo.initializeValues) {
@@ -1334,7 +1273,7 @@ getValue = function(value) {
 },
 unbindUpdate = function(observable, updater) {
 	if(observable && observable[canSymbol.for(getValueSymbol)] && typeof updater === "function") {
-		canReflect.offValue(observable, updater);
+		canReflect.offValue(observable, updater,"notify");
 	}
 },
 cleanVMName = function(name) {
