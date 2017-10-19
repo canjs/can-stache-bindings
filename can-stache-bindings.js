@@ -12,7 +12,6 @@
 // - initializeValues - A helper that initializes a data binding.
 var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
-var live = require('can-view-live');
 var Scope = require('can-view-scope');
 var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
@@ -22,16 +21,12 @@ var SimpleObservable = require('can-simple-observable');
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
-var string = require('can-util/js/string/string');
 var dev = require('can-util/js/dev/dev');
-var last = require('can-util/js/last/last');
-
-var getMutationObserver = require('can-globals/mutation-observer/mutation-observer');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
-var canLog = require('can-util/js/log/log');
+
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
@@ -53,7 +48,7 @@ var canEvent = {
 		if(listenWithDOM) {
 			domEvents.addEventListener.call(this, eventName, handler, queue);
 		} else {
-			canReflect.onKeyValue(this, eventName, handler, queue)
+			canReflect.onKeyValue(this, eventName, handler, queue);
 		}
 	},
 	off: function(eventName, handler, queue) {
@@ -61,7 +56,7 @@ var canEvent = {
 		if(listenWithDOM) {
 			domEvents.removeEventListener.call(this, eventName, handler, queue);
 		} else {
-			canReflect.offKeyValue(this, eventName, handler, queue)
+			canReflect.offKeyValue(this, eventName, handler, queue);
 		}
 	},
 	one: function(event, handler, queue) {
@@ -281,10 +276,6 @@ var behaviors = {
 				semaphore = {},
 				teardown;
 
-			// If a two-way binding, take extra measure to ensure
-			//  that parent and child sync values properly.
-			var legacyBindings = bindingsRegExp.exec(attrData.attributeName);
-			var twoWay = legacyBindings && legacyBindings[1];
 
 			// Setup binding
 			var dataBinding = makeDataBinding({
@@ -296,7 +287,7 @@ var behaviors = {
 				scope: attrData.scope,
 				semaphore: semaphore,
 				getViewModel: getViewModel,
-				syncChildWithParent: twoWay
+				syncChildWithParent: false
 			});
 
 			//!steal-remove-start
@@ -333,7 +324,7 @@ var behaviors = {
 							// always update the viewModel accordingly.
 							initializeValues: true,
 							nodeList: attrData.nodeList,
-							syncChildWithParent: twoWay
+							syncChildWithParent: false
 						});
 						if(dataBinding) {
 							// The viewModel is created, so call callback immediately.
@@ -579,10 +570,10 @@ var getObservableFrom = {
 		function getViewModelProperty() {
 			var viewModel = bindingData.getViewModel();
 			return observeReader.read(viewModel, keysToRead, {}).value;
-		};
+		}
 		//!steal-remove-start
 		Object.defineProperty(getViewModelProperty, "name", {
-			value: "viewModel."+vmName,
+			value: "viewModel."+vmName
 		});
 		//!steal-remove-end
 
@@ -824,11 +815,6 @@ function tokenize(source) {
 	return result;
 }
 
-// Regular expressions for getBindingInfo
-var bindingsRegExp = /\{(\()?(\^)?([^\}\)]+)\)?\}/,
-		encodedSpacesRegExp = /\\s/g,
-		encodedForwardSlashRegExp = /\\f/g;
-
 // ## getChildBindingStr
 var getChildBindingStr = function(tokens, favorViewModel) {
 	if (tokens.indexOf('vm') >= 0) {
@@ -888,7 +874,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			initializeValues: initializeValues,
 		}, bindingRules[dataBindingName]);
 		if(attributeValue.trim().charAt(0) === "~") {
-			bindingInfo.stickyParentToChild = true
+			bindingInfo.stickyParentToChild = true;
 		}
 		return bindingInfo;
 	}

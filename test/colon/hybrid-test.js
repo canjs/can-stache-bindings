@@ -1,12 +1,11 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-var stacheBindings = require('can-stache-bindings');
+require('can-stache-bindings');
 
 var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
-var MockComponent = require("../mock-component-simple-map");
 var domEvents = require("can-util/dom/events/events");
 
 testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, doc, enableMO){

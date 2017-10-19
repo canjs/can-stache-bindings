@@ -1,31 +1,28 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-var stacheBindings = require('can-stache-bindings');
+require('can-stache-bindings');
 
 var stache = require('can-stache');
 var MockComponent = require("../mock-component-simple-map");
 
 var SimpleMap = require("can-simple-map");
-var DefineList = require("can-define/list/list");
 
 
 var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
-var canSymbol = require('can-symbol');
-var canReflect = require('can-reflect');
+
 
 
 var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
 var domEvents = require('can-util/dom/events/events');
 
-var dev = require('can-util/js/dev/dev');
-var canEach = require('can-util/js/each/each');
+
 
 testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO){
 
-    test("on:enter", function () {
+    QUnit.test("on:enter", function () {
     	var template = stache("<input on:enter='update()'/>");
 
     	var called = 0;
@@ -113,7 +110,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     	var viewModel = new SimpleMap({
     		isShowing: false
     	});
-    	viewModel.onClick = function(){}
+    	viewModel.onClick = function(){};
     	var bindingListenerCount = 0;
     	var hasAddedBindingListener = false;
     	var hasRemovedBindingListener = false;
@@ -411,7 +408,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
     				done();
     			}
-    		}) )
+    		}) )()
     	});
 
     	var template = stache("<ref-syntax on:el:inserted=\"%viewModel.method()\"></ref-syntax>");
