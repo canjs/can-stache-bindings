@@ -516,7 +516,6 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
     	/* HOW: We test a <toggle-button>, in this case the parent prop is undefined
     	        so we should be able to toggle true/false on each click.
     	*/
-        queues.log();
     	MockComponent.extend({
     		tag: 'toggle-button',
     		viewModel: function(){
@@ -551,6 +550,52 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
     	equal(text(button), 'true', 'Value is "true" after first click');
     	domEvents.dispatch.call(button, 'click');
     	equal(text(button), 'false', 'Value is "false" after second click');
+    });
+
+    test("two way - viewModel (#1700)", function(){
+        
+    	var template = stache("<div vm:viewModelProp:bind='scopeProp'/>");
+    	var map = new SimpleMap({ scopeProp: "Hello" });
+
+    	var scopeMapSetCalled = 0;
+
+    	// overwrite setKeyValue to catch child->parent updates
+    	var origMapSetKeyValue = map[canSymbol.for("can.setKeyValue")];
+    	map[canSymbol.for("can.setKeyValue")] = function(attrName, value){
+    		if(typeof attrName === "string" && arguments.length > 1) {
+    			scopeMapSetCalled++;
+    		}
+
+    		return origMapSetKeyValue.apply(this, arguments);
+    	};
+
+        // RENDER
+    	var frag = template(map);
+    	var viewModel = canViewModel(frag.firstChild);
+
+    	equal(scopeMapSetCalled, 0, "set is not called on scope map");
+    	equal(viewModel.get("viewModelProp"), "Hello", "initial value set" );
+
+    	viewModel = canViewModel(frag.firstChild);
+
+    	var viewModelSetCalled = 1; // set once already - on "initial value set"
+    	var origViewModelSet = viewModel[canSymbol.for("can.setKeyValue")];
+    	viewModel[canSymbol.for("can.setKeyValue")] = function(attrName){
+    		if(typeof attrName === "string" && arguments.length > 1) {
+    			viewModelSetCalled++;
+    		}
+
+    		return origViewModelSet.apply(this, arguments);
+    	};
+    	viewModel.set("viewModelProp", "HELLO");
+    	equal(map.get("scopeProp"), "HELLO", "binding from child to parent");
+    	equal(scopeMapSetCalled, 1, "set is called on scope map");
+    	equal(viewModelSetCalled, 2, "set is called viewModel");
+
+    	map.set("scopeProp", "WORLD");
+    	equal(viewModel.get("viewModelProp"), "WORLD", "binding from parent to child" );
+    	equal(scopeMapSetCalled, 1, "can.setKey is not called again on scope map");
+    	equal(viewModelSetCalled, 3, "set is called again on viewModel");
     });
 
 });

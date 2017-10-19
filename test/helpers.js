@@ -50,7 +50,10 @@ var helpers = {
     		doc.body.removeChild(div);
     		setTimeout(cb, 5);
     	});
-    	domMutate.appendChild.call(doc.body, div);
+        setTimeout(function(){
+            domMutate.appendChild.call(doc.body, div);
+        },10);
+
     },
     makeTests: function(name, makeTest) {
 

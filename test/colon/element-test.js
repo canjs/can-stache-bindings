@@ -1,7 +1,7 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-var stacheBindings = require('can-stache-bindings');
+require('can-stache-bindings');
 
 var stache = require('can-stache');
 
@@ -10,16 +10,13 @@ var DefineList = require("can-define/list/list");
 
 
 var SimpleObservable = require("can-simple-observable");
-var canViewModel = require('can-view-model');
 var canSymbol = require('can-symbol');
 var canReflect = require('can-reflect');
 
 
-var domData = require('can-util/dom/data/data');
 var domMutate = require('can-util/dom/mutate/mutate');
 var domEvents = require('can-util/dom/events/events');
 
-var dev = require('can-util/js/dev/dev');
 var canEach = require('can-util/js/each/each');
 var DefineMap = require("can-define/map/map");
 
@@ -404,6 +401,48 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
     	equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
     });
 
+
+    test("<input text> two-way - DOM - input text (#1700)", function() {
+
+        var template = stache("<input value:bind='age'/>");
+
+        var map = new SimpleMap();
+
+        var frag = template(map);
+
+        var ta = this.fixture;
+        ta.appendChild(frag);
+
+        var input = ta.getElementsByTagName("input")[0];
+        equal(input.value, "", "input value set correctly if key does not exist in map");
+
+        map.attr("age", "30");
+
+        stop();
+        testHelpers.afterMutation(function() {
+            start();
+            equal(input.value, "30", "input value set correctly");
+
+            map.attr("age", "31");
+
+            stop();
+            testHelpers.afterMutation(function() {
+                start();
+                equal(input.value, "31", "input value update correctly");
+
+                input.value = "32";
+
+                domEvents.dispatch.call(input, "change");
+
+                stop();
+                testHelpers.afterMutation(function() {
+                    start();
+                    equal(map.attr("age"), "32", "updated from input");
+                });
+            });
+        });
+    });
+
     QUnit.test("errors subproperties of undefined properties (#298)", function() {
     	try {
     		stache("<input value:to='prop.subprop'/>")();
@@ -488,18 +527,20 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
         var ta = this.fixture;
         domMutate.appendChild.call(ta,frag);
 
-        stop();
+        QUnit.stop();
+
         testHelpers.afterMutation(function(){
             domMutate.removeChild.call(ta, ta.firstChild);
             // still 1 binding, should be 0
             testHelpers.afterMutation(function(){
                 var checkLifecycleBindings = function(){
                     var meta = vm[canSymbol.for("can.meta")];
+
                     if( meta.handlers.get([]).length === 0 ) {
                         QUnit.ok(true, "no bindings");
                         start();
                     } else {
-                        setTimeout(checkLifecycleBindings, 10);
+                        setTimeout(checkLifecycleBindings, 1000);
                     }
                 };
                 checkLifecycleBindings();
@@ -605,6 +646,37 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
     	QUnit.equal(map.get('attending'), true, "now it is true");
     });
 
+    test('<input checkbox> one-way - DOM - with undefined (#135)', function() {
+        var data = new SimpleMap({
+                completed: undefined
+            }),
+            frag = stache('<input type="checkbox" el:checked:from="completed"/>')(data);
+
+        domMutate.appendChild.call(this.fixture, frag);
+
+        var input = this.fixture.getElementsByTagName('input')[0];
+        equal(input.checked, false, 'checkbox value should be false for undefined');
+    });
+
+    test('<input checkbox> two-way - DOM - with truthy and falsy values binds to checkbox (#1700)', function() {
+        var data = new SimpleMap({
+                completed: 1
+            }),
+            frag = stache('<input type="checkbox" el:checked:bind="completed"/>')(data);
+
+        domMutate.appendChild.call(this.fixture, frag);
+
+        var input = this.fixture.getElementsByTagName('input')[0];
+        equal(input.checked, true, 'checkbox value bound (via attr check)');
+        data.attr('completed', 0);
+        stop();
+
+        testHelpers.afterMutation(function() {
+            start();
+            equal(input.checked, false, 'checkbox value bound (via attr check)');
+        });
+    });
+
     test("<input checkbox> checkboxes with checked:bind bind properly (#628)", function() {
         var data = new SimpleMap({
             completed: true
@@ -628,6 +700,77 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
         equal(data.get('completed'), false, 'checkbox value bound (via uncheck)');
     });
 
+    testIfRealDocument("<select> keeps its value as <option>s change with {{#each}} (#1762)", function(){
+    	var template = stache("<select value:bind='id'>{{#each values}}<option value='{{this}}'>{{this}}</option>{{/each}}</select>");
+    	var values = new SimpleObservable( ["1","2","3","4"] );
+    	var id = new SimpleObservable("2");
+    	var frag = template({
+    		values: values,
+    		id: id
+    	});
+    	stop();
+    	var select = frag.firstChild;
+    	var options = select.getElementsByTagName("option");
+    	// the value is set asynchronously
+    	testHelpers.afterMutation(function(){
+    		ok(options[1].selected, "value is initially selected");
+    		values.set(["7","2","5","4"]);
+
+    		testHelpers.afterMutation(function(){
+    			ok(options[1].selected, "after changing options, value should still be selected");
+    			start();
+    		});
+    	});
+
+    });
+
+    testIfRealDocument("<select> with undefined value selects option without value", function() {
+
+    	var template = stache("<select value:bind='opt'><option>Loading...</option></select>");
+
+    	var map = new SimpleMap();
+
+    	var frag = template(map);
+
+    	var ta = this.fixture;
+    	ta.appendChild(frag);
+
+    	var select = ta.childNodes.item(0);
+    	QUnit.equal(select.selectedIndex, 0, 'Got selected index');
+    });
+
+    testIfRealDocument('<select> two-way bound values that do not match a select option set selectedIndex to -1 (#2027)', function() {
+        var renderer = stache('<select el:value:bind="key"><option value="foo">foo</option><option value="bar">bar</option></select>');
+        var map = new SimpleMap({ });
+        var frag = renderer(map);
+
+        equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
+
+        map.attr('key', 'notfoo');
+        stop();
+
+        testHelpers.afterMutation(function() {
+            start();
+            equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
+
+            map.attr('key', 'foo');
+            strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
+
+            map.attr('key', 'notbar');
+            stop();
+
+            testHelpers.afterMutation(function() {
+                start();
+                equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
+
+                map.attr('key', 'bar');
+                strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
+
+                map.attr('key', 'bar');
+                strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
+            });
+        });
+    });
 
     test("<select multiple> Multi-select empty string works(#1263)", function(){
 
@@ -653,6 +796,40 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
     		equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
     		equal(frag.firstChild.getElementsByTagName("option")[2].selected, true, "One is selected");
+
+    });
+
+    testIfRealDocument("<select multiple> applies initial value, when options rendered from array (#1414)", function() {
+    	var template = stache(
+    		"<select values:bind='colors' multiple>" +
+    		"{{#each allColors}}<option value='{{value}}'>{{label}}</option>{{/each}}" +
+    		"</select>");
+
+    	var map = new SimpleMap({
+    		colors: new DefineList(["red", "green"]),
+    		allColors: new DefineList([
+    			{ value: "red", label: "Red"},
+    			{ value: "green", label: "Green"},
+    			{ value: "blue", label: "Blue"}
+    		])
+    	});
+
+    	stop();
+    	var frag = template(map);
+
+    	var ta = this.fixture;
+    	ta.appendChild(frag);
+
+    	var select = ta.getElementsByTagName("select")[0],
+    		options = select.getElementsByTagName("option");
+
+    	// Wait for Multiselect.set() to be called.
+    	testHelpers.afterMutation(function(){
+    		ok(options[0].selected, "red should be set initially");
+    		ok(options[1].selected, "green should be set initially");
+    		ok(!options[2].selected, "blue should not be set initially");
+    		start();
+    	});
 
     });
 
@@ -977,39 +1154,6 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
     		ok(undefinedInputOptions[0].selected, "default (undefined) value set");
     		ok(stringInputOptions[0].selected, "default ('') value set");
     		start();
-    	});
-    });
-
-    testIfRealDocument('<select> two-way bound values that do not match a select option set selectedIndex to -1 (#2027)', function() {
-    	var renderer = stache('<select el:value:bind="key"><option value="foo">foo</option><option value="bar">bar</option></select>');
-    	var map = new SimpleMap({ });
-    	var frag = renderer(map);
-
-    	equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
-
-    	map.attr('key', 'notfoo');
-    	stop();
-
-    	testHelpers.afterMutation(function() {
-    		start();
-    		equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
-
-    		map.attr('key', 'foo');
-    		strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
-
-    		map.attr('key', 'notbar');
-    		stop();
-
-    		testHelpers.afterMutation(function() {
-    			start();
-    			equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
-
-    			map.attr('key', 'bar');
-    			strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
-
-    			map.attr('key', 'bar');
-    			strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
-    		});
     	});
     });
 

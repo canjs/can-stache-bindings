@@ -46,7 +46,7 @@
     "can-view-callbacks": "^4.0.0-pre.1",
     "can-view-live": "^4.0.0-pre.6",
     "can-view-model": "^4.0.0-pre.1",
-    "can-view-scope": "^4.0.0-pre.12",
+    "can-view-scope": "^4.0.0-pre.16",
     "can-queues": "<2.0.0"
   },
   "devDependencies": {

@@ -50,6 +50,29 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     	});
     });
 
+    test("can call intermediate functions before calling the final function(#1474)", function() {
+    	var ta = this.fixture;
+    	var template = stache("<div id='click-me' on:click='does.some.thing(this)'></div>");
+    	var frag = template({
+    		does: function(){
+    			return {
+    				some: function(){
+    					return {
+    						thing: function(context) {
+    							ok(typeof context.does === "function");
+    							start();
+    						}
+    					};
+    				}
+    			};
+    		}
+    	});
+
+    	stop();
+    	ta.appendChild(frag);
+    	domEvents.dispatch.call(doc.getElementById("click-me"), "click");
+    });
+
     test("two bindings on one element call back the correct method", function() {
     	expect(2);
     	var template = stache("<input on:mousemove='first()' on:click='second()'/>");
@@ -424,5 +447,23 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     		}
     	});
     	canViewModel(frag.firstChild).makeMyEvent();
+    });
+
+    QUnit.test("methods on objects are called with call expressions (#1839)", function(){
+    	var template = stache("<div on:click='setSomething(person.message)'/>");
+    	var data = {
+    		setSomething: function(message){
+    			equal(message, "Matthew P finds good bugs");
+    			equal(this, data, "setSomething called with correct scope");
+    		},
+    		person: {
+    			name: "Matthew P",
+    			message: function(){
+    				return this.name + " finds good bugs";
+    			}
+    		}
+    	};
+    	var frag = template(data);
+    	domEvents.dispatch.call( frag.firstChild, "click" );
     });
 });
