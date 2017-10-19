@@ -234,7 +234,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
             ok(true);
         };
 
-    	var template = stache("<div on:some-prop:by:this='someMethod'/>");
+    	var template = stache("<div on:some-prop:by:this='someMethod()'/>");
     	template(map);
 
     	map.set('some-prop',"baz");
@@ -272,13 +272,13 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     		tag: "view-model-able"
     	});
 
-    	var template = stache("<view-model-able on:prop:by:this='someMethod'/>");
+    	var template = stache("<view-model-able on:prop:by:this='someMethod(%arguments[0])'/>");
 
     	var map = new SimpleMap({
     		prop: "Mercury"
     	});
 
-        map.someMethod = function(scope, el, newVal){
+        map.someMethod = function(newVal){
             start();
             equal(newVal, "Venus", "method called");
         };
@@ -296,7 +296,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     	});
 
     	var MySimpleMap = SimpleMap.extend({
-    		someMethod: function(scope, el, newVal){
+    		someMethod: function(newVal){
     			start();
     			equal(newVal, "Venus", "method called");
     		}
@@ -308,7 +308,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     		viewModel: map
     	});
 
-    	var template = stache("<view-model-able on:vm:prop='someMethod'/>");
+    	var template = stache("<view-model-able on:vm:prop='someMethod(%arguments[0])'/>");
 
     	template(parent);
     	map.attr("prop", "Venus");
@@ -335,7 +335,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
     		viewModel: map
     	});
 
-    	var template = stache("<view-model-able on:el:prop='someMethod'/>");
+    	var template = stache("<view-model-able on:el:prop='someMethod()'/>");
 
     	var frag = template(parent);
     	var element = frag.firstChild;

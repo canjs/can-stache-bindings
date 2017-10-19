@@ -419,12 +419,9 @@ var behaviors = {
 						return expression.Lookup;
 					}, methodRule: "call"});
 
-				if(!(expr instanceof expression.Call) && !(expr instanceof expression.Helper)) {
 
-					var defaultArgs = [data.scope._context, el].concat(makeArray(arguments)).map(function(data) {
-						return new expression.Arg(new expression.Literal(data));
-					});
-					expr = new expression.Call(expr, defaultArgs, {} );
+				if(!(expr instanceof expression.Call)) {
+					throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in "+data.attributeName+"="+JSON.stringify(attrVal));
 				}
 
 				// make a scope with these things just under
@@ -444,7 +441,8 @@ var behaviors = {
 				// we'll call.
 				var scopeData = localScope.read(expr.methodExpr.key, {
 					isArgument: true
-				}), args, stacheHelper, stacheHelperResult;
+				}),
+					args, stacheHelper, stacheHelperResult;
 
 				if (!scopeData.value) {
 					// nothing found yet, look for a stache helper
