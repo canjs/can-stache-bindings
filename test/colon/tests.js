@@ -1,3 +1,4 @@
+require("../attribute/basics-test");
 require("./basics-test");
 require("./element-test");
 require("./event-test");

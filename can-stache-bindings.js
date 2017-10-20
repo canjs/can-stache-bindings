@@ -825,6 +825,7 @@ var getChildBindingStr = function(tokens, favorViewModel) {
 		return favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr;
 	}
 };
+var ignoreAttributesRegExp = /^(data-view-id|class|name|id|\[[\w\.-]+\]|#[\w\.-])$/i;
 
 // ## getBindingInfo
 // takes a node object like {name, value} and returns
@@ -877,6 +878,21 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			bindingInfo.stickyParentToChild = true;
 		}
 		return bindingInfo;
+	} else {
+		if(ignoreAttributesRegExp.test(attributeName)) {
+			return;
+		}
+		// normal foo="bar" binding
+		return {
+			bindingAttributeName: attributeName,
+			parent: attributeBindingStr,
+			parentName: attributeName,
+			child: viewModelBindingStr,
+			childName: attributeName,
+			parentToChild: true,
+			childToParent: true,
+			syncChildWithParent: true
+		};
 	}
 	// END: check new binding syntaxes ======
 
