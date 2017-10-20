@@ -750,9 +750,10 @@ var bind = {
 			},null,[],{});
 			queues.batch.stop();
 		};
+		
 		//!steal-remove-start
 		Object.defineProperty(updateChild, "name", {
-			value: "update "+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
+			value: "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
 		});
 		//!steal-remove-end
 
