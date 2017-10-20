@@ -25,7 +25,7 @@ require('can-util/dom/events/inserted/inserted');
 var globals = require('can-globals');
 var makeDocument = require('can-vdom/make-document/make-document');
 
-var dev = require('can-util/js/dev/dev');
+var dev = require('can-log/dev/dev');
 var canEach = require('can-util/js/each/each');
 var types = require('can-types');
 
