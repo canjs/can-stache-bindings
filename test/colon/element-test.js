@@ -948,7 +948,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
     		options[0].selected = true;
     		domEvents.dispatch.call(select, "change");
 
-    		deepEqual(list.get(), ["red"], "A CanList property is set even if none existed");
+    		deepEqual(list.get(), ["red"], "A DefineList value is set even if none existed");
 
     		options[1].selected = true;
     		domEvents.dispatch.call(select, "change");

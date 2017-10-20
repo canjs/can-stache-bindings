@@ -87,10 +87,10 @@ var onMatchStr = "on:",
 	attributeBindingStr = "attribute",
 	scopeBindingStr = "scope",
 	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
-	getValueSymbol = "can.getValue",
-	setValueSymbol = "can.setValue",
-	onValueSymbol = "can.onValue",
-	offValueSymbol = "can.offValue";
+	getValueSymbol = canSymbol.for("can.getValue"),
+	setValueSymbol = canSymbol.for("can.setValue"),
+	onValueSymbol = canSymbol.for("can.onValue"),
+	offValueSymbol = canSymbol.for("can.offValue");
 
 
 var throwOnlyOneTypeOfBindingError = function(){
@@ -549,7 +549,7 @@ var getObservableFrom = {
 			} else {
 				var observation = new Observation(function() {});
 
-				observation[canSymbol.for(setValueSymbol)] = function(newVal) {
+				observation[setValueSymbol] = function(newVal) {
 					scope.set(cleanVMName(scopeProp), newVal);
 				};
 
@@ -639,10 +639,10 @@ var getObservableFrom = {
 
 		var observation = new Observation(get);
 
-		observation[canSymbol.for(setValueSymbol)] = set;
-		observation[canSymbol.for(getValueSymbol)] = get;
+		observation[setValueSymbol] = set;
+		observation[getValueSymbol] = get;
 
-		observation[canSymbol.for(onValueSymbol)] = function(updater) {
+		observation[onValueSymbol] = function(updater) {
 			var translationHandler = function() {
 				updater(get());
 			};
@@ -655,7 +655,7 @@ var getObservableFrom = {
 			canEvent.on.call(el, event, translationHandler);
 		};
 
-		observation[canSymbol.for(offValueSymbol)] = function(updater) {
+		observation[offValueSymbol] = function(updater) {
 			var translationHandler = singleReference.getAndDelete(updater, this);
 
 			if (event === "radiochange") {
@@ -680,12 +680,14 @@ var bind = {
 		// Updates the parent if
 		function updateParent(newVal) {
 			if (!bindingsSemaphore[attrName]) {
-				if (parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
-					if (canReflect.getValue(parentObservable) !== newVal) {
+				if (parentObservable && parentObservable[getValueSymbol]) {
+					var hasDependencies = canReflect.valueHasDependencies(parentObservable);
+
+					if (!hasDependencies || (canReflect.getValue(parentObservable) !== newVal) ) {
 						canReflect.setValue(parentObservable, newVal);
 					}
-
-					if( syncChild ) {
+					// only sync if parent
+					if( syncChild && hasDependencies) {
 						// If, after setting the parent, it's value is not the same as the child,
 						// update the child with the value of the parent.
 						// This is used by `can-value`.
@@ -726,7 +728,7 @@ var bind = {
 		});
 		//!steal-remove-end
 
-		if(childObservable && childObservable[canSymbol.for(getValueSymbol)]) {
+		if(childObservable && childObservable[getValueSymbol]) {
 			canReflect.onValue(childObservable, updateParent,"mutate");
 		}
 
@@ -749,7 +751,7 @@ var bind = {
 			queues.batch.stop();
 		};
 
-		if(parentObservable && parentObservable[canSymbol.for(getValueSymbol)]) {
+		if(parentObservable && parentObservable[getValueSymbol]) {
 			canReflect.onValue(parentObservable, updateChild,"mutate");
 		}
 
@@ -963,7 +965,7 @@ var makeDataBinding = function(node, el, bindingData) {
 				bindingInfo.syncChildWithParent, bindingInfo);
 		}
 		// the child needs to be bound even if
-		else if(bindingInfo.stickyParentToChild && childObservable[canSymbol.for(onValueSymbol)])  {
+		else if(bindingInfo.stickyParentToChild && childObservable[onValueSymbol])  {
 			canReflect.onValue(childObservable, noop,"mutate");
 		}
 
@@ -1033,7 +1035,7 @@ var initializeValues = function(bindingInfo, childObservable, parentObservable, 
 
 
 var unbindUpdate = function(observable, updater) {
-	if(observable && observable[canSymbol.for(getValueSymbol)] && typeof updater === "function") {
+	if(observable && observable[getValueSymbol] && typeof updater === "function") {
 		canReflect.offValue(observable, updater,"mutate");
 	}
 },

@@ -116,14 +116,14 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
     		var overwrite = { "plonk": "waldo" };
 
     		var oldlog = dev.warn,
-    			message = 'can-view-scope: Merging data into "bar" because its parent is non-observable';
+    			message = 'can-stache-key: Merging data into "bar" because its parent is non-observable';
 
     		var thisTest = QUnit.config.current;
     		dev.warn = function(text) {
     			if(QUnit.config.current === thisTest) {
     				if(text === message) {
     					ok(true, 'Got expected message logged.');
-    				}
+    				} 
     			}
     		};
     		var viewModel;
@@ -553,7 +553,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
     });
 
     test("two way - viewModel (#1700)", function(){
-        
+
     	var template = stache("<div vm:viewModelProp:bind='scopeProp'/>");
     	var map = new SimpleMap({ scopeProp: "Hello" });
 
