@@ -724,7 +724,7 @@ var bind = {
 		}
 		//!steal-remove-start
 		Object.defineProperty(updateParent, "name", {
-			value: "update "+bindingInfo.parent+"."+bindingInfo.parentName,
+			value: "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">",
 		});
 		//!steal-remove-end
 
@@ -750,6 +750,11 @@ var bind = {
 			},null,[],{});
 			queues.batch.stop();
 		};
+		//!steal-remove-start
+		Object.defineProperty(updateChild, "name", {
+			value: "update "+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
+		});
+		//!steal-remove-end
 
 		if(parentObservable && parentObservable[getValueSymbol]) {
 			canReflect.onValue(parentObservable, updateChild,"mutate");
