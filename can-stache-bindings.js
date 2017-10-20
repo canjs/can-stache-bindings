@@ -25,7 +25,7 @@ var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var string = require('can-util/js/string/string');
-var dev = require('can-util/js/dev/dev');
+var dev = require('can-log/dev/dev');
 var types = require('can-types');
 var last = require('can-util/js/last/last');
 
@@ -34,7 +34,7 @@ var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
-var canLog = require('can-util/js/log/log');
+var canLog = require('can-log');
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
