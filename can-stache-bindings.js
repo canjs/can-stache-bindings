@@ -333,11 +333,16 @@ var behaviors = {
 				canLog.warn("*reference attributes can only export the view model.");
 			}
 
+
 			var name = string.camelize( attrData.attributeName.substr(1).toLowerCase() );
+
+			//!steal-remove-start
+			dev.warn(attrData.attributeName + ' shorthand is deprecated. Use this:to="' + name + '" instead.');
+			//!steal-remove-end
 
 			var viewModel = canViewModel(el);
 			var refs = attrData.scope.getRefs();
-			canReflect.setKeyValue(refs._context, "*" + name, viewModel);
+			canReflect.setKeyValue(refs._context, "scope.vars." + name, viewModel);
 		},
 		// ### bindings.behaviors.event
 		// The following section contains code for implementing the can-EVENT attribute.

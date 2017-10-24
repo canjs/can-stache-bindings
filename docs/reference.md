@@ -3,6 +3,8 @@
 
 @description Export a viewModel into a template's references scope.
 
+@deprecated {4.0} This syntax is deprecated in favor of [can-stache-bindings.toParent `this:to="refProp"`]
+
 @signature `*ref-prop`
 
   A shorthand for exporting an element’s viewModel to the reference scope.
