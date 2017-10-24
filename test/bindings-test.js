@@ -25,9 +25,9 @@ require('can-util/dom/events/inserted/inserted');
 var globals = require('can-globals');
 var makeDocument = require('can-vdom/make-document/make-document');
 
-var dev = require('can-log/dev/dev');
 var canEach = require('can-util/js/each/each');
 var types = require('can-types');
+var testHelpers = require('can-test-helpers');
 
 var MockComponent = require("./mock-component");
 
@@ -1626,8 +1626,6 @@ test('two-way - reference - {(child)}="*ref" (#1700)', function(){
 
 });
 
-
-
 test('two-way - reference shorthand (#1700)', function(){
 	var data = new CanMap({person: {name: {}}});
 	MockComponent.extend({
@@ -1649,10 +1647,7 @@ test('two-way - reference shorthand (#1700)', function(){
 });
 
 test('one-way - parent to child - viewModel', function(){
-
-
 	var template = stache("<div {view-model-prop}='scopeProp'/>");
-
 
 	var map = new CanMap({scopeProp: "Venus"});
 
@@ -1716,7 +1711,6 @@ test('one way - child to parent - importing viewModel {^.}="test"', function() {
 		'Imported: David 7',
 		'{.} component scope imported into variable');
 });
-
 
 test('one way - child to parent - importing viewModel {^prop}="test"', function() {
 	MockComponent.extend({
@@ -1877,7 +1871,6 @@ test("exporting methods (#2051)", function(){
 
 
 test("renders dynamic custom attributes (#1800)", function() {
-
 	var template = stache("<ul>{{#actions}}<li can-click='{{.}}'>{{.}}</li>{{/actions}}</ul>");
 
 	var map = new CanMap({
@@ -1899,34 +1892,23 @@ test("renders dynamic custom attributes (#1800)", function() {
 	canEvent.trigger.call(lis[1], "click");
 });
 
-if (System.env.indexOf('production') < 0) {
-	test("warning on a mismatched quote (#1995)", function() {
-		expect(4);
-		var oldlog = dev.warn,
-			message = 'can-stache-bindings: mismatched binding syntax - (foo}';
+testHelpers.dev.devOnlyTest("warning on a mismatched quote (#1995)", function() {
+	var teardown = testHelpers.dev.willWarn('can-stache-bindings: mismatched binding syntax - (foo}');
+	stache("<div (foo}='bar'/>")();
+	equal(teardown(), 1, 'can-stache-bindings: mismatched binding syntax - (foo}');
 
-		var thisTest = QUnit.config.current;
-		dev.warn = function(text) {
-			if(QUnit.config.current === thisTest) {
-				equal(text, message, 'Got expected message: ' + message);
-			}
-		};
+	teardown = testHelpers.dev.willWarn('can-stache-bindings: mismatched binding syntax - {foo)');
+	stache("<div {foo)='bar'/>")();
+	equal(teardown(), 1, 'can-stache-bindings: mismatched binding syntax - {foo)');
 
-		stache("<div (foo}='bar'/>")();
+	teardown = testHelpers.dev.willWarn('can-stache-bindings: mismatched binding syntax - {(foo})');
+	stache("<div {(foo})='bar'/>")();
+	equal(teardown(), 1, 'can-stache-bindings: mismatched binding syntax - {(foo})');
 
-		message = 'can-stache-bindings: mismatched binding syntax - {foo)';
-		stache("<div {foo)='bar'/>")();
-
-		message = 'can-stache-bindings: mismatched binding syntax - {(foo})';
-		stache("<div {(foo})='bar'/>")();
-
-		message = 'can-stache-bindings: mismatched binding syntax - ({foo})';
-		stache("<div ({foo})='bar'/>")();
-
-
-		dev.warn = oldlog;
-	});
-}
+	teardown = testHelpers.dev.willWarn('can-stache-bindings: mismatched binding syntax - ({foo})');
+	stache("<div ({foo})='bar'/>")();
+	equal(teardown(), 1, 'can-stache-bindings: mismatched binding syntax - ({foo})');
+});
 
 testIfRealDocument("One way binding from a select's value to a parent compute updates the parent with the select's initial value (#2027)", function(){
 	var template = stache("<select {^$value}='value'><option value='One'>One</option></select>");
@@ -1996,7 +1978,6 @@ testIfRealDocument('two-way bound values that do not match a select option set s
 });
 
 testIfRealDocument("two way bound select empty string null or undefined value (#2027)", function() {
-
 	var template = stache(
 		"<select id='null-select' {($value)}='color-1'>" +
 			"<option value=''>Choose</option>" +
@@ -2616,38 +2597,25 @@ test("$element is wrapped with types.wrapElement", function(){
 	canEvent.trigger.call(button, "click");
 });
 
-if (System.env.indexOf('production') < 0) {
-	test("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
-		var _warn = dev.warn;
-		dev.warn = function() {
-			ok(false, 'dev.warn was called incorrectly');
-			_warn.apply(dev, arguments);
-		};
-		try {
-			delete viewCallbacks._tags["special-attrs"];
-			expect(2);
-			MockComponent.extend({
-				tag: 'special-attrs',
-				viewModel: {
-					foo: "skippy",
-					baz: "xyzzy"
-				}
-			});
-
-			stache("<special-attrs id='{{foo}}' class='{{baz}}'></special-attrs>")({foo: "bar", baz: "quux"});
-			stache("<special-attrs id='foo' class='baz'></special-attrs>")({foo: "bar", baz: "quux"});
-
-			dev.warn = function() {
-				ok(true, 'dev.warn was called correctly');
-				_warn.apply(dev, arguments);
-			};
-
-			stache("<special-attrs id='{foo}' class='{baz}'></special-attrs>")({foo: "bar", baz: "quux"});
-		} finally {
-			dev.warn = _warn;
+testHelpers.dev.devOnlyTest("No warn on id='{{foo}}' or class='{{bar}}' expressions", function() {
+	delete viewCallbacks._tags["special-attrs"];
+	MockComponent.extend({
+		tag: 'special-attrs',
+		viewModel: {
+			foo: "skippy",
+			baz: "xyzzy"
 		}
 	});
-}
+
+	var teardown = testHelpers.dev.willWarn(/special-attrs/);
+	stache("<special-attrs id='{{foo}}' class='{{baz}}'></special-attrs>")({foo: "bar", baz: "quux"});
+	stache("<special-attrs id='foo' class='baz'></special-attrs>")({foo: "bar", baz: "quux"});
+	equal(teardown(), 0, 'dev.warn should not be called');
+
+	teardown = testHelpers.dev.willWarn(/special-attrs/);
+	stache("<special-attrs id='{foo}' class='{baz}'></special-attrs>")({foo: "bar", baz: "quux"});
+	equal(teardown(), 0, 'dev.warn was called');
+});
 
 test("one-way pass computes to components with ~", function(assert) {
 	expect(7);
@@ -2727,66 +2695,51 @@ test("%arguments gives the event arguments", function(){
 	canEvent.trigger.call(button, "click");
 });
 
-if (System.env.indexOf('production') < 0) {
-	test("Warning happens when changing the map that a to-parent binding points to.", function() {
-		var tagName = "merge-warn-test";
+testHelpers.dev.devOnlyTest("Warning happens when changing the map that a to-parent binding points to.", function() {
+	var step1 = { "baz": "quux" };
+	var overwrite = { "plonk": "waldo" };
+	var useCanMap = true;
 
-		// Delete previous tags, to avoid warnings from can-view-callbacks.
-		delete viewCallbacks._tags[tagName];
+	// Delete previous tags, to avoid warnings from can-view-callbacks.
+	delete viewCallbacks._tags["merge-warn-test"];
 
-		expect(4);
+	MockComponent.extend({
+		tag: "merge-warn-test",
+		viewModel: function() {
 
-		var step1 = { "baz": "quux" };
-		var overwrite = { "plonk": "waldo" };
-		var useCanMap = true;
-
-		var oldlog = dev.warn,
-			message = 'can-view-scope: Merging data into "bar" because its parent is non-observable';
-
-		var thisTest = QUnit.config.current;
-		dev.warn = function(text) {
-			if(QUnit.config.current === thisTest) {
-				if(text === message) {
-					ok(true, 'Got expected message logged.');
-				}
+			if(useCanMap) {
+				return new CanMap({
+					"foo": {}
+				});
+			} else {
+				return new DefaultMap({
+					"foo": {}
+				});
 			}
-		};
-
-		MockComponent.extend({
-			tag: tagName,
-			viewModel: function() {
-
-				if(useCanMap) {
-					return new CanMap({
-						"foo": {}
-					});
-				} else {
-					return new DefaultMap({
-						"foo": {}
-					});
-				}
-			}
-		});
-
-		var template = stache("<merge-warn-test {(foo)}='bar'/>");
-
-		var viewModel = {
-			bar: new DefaultMap(step1)
-		};
-		this.fixture.appendChild(template(viewModel));
-		canViewModel(this.fixture.firstChild).attr("foo", overwrite);
-		deepEqual(viewModel.bar.get(), overwrite, "sanity check: parent binding set (default map -> default map)");
-
-		this.fixture.removeChild(this.fixture.firstChild);
-		useCanMap = false;
-		viewModel.bar = new CanMap(step1);
-		this.fixture.appendChild(template(viewModel));
-		canViewModel(this.fixture.firstChild).set("foo", overwrite);
-		deepEqual(viewModel.bar.attr(), overwrite, "sanity check: parent binding set (can map -> default map)");
-
-		dev.warn = oldlog;
+		}
 	});
-}
+
+	var template = stache("<merge-warn-test {(foo)}='bar'/>");
+
+	var viewModel = {
+		bar: new DefaultMap(step1)
+	};
+	this.fixture.appendChild(template(viewModel));
+
+	var teardown = testHelpers.dev.willWarn('can-view-scope: Merging data into "bar" because its parent is non-observable');
+	canViewModel(this.fixture.firstChild).attr("foo", overwrite);
+	equal(teardown(), 1, "first message was logged");
+	deepEqual(viewModel.bar.get(), overwrite, "sanity check: parent binding set (default map -> default map)");
+
+	this.fixture.removeChild(this.fixture.firstChild);
+	useCanMap = false;
+	viewModel.bar = new CanMap(step1);
+	this.fixture.appendChild(template(viewModel));
+	teardown = testHelpers.dev.willWarn('can-view-scope: Merging data into "bar" because its parent is non-observable');
+	canViewModel(this.fixture.firstChild).set("foo", overwrite);
+	equal(teardown(), 1, "first message was logged");
+	deepEqual(viewModel.bar.attr(), overwrite, "sanity check: parent binding set (can map -> default map)");
+});
 
 test("updates happen on two-way even when one binding is satisfied", function() {
 	var template = stache('<input {($value)}="firstName"/>');
@@ -2884,22 +2837,14 @@ test('plain data objects should work for radio buttons [can-value] (#161)', func
 	equal(yesInput.checked, false, 'yes-radio is initially not checked');
 });
 
-if (System.env.indexOf('production') < 0) {
-	test("warning when binding to non-existing value (#136) (#119)", function() {
-		var oldWarn = dev.warn;
-		dev.warn = function(message) {
-			ok(true, message);
-		};
+testHelpers.dev.devOnlyTest("warning when binding to non-existing value (#136) (#119)", function() {
+	var teardown = testHelpers.dev.willWarn('This element does not have a viewModel. (Attempting to bind `target:vm:bind="source.bar"`)');
+	var template = stache("<div target:vm:bind='source.bar'/>");
 
-		var template = stache("<div target:vm:bind='source.bar'/>");
-
-		expect(1);
-		var map = new CanMap({ source: { foo: "foo" } });
-		template(map);
-
-		dev.warn = oldWarn;
-	});
-}
+	var map = new CanMap({ source: { foo: "foo" } });
+	template(map);
+	equal(teardown(), 1, 'warning was given');
+});
 
 test("changing a scope property calls registered stache helper", function(){
 	expect(1);
@@ -3042,58 +2987,54 @@ test("call expressions work (#208)", function(){
 
 });
 
-if(System.env.indexOf("production") < 0) {
-	test("warn when using bracket syntax for data bindings (#294)", function() {
-		expect(4);
-		var valid = {};
-		var oldWarn = dev.warn;
-		dev.warn = function(mesg) {
-			var res = /foo:(\w+)\b/.exec(mesg);
-			if(res) {
-				ok(true, mesg);
-				valid[res[1]] = true;
-			}
-		};
+testHelpers.dev.devOnlyTest("warn when using bracket syntax for data bindings (#294)", function() {
+	var vm = new CanMap();
 
-		var vm = new CanMap();
+	var teardown =  testHelpers.dev.willWarn(/{\$foo} is deprecated. Use foo:from instead/);
+	stache('<div {$foo}="bar"/>')(vm);
+	equal(teardown(), 1, '{$foo} should warn');
 
-		// first, third, and fifth should generate warnings
-		// and the content of those warnings should indicate
-		// that they should look like second, fourth, sixth
-		stache('<div {$foo}="bar"/>')(vm);
-		stache('<div foo:from="bar"/>')(vm);
-		stache('<div {^$foo}="bar"/>')(vm);
-		stache('<div foo:to="bar"/>')(vm);
-		stache('<div {($foo)}="bar"/>')(vm);
-		stache('<div foo:bind="bar"/>')(vm);
+	teardown =  testHelpers.dev.willWarn(/foo:from/);
+	stache('<div foo:from="bar"/>')(vm);
+	equal(teardown(), 0, 'foo:from should not warn');
 
-		ok(valid.from && valid.to && valid.bind, ":from, :to, and :bind warnings generated");
-		dev.warn = oldWarn;
-	});
+	teardown =  testHelpers.dev.willWarn(/{\^\$foo} is deprecated. Use foo:to instead/);
+	stache('<div {^$foo}="bar"/>')(vm);
+	equal(teardown(), 1, '{^$foo} should warn');
 
-	test("warn when using bracket syntax for event bindings (#294)", function() {
-		expect(3);
-		var valid = {};
-		var oldWarn = dev.warn;
-		dev.warn = function(mesg) {
-			var res = /\w+:(\w+)\b/.exec(mesg);
-			if(res) {
-				ok(true, mesg);
-				valid[res[1]] = true;
-			}
-		};
+	teardown =  testHelpers.dev.willWarn(/foo:to/);
+	stache('<div foo:to="bar"/>')(vm);
+	equal(teardown(), 0, 'foo:to should not warn');
 
-		var vm = new CanMap();
+	teardown =  testHelpers.dev.willWarn(/{\(\$foo\)} is deprecated. Use foo:bind instead/);
+	stache('<div {($foo)}="bar"/>')(vm);
+	equal(teardown(), 1, '{($foo)} should warn');
 
-		stache('<div ($foo)="bar"/>')(vm);
-		stache('<div on:foo="bar"/>')(vm);
-		stache('<div (foo baz)="bar"/>')(vm);
-		stache('<div on:baz:by:foo="bar"/>')(vm);
+	teardown =  testHelpers.dev.willWarn(/foo:bind/);
+	stache('<div foo:bind="bar"/>')(vm);
+	equal(teardown(), 0, 'foo:bind should not warn');
 
-		ok(valid.foo && valid.baz, "element and object event warnings generated");
-		dev.warn = oldWarn;
-	});
-}
+});
+
+testHelpers.dev.devOnlyTest("warn when using bracket syntax for event bindings (#294)", function() {
+	var vm = new CanMap();
+
+	var teardown = testHelpers.dev.willWarn(/\(\$foo\) is deprecated. Use on:foo instead/);
+	stache('<div ($foo)="bar"/>')(vm);
+	equal(teardown(), 1, "($foo) should warn");
+
+	teardown = testHelpers.dev.willWarn(/on:foo/);
+	stache('<div on:foo="bar"/>')(vm);
+	equal(teardown(), 0, "on:foo should not warn");
+
+	teardown = testHelpers.dev.willWarn(/\(foo baz\) is deprecated. Use on:baz:by:foo instead/);
+	stache('<div (foo baz)="bar"/>')(vm);
+	equal(teardown(), 1, "(foo baz) should warn");
+
+	teardown = testHelpers.dev.willWarn(/on:baz:by:foo/);
+	stache('<div on:baz:by:foo="bar"/>')(vm);
+	equal(teardown(), 0, "on:baz:by:foo should not warn");
+});
 
 QUnit.test("legacy events should bind when using a plain object", function () {
 	var flip = false;
