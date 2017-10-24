@@ -3062,6 +3062,18 @@ QUnit.test("events should bind when using a plain object", function () {
 	QUnit.ok(flip, "Plain object method successfully called");
 });
 
+testHelpers.dev.devOnlyTest("warn when using reference shorthand", function() {
+	MockComponent.extend({
+		tag: 'reference-export'
+	});
+
+	var template = stache("<reference-export *reference-export/>");
+
+	var teardown = testHelpers.dev.willWarn('*reference-export shorthand is deprecated. Use this:to="referenceExport" instead.');
+	template({});
+	QUnit.equal(teardown(), 1, 'warning shown');
+});
+
 // Add new tests above this line
 
 }
