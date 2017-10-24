@@ -337,7 +337,7 @@ var behaviors = {
 
 			var viewModel = canViewModel(el);
 			var refs = attrData.scope.getRefs();
-			refs._context.attr("*"+name, viewModel);
+			canReflect.setKeyValue(refs._context, "*" + name, viewModel);
 		},
 		// ### bindings.behaviors.event
 		// The following section contains code for implementing the can-EVENT attribute.
