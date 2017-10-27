@@ -562,9 +562,15 @@ QUnit.test("($click) works inside {{#if}} on element with a viewModel (#279)", f
 QUnit.test("events starting with `to`, `from`, and `bind` work (#285)", function() {
 	expect(3);
 	var ViewModel = DefineMap.extend({
-		toevent: '1',
-		fromevent: '1',
-		bindevent: '1',
+		toevent: {
+			value: '1'
+		},
+		fromevent: {
+			value: '1'
+		},
+		bindevent: {
+			value: '1'
+		},
 	});
 
 	MockComponent.extend({
