@@ -476,7 +476,7 @@ var behaviors = {
 						var filename = canReflect.getKeyValue(templateContext, 'filename');
 						var lineNumber = canReflect.getKeyValue(templateContext, 'lineNumber');
 						dev.warn(
-							(filename ? filename + ': ' : '') +
+							(filename ? filename + ':' : '') +
 							(lineNumber ? lineNumber + ': ' : '') +
 							prefix + property + " is deprecated. Use scope." + property + " instead."
 						);
