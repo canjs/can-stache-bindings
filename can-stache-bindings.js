@@ -471,7 +471,14 @@ var behaviors = {
 				}
 
 				args = expr.args(localScope, null)();
-				return scopeData.value.apply(scopeData.parent, args);
+				queues.batch.start();
+				queues.notifyQueue.enqueue(scopeData.value, scopeData.parent, args, {
+					//!steal-remove-start
+					reasonLog: [el, ev, attributeName+"="+attrVal]
+					//!steal-remove-end
+				});
+				queues.batch.stop();
+
 			};
 
 			// Unbind the event when the attribute is removed from the DOM
@@ -750,7 +757,7 @@ var bind = {
 			},null,[],{});
 			queues.batch.stop();
 		};
-		
+
 		//!steal-remove-start
 		Object.defineProperty(updateChild, "name", {
 			value: "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
