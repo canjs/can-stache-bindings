@@ -3074,6 +3074,142 @@ testHelpers.dev.devOnlyTest("warn when using reference shorthand", function() {
 	QUnit.equal(teardown(), 1, 'warning shown');
 });
 
+QUnit.test("element is on the scope", function(){
+	var template = stache('<input on:click="doSomething(scope.element)"/>');
+	var MyMap = DefaultMap.extend({
+		doSomething: function(element){
+			equal(element, frag.firstChild);
+		}
+	});
+	var frag = template(new MyMap());
+	canEvent.trigger.call(frag.firstChild, "click");
+});
+
+QUnit.test("event is on the scope", function(){
+	var template = stache('<input on:click="doSomething(scope.event)"/>');
+	var MyMap = DefaultMap.extend({
+		doSomething: function(event){
+			equal(frag.firstChild, event.target);
+		}
+	});
+	var frag = template(new MyMap());
+	canEvent.trigger.call(frag.firstChild, "click");
+});
+
+QUnit.test("viewModel is on the scope", function(){
+	var template = stache('<input on:click="doSomething(scope.viewModel)"/>');
+	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){
+			ok(viewModel instanceof CanMap);
+		}
+	});
+	var map = new MyMap();
+	var frag = template(map);
+	canEvent.trigger.call(frag.firstChild, "click");
+});
+
+QUnit.test("arguments is on the scope", function(){
+	var template = stache('<input on:click="doSomething(scope.arguments)"/>');
+	var MyMap = DefaultMap.extend({
+		doSomething: function(args){
+			equal(args[0].target, frag.firstChild);
+		}
+	});
+	var frag = template(new MyMap());
+	canEvent.trigger.call(frag.firstChild, "click");
+});
+
+testHelpers.dev.devOnlyTest('using %element shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/%element is deprecated\. Use scope.element instead\./);
+	var template = stache('<input on:click="doSomething(%element)"/>');
+	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
+testHelpers.dev.devOnlyTest('using %event shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/%event is deprecated\. Use scope.event instead\./);
+    var template = stache('<input on:click="doSomething(%event)"/>');
+    	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
+testHelpers.dev.devOnlyTest('using %viewModel shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/%viewModel is deprecated\. Use scope.viewModel instead\./);
+    var template = stache('<input on:click="doSomething(%viewModel)"/>');
+    	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
+testHelpers.dev.devOnlyTest('using %arguments shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/%arguments is deprecated\. Use scope.arguments instead\./);
+    var template = stache('<input on:click="doSomething(%arguments)"/>');
+    	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
+testHelpers.dev.devOnlyTest('using @element shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/@element is deprecated\. Use scope.element instead\./);
+    var template = stache('<input on:click="doSomething(@element)"/>');
+    	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
+testHelpers.dev.devOnlyTest('using @event shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/@event is deprecated\. Use scope.event instead\./);
+    var template = stache('<input on:click="doSomething(@event)"/>');
+    	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
+testHelpers.dev.devOnlyTest('using @viewModel shows a deprecation warning', function(){
+    var teardown = testHelpers.dev.willWarn(/@viewModel is deprecated\. Use scope.viewModel instead\./);
+    var template = stache('<input on:click="doSomething(@viewModel)"/>');
+    	var MyMap = DefaultMap.extend({
+		doSomething: function(viewModel){}
+	});
+    var frag = template(new MyMap());
+
+    canEvent.trigger.call(frag.firstChild, "click");
+
+    equal(teardown(), 1);
+});
+
 // Add new tests above this line
 
 }

@@ -468,8 +468,29 @@ var behaviors = {
 					expr = new expression.Call(expr, defaultArgs, {} );
 				}
 
-				// make a scope with these things just under
-				var localScope = data.scope.add({
+				var templateContext = data.scope.getTemplateContext()._context;
+
+				//!steal-remove-start
+				function makeWarning(prefix, property, value){
+					return function(){
+						var filename = canReflect.getKeyValue(templateContext, 'filename');
+						var lineNumber = canReflect.getKeyValue(templateContext, 'lineNumber');
+						dev.warn(
+							(filename ? filename + ': ' : '') +
+							(lineNumber ? lineNumber + ': ' : '') +
+							prefix + property + " is deprecated. Use scope." + property + " instead."
+						);
+						return value;
+					};
+				}
+				//!steal-remove-end
+
+				canReflect.setKeyValue(templateContext, 'scope.element', el);
+				canReflect.setKeyValue(templateContext, 'scope.event', ev);
+				canReflect.setKeyValue(templateContext, 'scope.viewModel', viewModel);
+				canReflect.setKeyValue(templateContext, 'scope.arguments', arguments);
+
+				var specialValues = {
 					"@element": el,
 					"@event": ev,
 					"@viewModel": viewModel,
@@ -483,10 +504,39 @@ var behaviors = {
 					"%scope": data.scope,
 					"%context": data.scope._context,
 					"%arguments": arguments
-				},{
+				};
+
+				//!steal-remove-start
+				Object.defineProperties(specialValues, {
+					"%element": {
+						get: makeWarning("%", "element", this)
+					},
+					"%event": {
+						get: makeWarning("%", "event", ev)
+					},
+					"%viewModel": {
+						get: makeWarning("%", "viewModel", viewModel)
+					},
+					"%arguments": {
+						get: makeWarning("%", "arguments", arguments)
+					},
+
+					"@element": {
+						get: makeWarning("@", "element", this)
+					},
+					"@event": {
+						get: makeWarning("@", "event", ev)
+					},
+					"@viewModel": {
+						get: makeWarning("@", "viewModel", viewModel)
+					}
+				});
+				//!steal-remove-end
+
+				// make a scope with these things just under
+				var localScope = data.scope.add(specialValues, {
 					notContext: true
 				});
-
 
 				// We grab the first item and treat it as a method that
 				// we'll call.
