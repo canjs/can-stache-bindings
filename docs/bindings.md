@@ -1,5 +1,6 @@
 @module can-stache-bindings
-@parent can-core
+@parent can-views
+@collection can-core
 @group can-stache-bindings.syntaxes Syntaxes
 @package ../package.json
 
