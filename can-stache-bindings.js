@@ -468,15 +468,13 @@ var behaviors = {
 					expr = new expression.Call(expr, defaultArgs, {} );
 				}
 
-				var templateContext = data.scope.getTemplateContext()._context;
-
 				//!steal-remove-start
 				function makeWarning(prefix, property, value){
 					return function(){
-						var filename = canReflect.getKeyValue(templateContext, 'filename');
-						var lineNumber = canReflect.getKeyValue(templateContext, 'lineNumber');
+						var filename = data.scope.get('scope.filename');
+						var lineNumber = data.scope.get('scope.lineNumber');
 						dev.warn(
-							(filename ? filename + ':' : '') +
+							(filename ? filename + ': ' : '') +
 							(lineNumber ? lineNumber + ': ' : '') +
 							prefix + property + " is deprecated. Use scope." + property + " instead."
 						);
@@ -485,10 +483,10 @@ var behaviors = {
 				}
 				//!steal-remove-end
 
-				canReflect.setKeyValue(templateContext, 'scope.element', el);
-				canReflect.setKeyValue(templateContext, 'scope.event', ev);
-				canReflect.setKeyValue(templateContext, 'scope.viewModel', viewModel);
-				canReflect.setKeyValue(templateContext, 'scope.arguments', arguments);
+				data.scope.set('scope.element', el);
+				data.scope.set('scope.event', ev);
+				data.scope.set('scope.viewModel', viewModel);
+				data.scope.set('scope.arguments', arguments);
 
 				var specialValues = {
 					"@element": el,
