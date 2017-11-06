@@ -333,7 +333,6 @@ var behaviors = {
 				canLog.warn("*reference attributes can only export the view model.");
 			}
 
-
 			var name = string.camelize( attrData.attributeName.substr(1).toLowerCase() );
 
 			//!steal-remove-start
@@ -341,8 +340,7 @@ var behaviors = {
 			//!steal-remove-end
 
 			var viewModel = canViewModel(el);
-			var refs = attrData.scope.getRefs();
-			canReflect.setKeyValue(refs._context, "scope.vars." + name, viewModel);
+			attrData.scope.set("scope.vars." + name, viewModel);
 		},
 		// ### bindings.behaviors.event
 		// The following section contains code for implementing the can-EVENT attribute.
@@ -468,15 +466,13 @@ var behaviors = {
 					expr = new expression.Call(expr, defaultArgs, {} );
 				}
 
-				var templateContext = data.scope.getTemplateContext()._context;
-
 				//!steal-remove-start
 				function makeWarning(prefix, property, value){
 					return function(){
-						var filename = canReflect.getKeyValue(templateContext, 'filename');
-						var lineNumber = canReflect.getKeyValue(templateContext, 'lineNumber');
+						var filename = data.scope.peek('scope.filename');
+						var lineNumber = data.scope.peek('scope.lineNumber');
 						dev.warn(
-							(filename ? filename + ':' : '') +
+							(filename ? filename + ': ' : '') +
 							(lineNumber ? lineNumber + ': ' : '') +
 							prefix + property + " is deprecated. Use scope." + property + " instead."
 						);
@@ -485,12 +481,16 @@ var behaviors = {
 				}
 				//!steal-remove-end
 
-				canReflect.setKeyValue(templateContext, 'scope.element', el);
-				canReflect.setKeyValue(templateContext, 'scope.event', ev);
-				canReflect.setKeyValue(templateContext, 'scope.viewModel', viewModel);
-				canReflect.setKeyValue(templateContext, 'scope.arguments', arguments);
-
+				// create "spcial" values that can be looked up using
+				// {{scope.element}}, etc
 				var specialValues = {
+					element: el,
+					event: ev,
+					viewModel: viewModel,
+					arguments: arguments
+				};
+
+				var legacySpecialValues = {
 					"@element": el,
 					"@event": ev,
 					"@viewModel": viewModel,
@@ -507,7 +507,7 @@ var behaviors = {
 				};
 
 				//!steal-remove-start
-				Object.defineProperties(specialValues, {
+				Object.defineProperties(legacySpecialValues, {
 					"%element": {
 						get: makeWarning("%", "element", this)
 					},
@@ -534,9 +534,9 @@ var behaviors = {
 				//!steal-remove-end
 
 				// make a scope with these things just under
-				var localScope = data.scope.add(specialValues, {
-					notContext: true
-				});
+				var localScope = data.scope
+					.add(legacySpecialValues, { notContext: true })
+					.add(specialValues, { special: true });
 
 				// We grab the first item and treat it as a method that
 				// we'll call.
