@@ -1845,12 +1845,10 @@ test("two-way element empty value (1996)", function(){
 	canEvent.trigger.call(input, "change");
 
 	equal(map.attr("age"), "", "updated from input");
-
 });
 
 test("exporting methods (#2051)", function(){
 	expect(2);
-
 
 	MockComponent.extend({
 		tag : 'foo-bar',
@@ -1866,7 +1864,6 @@ test("exporting methods (#2051)", function(){
 
 	var frag = template({});
 	equal( frag.lastChild.nodeValue, "5");
-
 });
 
 
