@@ -615,9 +615,20 @@ QUnit.test("errors on subproperties of undefined properties (#298)", function() 
 
 QUnit.test("Bi-directional binding among sibling components, (#325)", function () {
 
-	var demoContext = new DefineMap({
-		person: ''
+	// var demoContext = new DefineMap({
+	// 	person: ''
+	// });
+
+	var DemoContext = DefineMap.extend({
+		person: {
+			value: '',
+			set(val) {
+				return val;
+			}
+		}
 	});
+
+	var demoContext = new DemoContext();
 
 	var demoRenderer = stache(
 		'<span>{{./person}}</span>' + 
@@ -644,7 +655,10 @@ QUnit.test("Bi-directional binding among sibling components, (#325)", function (
 	
 	var ClearComponentVM = DefineMap.extend({
 		person: {
-			value: 'any name'
+			value: '',
+			set(val) {
+				return val;
+			}
 		},
 		clearPerson() {
 			this.person = '';
@@ -677,5 +691,84 @@ QUnit.test("Bi-directional binding among sibling components, (#325)", function (
 	QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'John', "demoContext person set correctly");
 	QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
 	QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'John', "clear-button person set correctly");
-
 });
+
+QUnit.test("Bi-directional binding among sibling components, new syntax (#325)", function () {
+	
+		// var demoContext = new DefineMap({
+		// 	person: ''
+		// });
+	
+		var DemoContext = DefineMap.extend({
+			person: {
+				value: '',
+				set(val) {
+					return val;
+				}
+			}
+		});
+	
+		var demoContext = new DemoContext();
+	
+		var demoRenderer = stache(
+			'<span>{{./person}}</span>' + 
+			'<source-component person:bind="./person" />' + 
+			'<clear-button person:bind="./person" />'
+		);
+	
+		var SourceComponentVM = DefineMap.extend({
+			defaultPerson: {
+				value: 'John'
+			},
+			person: {
+				set(person) {
+					return person || this.defaultPerson;
+				}
+			}
+		});
+	
+		MockComponent.extend({
+			tag: "source-component",
+			viewModel: SourceComponentVM,
+			template: stache('<span>{{person}}</span><input type="text" value:bind="./person" />')
+		});
+		
+		var ClearComponentVM = DefineMap.extend({
+			person: {
+				value: '',
+				set(val) {
+					return val;
+				}
+			},
+			clearPerson() {
+				this.person = '';
+			}
+		});
+		
+		MockComponent.extend({
+			tag: "clear-button",
+			viewModel: ClearComponentVM,
+			template: stache('<input type="button" value="Clear" on:click="./clearPerson()" /><span>{{./person}}</span>')
+		});
+	
+		var frag = demoRenderer(demoContext);
+	
+		var sourceComponentVM = canViewModel(frag.childNodes[1]);
+		var clearButtonVM = canViewModel(frag.childNodes[2]);
+	
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person is empty");
+		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person is default");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person is empty");
+		
+		sourceComponentVM.person = "Bob";
+	
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'Bob', "demoContext person set correctly");
+		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'Bob', "source-component person set correctly");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'Bob', "clear-button person set correctly");
+	
+		clearButtonVM.clearPerson();
+	
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'John', "demoContext person set correctly");
+		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'John', "clear-button person set correctly");
+	});
