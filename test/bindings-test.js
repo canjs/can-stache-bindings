@@ -1285,11 +1285,14 @@ test("by default can-EVENT calls with values, not computes", function(){
 
 });
 
-test('Conditional can-EVENT bindings are bound/unbound', 2, function() {
+test('Conditional can-EVENT bindings are bound/unbound', function(assert) {
+	assert.expect(2);
+	var done = assert.async();
+
 	var state = new CanMap({
 		enableClick: true,
 		clickHandler: function() {
-			ok(true, '"click" was handled');
+			assert.ok(true, '"click" was handled');
 		}
 	});
 
@@ -1304,14 +1307,13 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function() {
 	canEvent.trigger.call(btn, 'click');
 	state.attr('enableClick', false);
 
-	stop();
 	afterMutation(function() {
 		canEvent.trigger.call(btn, 'click');
 		state.attr('enableClick', true);
 
 		afterMutation(function() {
 			canEvent.trigger.call(btn, 'click');
-			start();
+			done();
 		});
 	});
 });
