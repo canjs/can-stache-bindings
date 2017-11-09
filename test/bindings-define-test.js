@@ -612,3 +612,70 @@ QUnit.test("errors on subproperties of undefined properties (#298)", function() 
 		ok(false, e.message);
 	}
 });
+
+QUnit.test("Bi-directional binding among sibling components, (#325)", function () {
+
+	var demoContext = new DefineMap({
+		person: ''
+	});
+
+	var demoRenderer = stache(
+		'<span>{{./person}}</span>' + 
+		'<source-component {(person)}="./person" />' + 
+		'<clear-button {(person)}="./person" />'
+	);
+
+	var SourceComponentVM = DefineMap.extend({
+		defaultPerson: {
+			value: 'John'
+		},
+		person: {
+			set(person) {
+				return person || this.defaultPerson;
+			}
+		}
+	});
+
+	MockComponent.extend({
+		tag: "source-component",
+		viewModel: SourceComponentVM,
+		template: stache('<span>{{person}}</span><input type="text" {($value)}="./person" />')
+	});
+	
+	var ClearComponentVM = DefineMap.extend({
+		person: {
+			value: 'any name'
+		},
+		clearPerson() {
+			this.person = '';
+		}
+	});
+	
+	MockComponent.extend({
+		tag: "clear-button",
+		viewModel: ClearComponentVM,
+		template: stache('<input type="button" value="Clear" ($click)="./clearPerson()" /><span>{{./person}}</span>')
+	});
+
+	var frag = demoRenderer(demoContext);
+
+	var sourceComponentVM = canViewModel(frag.childNodes[1]);
+	var clearButtonVM = canViewModel(frag.childNodes[2]);
+
+	QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person is empty");
+	QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person is default");
+	QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person is empty");
+	
+	sourceComponentVM.person = "Bob";
+
+	QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'Bob', "demoContext person set correctly");
+	QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'Bob', "source-component person set correctly");
+	QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'Bob', "clear-button person set correctly");
+
+	clearButtonVM.clearPerson();
+
+	QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'John', "demoContext person set correctly");
+	QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
+	QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'John', "clear-button person set correctly");
+
+});
