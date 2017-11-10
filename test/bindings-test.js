@@ -1125,38 +1125,36 @@ test("can-event throws an error when inside #if block (#1182)", function(assert)
 });
 
 // Temporarily skipped until issue #2292 get's resolved
-testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
-	var flag = canCompute(true),
-		clickHandlerCount = 0;
+testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", function(assert) {
+	var done = assert.async();
+	var flag = canCompute(true);
+	var clickHandlerCount = 0;
 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
 		flag: flag,
 		foo: function() {
 			clickHandlerCount++;
 		}
 	});
-	var testEnv = this;
-	var trig = function() {
-		var div = testEnv.fixture.getElementsByTagName('div')[0];
-		canEvent.trigger.call(div, {
-			type: "click"
-		});
-	};
 	domMutate.appendChild.call(this.fixture, frag);
 
-	// Attribute mutation observers are called asyncronously,
-	// so give some time for the mutation handlers.
-	stop();
-	var numTrigs = 3;
-	var testTimer = setInterval(function() {
-		if (numTrigs--) {
-			trig();
-			flag( !flag() );
-		} else {
-			clearTimeout(testTimer);
-			equal(clickHandlerCount, 2, "click handler called twice");
-			start();
-		}
-	}, 100);
+	var target = this.fixture.getElementsByTagName('div')[0];
+	afterMutation(function () {
+		canEvent.trigger.call(target, {type: "click"});
+		assert.equal(clickHandlerCount, 1, "click handler should be called");
+
+		flag(false);
+		afterMutation(function () {
+			canEvent.trigger.call(target, {type: 'click'});
+			assert.equal(clickHandlerCount, 1, "click handler should not be called");
+
+			flag(true);
+			afterMutation(function () {
+				canEvent.trigger.call(target, {type: 'click'});
+				assert.equal(clickHandlerCount, 2, "click handler should be called again");
+				done();
+			});
+		});
+	});
 });
 
 test("can-value compute rejects new value (#887)", function() {
