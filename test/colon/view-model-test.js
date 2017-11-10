@@ -495,15 +495,15 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
     	refExport.set("name", "v1");
 
-    	equal( scope.getRefs()._context.attr("*refName"), "v1", "reference scope updated");
+		equal( scope.getRefs().peek("*refName"), "v1", "reference scope updated");
 
-    	equal(refImport.get("name"), "v1", "updated ref-import");
+		equal(refImport.get("name"), "v1", "updated ref-import");
 
-    	refImport.set("name", "v2");
+		refImport.set("name", "v2");
 
-    	equal(refExport.get("name"), "v2", "updated ref-export");
+		equal(refExport.get("name"), "v2", "updated ref-export");
 
-    	equal( scope.getRefs()._context.attr("*refName"), "v2", "actually put in refs scope");
+		equal( scope.getRefs().peek("*refName"), "v2", "actually put in refs scope");
 
     });
 
