@@ -1305,14 +1305,18 @@ test('Conditional can-EVENT bindings are bound/unbound', function(assert) {
 	canEvent.trigger.call(btn, 'click');
 	state.attr('enableClick', false);
 
-	afterMutation(function() {
-		canEvent.trigger.call(btn, 'click');
-		state.attr('enableClick', true);
-
-		afterMutation(function() {
+	afterMutation(function () {
+		setTimeout(function () {
 			canEvent.trigger.call(btn, 'click');
-			done();
-		});
+			state.attr('enableClick', true);
+
+			afterMutation(function () {
+				setTimeout(function () {
+					canEvent.trigger.call(btn, 'click');
+					done();
+				}, 20);
+			});
+		}, 20);
 	});
 });
 
