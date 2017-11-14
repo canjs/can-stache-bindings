@@ -2765,10 +2765,9 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 	afterMutation(start);
 });
 
-test("updates happen on changed two-way even when one binding is satisfied", function() {
-	stop();
+test("updates happen on changed two-way even when one binding is satisfied", function (assert) {
+	var done = assert.async();
 	var template = stache('<input {($value)}="{{bindValue}}"/>');
-
 	var ViewModel = DefaultMap.extend({
 		firstName: {
 			set: function(newValue) {
@@ -2786,23 +2785,28 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 		},
 		bindValue: "string"
 	});
-	var viewModel = new ViewModel({ firstName: "Jeffrey", lastName: "King", bindValue: "firstName" });
+	var viewModel = new ViewModel({
+		firstName: "Jeffrey",
+		lastName: "King",
+		bindValue: "firstName"
+	});
 
 	var frag = template(viewModel);
-	domMutate.appendChild.call(this.fixture, frag);
+	var fixture = this.fixture;
+	domMutate.appendChild.call(fixture, frag);
 	afterMutation(function() {
-		equal(this.fixture.firstChild.value, "jeffrey");
+		assert.equal(fixture.firstChild.value, "jeffrey");
 
 		viewModel.bindValue = "lastName";
 		afterMutation(function() {
-			equal(this.fixture.firstChild.value, "king");
+			assert.equal(fixture.firstChild.value, "king");
 
-			this.fixture.firstChild.value = "KING";
-			canEvent.trigger.call(this.fixture.firstChild, "change");
-			equal(this.fixture.firstChild.value, "king");
-			start();
-		}.bind(this));
-	}.bind(this));
+			fixture.firstChild.value = "KING";
+			canEvent.trigger.call(fixture.firstChild, "change");
+			assert.equal(fixture.firstChild.value, "king");
+			done();
+		});
+	});
 });
 
 test('plain data objects should work for checkboxes [can-value] (#161)', function() {
