@@ -1194,20 +1194,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	});
 	
 	testIfRealDocument("Bi-directional binding among sibling components, new syntax (#325)", function () {
-		// var demoContext = new DefineMap({
-		// 	person: ''
-		// });
-
-		var DemoContext = DefineMap.extend({
-			person: {
-				value: '',
-				set(val) {
-					return val;
-				}
-			}
+		var demoContext = new DefineMap({
+			person: ''
 		});
-
-		var demoContext = new DemoContext();
 	
 		var demoRenderer = stache(
 			'<span>{{./person}}</span>' + 
@@ -1234,10 +1223,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		
 		var ClearComponentVM = DefineMap.extend({
 			person: {
-				value: '',
-				set(val) {
-					return val;
-				}
+				value: ''
 			},
 			clearPerson() {
 				this.set('person', '');
@@ -1323,8 +1309,6 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			});
 		
 			var frag = demoRenderer(demoContext);
-
-			debugger;
 	
 			var sourceComponentVM = canViewModel(frag.childNodes[1]);
 			var clearButtonVM = canViewModel(frag.childNodes[2]);
