@@ -17,6 +17,7 @@ var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
 var SimpleObservable = require('can-simple-observable');
+var canLogDev = require('can-log/dev/dev');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
@@ -40,6 +41,8 @@ addEnterEvent(domEvents);
 
 var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
+
+var peek = Observation.ignore(canReflect.getValue.bind(canReflect));
 
 var canEvent = {
 	on: function(eventName, handler, queue) {
@@ -807,6 +810,14 @@ var bind = {
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
 			queues.batch.start();
 			canReflect.setValue(childObservable, newValue);
+
+			// If child value is not the same as parent after update warn that child is out of sync
+			//!steal-remove-start
+			if((bindingInfo.parentToChild && bindingInfo.childToParent) && peek(childObservable) !== peek(parentObservable)) {
+				canLogDev.warn('Child out of sync with parent on binding: ' + attrName + " for component: " 
+				+ el.localName + ". See https://canjs.com/doc/can-stache-bindings.toParent.html");
+			}
+			//!steal-remove-end
 
 			// only after computes have been updated, reduce the update counter
 			queues.mutateQueue.enqueue(function decrementParentToChildSemaphore() {
