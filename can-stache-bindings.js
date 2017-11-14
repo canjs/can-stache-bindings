@@ -17,7 +17,6 @@ var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
 var SimpleObservable = require('can-simple-observable');
-var canLogDev = require('can-log/dev/dev');
 
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
@@ -41,8 +40,6 @@ addEnterEvent(domEvents);
 
 var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
-
-var peek = Observation.ignore(canReflect.getValue.bind(canReflect));
 
 var canEvent = {
 	on: function(eventName, handler, queue) {

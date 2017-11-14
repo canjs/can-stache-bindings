@@ -1,6 +1,5 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
-var canTestHelpers = require('can-test-helpers');
 
 require('can-stache-bindings');
 
