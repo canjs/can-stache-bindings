@@ -11,12 +11,13 @@ var domEvents = require("can-util/dom/events/events");
 var domMutate = require('can-util/dom/mutate/mutate');
 
 var viewCallbacks = require('can-view-callbacks');
-var dev = require('can-util/js/dev/dev');
 var canViewModel = require('can-view-model');
 
 var canSymbol = require('can-symbol');
 var canReflect = require('can-reflect');
 var queues = require("can-queues");
+
+var canTestHelpers = require('can-test-helpers');
 
 testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, doc, enableMO){
 
@@ -103,54 +104,43 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
     	equal(scope.attr('scope3'), 'vm6', 'vm:value:bind - scope updated when vm changes');
     });
 
-    if (System.env.indexOf('production') < 0) {
-    	test("Warning happens when changing the map that a to-parent binding points to.", function() {
-    		var tagName = "merge-warn-test";
+	canTestHelpers.dev.devOnlyTest("Warning happens when changing the map that a to-parent binding points to.", function() {
+		var tagName = "merge-warn-test";
 
-    		// Delete previous tags, to avoid warnings from can-view-callbacks.
-    		delete viewCallbacks._tags[tagName];
+		// Delete previous tags, to avoid warnings from can-view-callbacks.
+		delete viewCallbacks._tags[tagName];
 
-    		expect(2);
+		expect(2);
 
-    		var step1 = { "baz": "quux" };
-    		var overwrite = { "plonk": "waldo" };
+		var step1 = { "baz": "quux" };
+		var overwrite = { "plonk": "waldo" };
 
-    		var oldlog = dev.warn,
-    			message = 'can-stache-key: Merging data into "bar" because its parent is non-observable';
+		var teardown = canTestHelpers.dev.willWarn('can-stache-key: Merging data into "bar" because its parent is non-observable');
 
-    		var thisTest = QUnit.config.current;
-    		dev.warn = function(text) {
-    			if(QUnit.config.current === thisTest) {
-    				if(text === message) {
-    					ok(true, 'Got expected message logged.');
-    				} 
-    			}
-    		};
-    		var viewModel;
-    		MockComponent.extend({
-    			tag: tagName,
-    			viewModel: function() {
-    				return viewModel = new SimpleMap({
-    					"foo": new SimpleMap({})
-    				});
+		var viewModel;
+		MockComponent.extend({
+			tag: tagName,
+			viewModel: function() {
+				return viewModel = new SimpleMap({
+					"foo": new SimpleMap({})
+				});
 
-    			}
-    		});
+			}
+		});
 
-    		var template = stache("<merge-warn-test foo:bind='bar'/>");
+		var template = stache("<merge-warn-test foo:bind='bar'/>");
 
     		var data = {
-    			bar: new SimpleMap(step1)
-				};
+				bar: new SimpleMap(step1)
+			};
 
-				this.fixture.appendChild(template(data));
+			this.fixture.appendChild(template(data));
 				
     		viewModel.set("foo", overwrite);
     		deepEqual(data.bar.get(), { "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
 
-    		dev.warn = oldlog;
-    	});
-    }
+		QUnit.equal(teardown(), 1, "warning shown");
+	});
 
     QUnit.test("changing a scope property calls registered stache helper's returned function", function(){
     	expect(1);
