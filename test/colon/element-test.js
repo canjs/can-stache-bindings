@@ -1209,7 +1209,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				value: 'John'
 			},
 			person: {
-				set(val) {
+				set: function(val) {
 					return val || this.defaultPerson;
 				}
 			}
@@ -1225,7 +1225,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			person: {
 				value: ''
 			},
-			clearPerson() {
+			clearPerson: function() {
 				this.set('person', '');
 			}
 		});
@@ -1281,7 +1281,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 					value: 'John'
 				},
 				person: {
-					set(person) {
+					set: function(person) {
 						return person || this.defaultPerson;
 					}
 				}
@@ -1297,7 +1297,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				person: {
 					value: ''
 				},
-				clearPerson() {
+				clearPerson: function() {
 					this.person = '';
 				}
 			});

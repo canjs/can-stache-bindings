@@ -814,8 +814,8 @@ var bind = {
 			// If child value is not the same as parent after update warn that child is out of sync
 			//!steal-remove-start
 			if((bindingInfo.parentToChild && bindingInfo.childToParent) && peek(childObservable) !== peek(parentObservable)) {
-				canLogDev.warn('Child out of sync with parent on binding: ' + attrName + " for component: " 
-				+ el.localName + ". See https://canjs.com/doc/can-stache-bindings.toParent.html");
+				canLogDev.warn('Child out of sync with parent on binding: ' + attrName + " for component: " + 
+				el.localName + ". See https://canjs.com/doc/can-stache-bindings.toParent.html");
 			}
 			//!steal-remove-end
 
