@@ -141,10 +141,12 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
     		var data = {
     			bar: new SimpleMap(step1)
-    		};
-    		this.fixture.appendChild(template(data));
+				};
+
+				this.fixture.appendChild(template(data));
+				
     		viewModel.set("foo", overwrite);
-    		deepEqual(data.bar.get(), { "baz": undefined, "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
+    		deepEqual(data.bar.get(), { "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
 
     		dev.warn = oldlog;
     	});
