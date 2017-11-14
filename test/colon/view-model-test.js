@@ -596,6 +596,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
     	equal(viewModel.get("viewModelProp"), "WORLD", "binding from parent to child" );
     	equal(scopeMapSetCalled, 1, "can.setKey is not called again on scope map");
     	equal(viewModelSetCalled, 3, "set is called again on viewModel");
-    });
+		});
+		
+		
 
 });
