@@ -21,7 +21,7 @@ var SimpleObservable = require('can-simple-observable');
 var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
-var dev = require('can-util/js/dev/dev');
+var dev = require('can-log/dev/dev');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');

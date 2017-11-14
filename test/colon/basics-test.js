@@ -7,7 +7,8 @@ var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
 var MockComponent = require("../mock-component-simple-map");
-var dev = require('can-util/js/dev/dev');
+
+var canTestHelpers = require('can-test-helpers');
 
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
 
@@ -360,21 +361,15 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
     });
 
-    if (System.env.indexOf('production') < 0) {
-    	test("warning when binding to non-existing value (#136) (#119)", function() {
-    		var oldWarn = dev.warn;
-    		dev.warn = function(message) {
-    			ok(true, message);
-    		};
+	canTestHelpers.dev.devOnlyTest("warning when binding to non-existing value (#136) (#119)", function() {
+		var teardown = canTestHelpers.dev.willWarn('This element does not have a viewModel. (Attempting to bind `target:vm:bind="source.bar"`)');
 
-    		var template = stache("<div target:vm:bind='source.bar'/>");
+		var template = stache("<div target:vm:bind='source.bar'/>");
 
-    		expect(1);
-    		var map = new SimpleMap({ source: new SimpleMap({ foo: "foo" }) });
-    		template(map);
+		var map = new SimpleMap({ source: new SimpleMap({ foo: "foo" }) });
+		template(map);
+		QUnit.equal(teardown(), 1, 'warning shown');
 
-    		dev.warn = oldWarn;
-    	});
-    }
+	});
 
 });
