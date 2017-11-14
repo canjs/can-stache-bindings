@@ -3,8 +3,6 @@ var QUnit = require("steal-qunit");
 var stacheBindings = require('can-stache-bindings');
 
 var makeDocument = require('can-vdom/make-document/make-document');
-var MUTATION_OBSERVER = require('can-util/dom/mutation-observer/mutation-observer');
-var DOCUMENT = require("can-util/dom/document/document");
 var domEvents = require('can-util/dom/events/events');
 var domMutate = require('can-util/dom/mutate/mutate');
 var domData = require('can-util/dom/data/data');
@@ -13,9 +11,10 @@ var stache = require("can-stache");
 var SimpleMap = require("can-simple-map");
 var DefineMap = require("can-define/map/map");
 var canEvent = require("can-event");
+var globals = require('can-globals');
 
 function afterMutation(cb) {
-	var doc = DOCUMENT();
+	var doc = globals.getKeyValue('document');
 	var div = doc.createElement("div");
 	domEvents.addEventListener.call(div, "inserted", function(){
 		doc.body.removeChild(div);
@@ -24,17 +23,17 @@ function afterMutation(cb) {
 	domMutate.appendChild.call(doc.body, div);
 }
 
-var DOC = DOCUMENT();
-var MUT_OBS = MUTATION_OBSERVER();
-makeTest("can-stache-bindings - colon - dom", document, MUT_OBS);
-makeTest("can-stache-bindings - colon - vdom", makeDocument(), null);
+makeTest("can-stache-bindings - colon - dom", document, true);
+makeTest("can-stache-bindings - colon - vdom", makeDocument(), false);
 
-function makeTest(name, doc, mutObs){
+function makeTest(name, doc, enableMO){
 
 QUnit.module(name, {
 	setup: function() {
-		DOCUMENT(doc);
-		MUTATION_OBSERVER(mutObs);
+		globals.setKeyValue('document', doc);
+		if(!enableMO){
+			globals.setKeyValue('MutationObserver', null);
+		}
 
 		if(doc === document) {
 			this.fixture = document.getElementById("qunit-fixture");
@@ -50,8 +49,8 @@ QUnit.module(name, {
 
 		stop();
 		afterMutation(function() {
-			DOCUMENT(DOC);
-			MUTATION_OBSERVER(MUT_OBS);
+			globals.deleteKeyValue('document');
+			globals.deleteKeyValue('MutationObserver');
 
 			var fixture = document.getElementById("qunit-fixture");
 			while (fixture && fixture.hasChildNodes()) {
@@ -63,7 +62,6 @@ QUnit.module(name, {
 		});
 	}
 });
-
 
 test("basics", 5, function(){
 

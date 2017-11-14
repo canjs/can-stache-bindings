@@ -62,7 +62,6 @@ var isRealDocument = function(){
 
 QUnit.module(name, {
 	setup: function() {
-
 		globals.setKeyValue('document', doc);
 		if(!enableMO){
 			globals.setKeyValue('MutationObserver', null);
