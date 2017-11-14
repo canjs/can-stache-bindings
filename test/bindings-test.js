@@ -3210,7 +3210,16 @@ testHelpers.dev.devOnlyTest('using @viewModel shows a deprecation warning', func
 test("set string on the viewModel", function(){
 	var ViewModel = DefaultMap.extend({
 		foo: {
-			type: "string"
+			type: "string",
+			set: function(val){
+				equal(val, "bar");
+			}
+		},
+		baz: {
+			type: "string",
+			set: function(val){
+				equal(val, "qux");
+			}
 		}
 	});
 
@@ -3220,11 +3229,7 @@ test("set string on the viewModel", function(){
 	});
 
 	var template = stache("<test-elem foo:from=\"'bar'\" baz:from=\"'qux'\"/>");
-	var frag = template();
-	var vm = canViewModel(frag.firstChild);
-
-	equal(vm.foo, "bar");
-	equal(vm.baz, "qux");
+	template();
 });
 
 test("warn about using attributes to set values on the viewModel", function(){
