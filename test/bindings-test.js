@@ -3207,6 +3207,45 @@ testHelpers.dev.devOnlyTest('using @viewModel shows a deprecation warning', func
     equal(teardown(), 1);
 });
 
+test("set string on the viewModel", function(){
+	var ViewModel = DefaultMap.extend({
+		foo: {
+			type: "string"
+		}
+	});
+
+	MockComponent.extend({
+		tag: "test-elem",
+		viewModel: ViewModel
+	});
+
+	var template = stache("<test-elem foo:from=\"'bar'\" baz:from=\"'qux'\"/>");
+	var frag = template();
+	var vm = canViewModel(frag.firstChild);
+
+	equal(vm.foo, "bar");
+	equal(vm.baz, "qux");
+});
+
+test("warn about using attributes to set values on the viewModel", function(){
+	var teardown = testHelpers.dev.willWarn(/foo="bar" is deprecated\. Use foo:from="'bar'" instead\./);
+	var ViewModel = DefaultMap.extend({
+		foo: {
+			type: "string"
+		}
+	});
+
+	MockComponent.extend({
+		tag: "test-elem",
+		viewModel: ViewModel
+	});
+
+	var template = stache("<test-elem foo=\"bar\" baz=\"qux\"/>");
+	template();
+
+	equal(teardown(), 1);
+});
+
 // Add new tests above this line
 
 }
