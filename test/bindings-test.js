@@ -2357,7 +2357,9 @@ test("function reference to child binding (#2116)", function(){
 	var vm = new VM({});
 	var frag = template(vm);
 
-	vm.attr("parent", function(){ ok(false, "should not be called"); });
+	vm.attr("parent", function(){ 
+		ok(false, "should not be called");
+	});
 	equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
 	template = stache('<foo-bar {^@method}="vmMethod"></foo-bar>');
@@ -2991,7 +2993,7 @@ testHelpers.dev.devOnlyTest("warn when using bracket syntax for data bindings (#
 	stache('<div {$foo}="bar"/>')(vm);
 	equal(teardown(), 1, '{$foo} should warn');
 
-	teardown =  testHelpers.dev.willWarn(/foo:from/);
+	teardown =  testHelpers.dev.willWarn(/is deprecated.*foo:from/);
 	stache('<div foo:from="bar"/>')(vm);
 	equal(teardown(), 0, 'foo:from should not warn');
 
@@ -2999,7 +3001,7 @@ testHelpers.dev.devOnlyTest("warn when using bracket syntax for data bindings (#
 	stache('<div {^$foo}="bar"/>')(vm);
 	equal(teardown(), 1, '{^$foo} should warn');
 
-	teardown =  testHelpers.dev.willWarn(/foo:to/);
+	teardown =  testHelpers.dev.willWarn(/is deprecated.*foo:to/);
 	stache('<div foo:to="bar"/>')(vm);
 	equal(teardown(), 0, 'foo:to should not warn');
 
@@ -3007,7 +3009,7 @@ testHelpers.dev.devOnlyTest("warn when using bracket syntax for data bindings (#
 	stache('<div {($foo)}="bar"/>')(vm);
 	equal(teardown(), 1, '{($foo)} should warn');
 
-	teardown =  testHelpers.dev.willWarn(/foo:bind/);
+	teardown =  testHelpers.dev.willWarn(/is deprecated.*foo:bind/);
 	stache('<div foo:bind="bar"/>')(vm);
 	equal(teardown(), 0, 'foo:bind should not warn');
 

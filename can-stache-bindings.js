@@ -35,6 +35,7 @@ require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
 var attr = require('can-util/dom/attr/attr');
 var canLog = require('can-log');
+var canLogDev = require('can-log/dev/dev');
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
@@ -48,6 +49,8 @@ var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
 
 var noop = function() {};
+
+var peek = Observation.ignore(canReflect.getValue.bind(canReflect));
 
 var onMatchStr = "on:",
 	vmMatchStr = "vm:",
@@ -928,6 +931,14 @@ var bind = {
 			// We listen for when the batch has ended, and all observation updates have ended.
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
 			canReflect.setValue(childUpdate, newValue);
+
+			// If child value is not the same as parent after update warn that child is out of sync
+			//!steal-remove-start
+			if(peek(childUpdate) !== peek(parentObservable)) {
+				canLogDev.warn('Child out of sync with parent on binding: ' + attrName + " for component: " 
+				+ el.localName + ". See https://canjs.com/doc/can-stache-bindings.toParent.html");
+			}
+			//!steal-remove-end
 
 			// only after computes have been updated, reduce the update counter
 			Observation.afterUpdateAndNotify(function() {

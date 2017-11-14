@@ -7,6 +7,7 @@ var canViewModel = require('can-view-model');
 var define = require("can-define");
 var canEvent = require('can-event');
 var viewCallbacks = require('can-view-callbacks');
+var testHelpers = require('can-test-helpers');
 
 var domAttr = require("can-util/dom/attr/attr");
 var domData = require('can-util/dom/data/data');
@@ -612,3 +613,128 @@ QUnit.test("errors on subproperties of undefined properties (#298)", function() 
 		ok(false, e.message);
 	}
 });
+
+QUnit.test("Bi-directional binding among sibling components, new syntax (#325)", function () {
+	
+		var demoContext = new DefineMap({
+			person: ''
+		});
+	
+		var demoRenderer = stache(
+			'<span>{{./person}}</span>' + 
+			'<source-component person:bind="./person" />' + 
+			'<clear-button person:bind="./person" />'
+		);
+	
+		var SourceComponentVM = DefineMap.extend({
+			defaultPerson: {
+				value: 'John'
+			},
+			person: {
+				set(person) {
+					return person || this.defaultPerson;
+				}
+			}
+		});
+	
+		MockComponent.extend({
+			tag: "source-component",
+			viewModel: SourceComponentVM,
+			template: stache('<span>{{person}}</span><input type="text" value:bind="./person" />')
+		});
+		
+		var ClearComponentVM = DefineMap.extend({
+			person: {
+				value: ''
+			},
+			clearPerson() {
+				this.person = '';
+			}
+		});
+		
+		MockComponent.extend({
+			tag: "clear-button",
+			viewModel: ClearComponentVM,
+			template: stache('<input type="button" value="Clear" on:click="./clearPerson()" /><span>{{./person}}</span>')
+		});
+	
+		var frag = demoRenderer(demoContext);
+	
+		var sourceComponentVM = canViewModel(frag.childNodes[1]);
+		var clearButtonVM = canViewModel(frag.childNodes[2]);
+	
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person is empty");
+		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person is default");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person is empty");
+		
+		sourceComponentVM.person = "Bob";
+	
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'Bob', "demoContext person set correctly");
+		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'Bob', "source-component person set correctly");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'Bob', "clear-button person set correctly");
+	
+		clearButtonVM.clearPerson();
+	
+		// Note that 'John' will not be set on the parent or clear button because parent was already set 
+		// to an empty string and the bindingSemaphore will not allow another change to the parent 
+		// (giving the parent priority) to prevent cyclic dependencies.
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person set correctly");
+		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person set correctly");
+	});
+
+	testHelpers.dev.devOnlyTest("Semaphore cyclic avoidance throws warning when child is out of sync", function() {
+		var message = "Child out of sync with parent on binding: person:bind for component: source-component. See https://canjs.com/doc/can-stache-bindings.toParent.html";
+		var finishErrorCheck = testHelpers.dev.willWarn(message);
+
+		var demoContext = new DefineMap({
+			person: ''
+		});
+	
+		var demoRenderer = stache(
+			'<span>{{./person}}</span>' + 
+			'<source-component person:bind="./person" />' + 
+			'<clear-button person:bind="./person" />'
+		);
+	
+		var SourceComponentVM = DefineMap.extend({
+			defaultPerson: {
+				value: 'John'
+			},
+			person: {
+				set(person) {
+					return person || this.defaultPerson;
+				}
+			}
+		});
+	
+		MockComponent.extend({
+			tag: "source-component",
+			viewModel: SourceComponentVM,
+			template: stache('<span>{{person}}</span><input type="text" value:bind="./person" />')
+		});
+
+		var ClearComponentVM = DefineMap.extend({
+			person: {
+				value: ''
+			},
+			clearPerson() {
+				this.person = '';
+			}
+		});
+		
+		MockComponent.extend({
+			tag: "clear-button",
+			viewModel: ClearComponentVM,
+			template: stache('<input type="button" value="Clear" on:click="./clearPerson()" /><span>{{./person}}</span>')
+		});
+	
+		var frag = demoRenderer(demoContext);
+
+		var sourceComponentVM = canViewModel(frag.childNodes[1]);
+		var clearButtonVM = canViewModel(frag.childNodes[2]);
+		sourceComponentVM.person = "Bob";
+		clearButtonVM.clearPerson();
+	
+		QUnit.equal(finishErrorCheck(), 1);
+	});
