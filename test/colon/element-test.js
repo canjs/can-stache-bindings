@@ -55,8 +55,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	QUnit.test('<input text> el:prop:to/:from/:bind work (#280)', function() {
 		var template = stache(
 			"<input el:value:to='scope1' value='1'/>" +
-			"<input el:value:from='scope2' value='2'/>" +
-			"<input el:value:bind='scope3' value='3'/>"
+				"<input el:value:from='scope2' value='2'/>" +
+				"<input el:value:bind='scope3' value='3'/>"
 		);
 
 		var scope = new SimpleMap({
@@ -169,7 +169,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	test("value:from works with camelCase and kebab-case properties", function() {
 		var template = stache(
 			"<input value:from='theProp'/>" +
-			"<input value:from='the-prop'/>"
+				"<input value:from='the-prop'/>"
 		);
 
 		var map = new SimpleMap({});
@@ -215,7 +215,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	test("value:to works with camelCase and kebab-case properties", function() {
 		var template = stache(
 			"<input value:to='theProp'/>" +
-			"<input value:to='the-prop'/>"
+				"<input value:to='the-prop'/>"
 		);
 
 		var map = new SimpleMap({});
@@ -251,7 +251,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	test("value:bind works with camelCase and kebab-case properties", function() {
 		var template = stache(
 			"<input value:bind='theProp'/>" +
-			"<input value:bind='the-prop'/>"
+				"<input value:bind='the-prop'/>"
 		);
 
 		var map = new SimpleMap({});
@@ -354,8 +354,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
 		var template = stache(
 			"<input el:value:to='scope1' value='1'/>" +
-			"<input el:value:from='scope2' value='2'/>" +
-			"<input el:value:bind='scope3' value='3'/>"
+				"<input el:value:from='scope2' value='2'/>" +
+				"<input el:value:bind='scope3' value='3'/>"
 		);
 
 		var scope = new SimpleMap({
@@ -405,43 +405,43 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 	test("<input text> two-way - DOM - input text (#1700)", function() {
 
-			var template = stache("<input value:bind='age'/>");
+		var template = stache("<input value:bind='age'/>");
 
-			var map = new SimpleMap();
+		var map = new SimpleMap();
 
-			var frag = template(map);
+		var frag = template(map);
 
-			var ta = this.fixture;
-			ta.appendChild(frag);
+		var ta = this.fixture;
+		ta.appendChild(frag);
 
-			var input = ta.getElementsByTagName("input")[0];
-			equal(input.value, "", "input value set correctly if key does not exist in map");
+		var input = ta.getElementsByTagName("input")[0];
+		equal(input.value, "", "input value set correctly if key does not exist in map");
 
-			map.attr("age", "30");
+		map.attr("age", "30");
+
+		stop();
+		testHelpers.afterMutation(function() {
+			start();
+			equal(input.value, "30", "input value set correctly");
+
+			map.attr("age", "31");
 
 			stop();
 			testHelpers.afterMutation(function() {
+				start();
+				equal(input.value, "31", "input value update correctly");
+
+				input.value = "32";
+
+				domEvents.dispatch.call(input, "change");
+
+				stop();
+				testHelpers.afterMutation(function() {
 					start();
-					equal(input.value, "30", "input value set correctly");
-
-					map.attr("age", "31");
-
-					stop();
-					testHelpers.afterMutation(function() {
-							start();
-							equal(input.value, "31", "input value update correctly");
-
-							input.value = "32";
-
-							domEvents.dispatch.call(input, "change");
-
-							stop();
-							testHelpers.afterMutation(function() {
-									start();
-									equal(map.attr("age"), "32", "updated from input");
-							});
-					});
+					equal(map.attr("age"), "32", "updated from input");
+				});
 			});
+		});
 	});
 
 	QUnit.test("errors subproperties of undefined properties (#298)", function() {
@@ -458,14 +458,14 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var template = stache('<input value:bind="firstName"/>');
 
 
-			var viewModel = new SimpleMap({ firstName: "jeffrey" });
-			canReflect.assignSymbols(viewModel,{
-					"can.setKeyValue": function(key, val) {
-							if(val) {
-									this.set(key, val.toLowerCase());
-							}
-					}
-			});
+		var viewModel = new SimpleMap({ firstName: "jeffrey" });
+		canReflect.assignSymbols(viewModel,{
+			"can.setKeyValue": function(key, val) {
+				if(val) {
+					this.set(key, val.toLowerCase());
+				}
+			}
+		});
 		stop(); // Stop here just to ensure the attributes event generated here is handled before the next test.
 		var frag = template(viewModel);
 		domMutate.appendChild.call(this.fixture, frag);
@@ -519,34 +519,34 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 	test("value:bind memory leak (#2270)", function() {
 
-			var template = stache('<div><input value:bind="foo"></div>');
+		var template = stache('<div><input value:bind="foo"></div>');
 
-			var vm = new SimpleMap({foo: ''});
+		var vm = new SimpleMap({foo: ''});
 
-			var frag = template(vm);
+		var frag = template(vm);
 
-			var ta = this.fixture;
-			domMutate.appendChild.call(ta,frag);
+		var ta = this.fixture;
+		domMutate.appendChild.call(ta,frag);
 
-			QUnit.stop();
+		QUnit.stop();
 
+		testHelpers.afterMutation(function(){
+			domMutate.removeChild.call(ta, ta.firstChild);
+			// still 1 binding, should be 0
 			testHelpers.afterMutation(function(){
-					domMutate.removeChild.call(ta, ta.firstChild);
-					// still 1 binding, should be 0
-					testHelpers.afterMutation(function(){
-							var checkLifecycleBindings = function(){
-									var meta = vm[canSymbol.for("can.meta")];
+				var checkLifecycleBindings = function(){
+					var meta = vm[canSymbol.for("can.meta")];
 
-									if( meta.handlers.get([]).length === 0 ) {
-											QUnit.ok(true, "no bindings");
-											start();
-									} else {
-											setTimeout(checkLifecycleBindings, 1000);
-									}
-							};
-							checkLifecycleBindings();
-					});
+					if( meta.handlers.get([]).length === 0 ) {
+						QUnit.ok(true, "no bindings");
+						start();
+					} else {
+						setTimeout(checkLifecycleBindings, 1000);
+					}
+				};
+				checkLifecycleBindings();
 			});
+		});
 
 	});
 
@@ -588,46 +588,46 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	});
 
 	testIfRealDocument("<input radio> checked:bind should trigger a radiochange event for radio buttons", function() {
-			// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
-			var template = stache([
-					'<input type="radio" name="baz" checked:bind="foo"/><span>{{foo}}</span>',
-					'<input type="radio" name="baz" checked:bind="bar"/><span>{{bar}}</span>'
-			].join(''));
-			var data = new SimpleMap({
-					foo: false,
-					bar: false
-			});
-			var fragment = template(data);
-			domMutate.appendChild.call(this.fixture, fragment);
+		// NOTE: `testIfRealDocument` is used because the vdom does not simulate document event dispatch
+		var template = stache([
+			'<input type="radio" name="baz" checked:bind="foo"/><span>{{foo}}</span>',
+			'<input type="radio" name="baz" checked:bind="bar"/><span>{{bar}}</span>'
+		].join(''));
+		var data = new SimpleMap({
+			foo: false,
+			bar: false
+		});
+		var fragment = template(data);
+		domMutate.appendChild.call(this.fixture, fragment);
 
-			var self = this;
-			function child (index) {
-					return self.fixture.childNodes.item(index);
+		var self = this;
+		function child (index) {
+			return self.fixture.childNodes.item(index);
+		}
+
+		var fooRadio = child(0);
+		var fooText = child(1);
+		var barRadio = child(2);
+		var barText = child(3);
+
+		function text (node) {
+			while (node && node.nodeType !== 3) {
+				node = node.firstChild;
 			}
+			return node && node.nodeValue;
+		}
 
-			var fooRadio = child(0);
-			var fooText = child(1);
-			var barRadio = child(2);
-			var barText = child(3);
+		fooRadio.checked = true;
+		domEvents.dispatch.call(fooRadio, 'change');
 
-			function text (node) {
-					while (node && node.nodeType !== 3) {
-							node = node.firstChild;
-					}
-					return node && node.nodeValue;
-			}
+		barRadio.checked = true;
+		domEvents.dispatch.call(barRadio, 'change');
 
-			fooRadio.checked = true;
-			domEvents.dispatch.call(fooRadio, 'change');
+		equal(text(fooText), 'false', 'foo text is false');
+		equal(text(barText), 'true', 'bar text is true');
 
-			barRadio.checked = true;
-			domEvents.dispatch.call(barRadio, 'change');
-
-			equal(text(fooText), 'false', 'foo text is false');
-			equal(text(barText), 'true', 'bar text is true');
-
-			equal(data.get("foo"), false);
-			equal(data.get("bar"), true);
+		equal(data.get("foo"), false);
+		equal(data.get("bar"), true);
 	});
 
 	QUnit.test('<input radio> change event handler set up when binding on radiochange (#206)', function() {
@@ -648,57 +648,57 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	});
 
 	test('<input checkbox> one-way - DOM - with undefined (#135)', function() {
-			var data = new SimpleMap({
-							completed: undefined
-					}),
-					frag = stache('<input type="checkbox" el:checked:from="completed"/>')(data);
+		var data = new SimpleMap({
+			completed: undefined
+		}),
+		frag = stache('<input type="checkbox" el:checked:from="completed"/>')(data);
 
-			domMutate.appendChild.call(this.fixture, frag);
+		domMutate.appendChild.call(this.fixture, frag);
 
-			var input = this.fixture.getElementsByTagName('input')[0];
-			equal(input.checked, false, 'checkbox value should be false for undefined');
+		var input = this.fixture.getElementsByTagName('input')[0];
+		equal(input.checked, false, 'checkbox value should be false for undefined');
 	});
 
 	test('<input checkbox> two-way - DOM - with truthy and falsy values binds to checkbox (#1700)', function() {
-			var data = new SimpleMap({
-							completed: 1
-					}),
-					frag = stache('<input type="checkbox" el:checked:bind="completed"/>')(data);
+		var data = new SimpleMap({
+			completed: 1
+		}),
+		frag = stache('<input type="checkbox" el:checked:bind="completed"/>')(data);
 
-			domMutate.appendChild.call(this.fixture, frag);
+		domMutate.appendChild.call(this.fixture, frag);
 
-			var input = this.fixture.getElementsByTagName('input')[0];
-			equal(input.checked, true, 'checkbox value bound (via attr check)');
-			data.attr('completed', 0);
-			stop();
+		var input = this.fixture.getElementsByTagName('input')[0];
+		equal(input.checked, true, 'checkbox value bound (via attr check)');
+		data.attr('completed', 0);
+		stop();
 
-			testHelpers.afterMutation(function() {
-					start();
-					equal(input.checked, false, 'checkbox value bound (via attr check)');
-			});
+		testHelpers.afterMutation(function() {
+			start();
+			equal(input.checked, false, 'checkbox value bound (via attr check)');
+		});
 	});
 
 	test("<input checkbox> checkboxes with checked:bind bind properly (#628)", function() {
-			var data = new SimpleMap({
-					completed: true
-			}),
-					frag = stache('<input type="checkbox" checked:bind="completed"/>')(data);
+		var data = new SimpleMap({
+			completed: true
+		}),
+		frag = stache('<input type="checkbox" checked:bind="completed"/>')(data);
 
-			domMutate.appendChild.call(this.fixture, frag);
+		domMutate.appendChild.call(this.fixture, frag);
 
-			var input = this.fixture.getElementsByTagName('input')[0];
-			equal(input.checked, data.get('completed'), 'checkbox value bound (via attr check)');
+		var input = this.fixture.getElementsByTagName('input')[0];
+		equal(input.checked, data.get('completed'), 'checkbox value bound (via attr check)');
 
-			data.attr('completed', false);
-			equal(input.checked, data.get('completed'), 'checkbox value bound (via attr uncheck)');
-			input.checked = true;
-			domEvents.dispatch.call(input, 'change');
-			equal(input.checked, true, 'checkbox value bound (via check)');
-			equal(data.get('completed'), true, 'checkbox value bound (via check)');
-			input.checked = false;
-			domEvents.dispatch.call(input, 'change');
-			equal(input.checked, false, 'checkbox value bound (via uncheck)');
-			equal(data.get('completed'), false, 'checkbox value bound (via uncheck)');
+		data.attr('completed', false);
+		equal(input.checked, data.get('completed'), 'checkbox value bound (via attr uncheck)');
+		input.checked = true;
+		domEvents.dispatch.call(input, 'change');
+		equal(input.checked, true, 'checkbox value bound (via check)');
+		equal(data.get('completed'), true, 'checkbox value bound (via check)');
+		input.checked = false;
+		domEvents.dispatch.call(input, 'change');
+		equal(input.checked, false, 'checkbox value bound (via uncheck)');
+		equal(data.get('completed'), false, 'checkbox value bound (via uncheck)');
 	});
 
 	testIfRealDocument("<select> keeps its value as <option>s change with {{#each}} (#1762)", function(){
@@ -741,70 +741,70 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	});
 
 	testIfRealDocument('<select> two-way bound values that do not match a select option set selectedIndex to -1 (#2027)', function() {
-			var renderer = stache('<select el:value:bind="key"><option value="foo">foo</option><option value="bar">bar</option></select>');
-			var map = new SimpleMap({ });
-			var frag = renderer(map);
+		var renderer = stache('<select el:value:bind="key"><option value="foo">foo</option><option value="bar">bar</option></select>');
+		var map = new SimpleMap({ });
+		var frag = renderer(map);
 
-			equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
+		equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
 
-			map.attr('key', 'notfoo');
+		map.attr('key', 'notfoo');
+		stop();
+
+		testHelpers.afterMutation(function() {
+			start();
+			equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
+
+			map.attr('key', 'foo');
+			strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
+
+			map.attr('key', 'notbar');
 			stop();
 
 			testHelpers.afterMutation(function() {
-					start();
-					equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
+				start();
+				equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
 
-					map.attr('key', 'foo');
-					strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
+				map.attr('key', 'bar');
+				strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
 
-					map.attr('key', 'notbar');
-					stop();
-
-					testHelpers.afterMutation(function() {
-							start();
-							equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
-
-							map.attr('key', 'bar');
-							strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
-
-							map.attr('key', 'bar');
-							strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
-					});
+				map.attr('key', 'bar');
+				strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
 			});
+		});
 	});
 
 	test("<select multiple> Multi-select empty string works(#1263)", function(){
 
-			var data = new SimpleMap({
-					isMultiple: 1,
-					isSelect: 1,
-					name: "attribute_ 0",
-					options: new DefineList([
-							{label: 'empty', value: ""},
-							{label: 'zero', value: 0},
-							{label: 'one', value: 1},
-							{label: 'two', value: 2},
-							{label: 'three', value: 3},
-							{label: 'four', value: 4}
-					]),
-					value: new DefineList(["1"])
-			});
+		var data = new SimpleMap({
+			isMultiple: 1,
+			isSelect: 1,
+			name: "attribute_ 0",
+			options: new DefineList([
+				{label: 'empty', value: ""},
+				{label: 'zero', value: 0},
+				{label: 'one', value: 1},
+				{label: 'two', value: 2},
+				{label: 'three', value: 3},
+				{label: 'four', value: 4}
+			]),
+			value: new DefineList(["1"])
+		});
 
-			var template = stache("<select {{#if isMultiple}}multiple{{/if}} values:bind='value'> " +
-					"{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
+		var template = stache("<select {{#if isMultiple}}multiple{{/if}} values:bind='value'> " +
+			"{{#each options}} <option value='{{value}}' >{{label}}</option>{{/each}} </select>");
 
-			var frag = template(data);
+		var frag = template(data);
 
-			equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
-			equal(frag.firstChild.getElementsByTagName("option")[2].selected, true, "One is selected");
+		equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
+		equal(frag.firstChild.getElementsByTagName("option")[2].selected, true, "One is selected");
 
 	});
 
 	testIfRealDocument("<select multiple> applies initial value, when options rendered from array (#1414)", function() {
 		var template = stache(
 			"<select values:bind='colors' multiple>" +
-			"{{#each allColors}}<option value='{{value}}'>{{label}}</option>{{/each}}" +
-			"</select>");
+				"{{#each allColors}}<option value='{{value}}'>{{label}}</option>{{/each}}" +
+				"</select>");
 
 		var map = new SimpleMap({
 			colors: new DefineList(["red", "green"]),
@@ -848,9 +848,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var template = stache('<select el:value:from="countryCode">'+
 			'{{#each countries}}'+
-				'<option value="{{code}}">{{countryName}}</option>'+
+			'<option value="{{code}}">{{countryName}}</option>'+
 			'{{/each}}'+
-		'</select>');
+			'</select>');
 
 		var frag = template(data);
 		var select = frag.firstChild;
@@ -879,9 +879,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var template = stache(
 			"<select value:bind='color'>" +
-			"<option value='red'>Red</option>" +
-			"<option value='green'>Green</option>" +
-			"</select>");
+				"<option value='red'>Red</option>" +
+				"<option value='green'>Green</option>" +
+				"</select>");
 
 		var map = new SimpleMap({
 			color: "red"
@@ -925,10 +925,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var template = stache(
 			"<select values:bind='colors' multiple>" +
-			"<option value='red'>Red</option>" +
-			"<option value='green'>Green</option>" +
-			"<option value='ultraviolet'>Ultraviolet</option>" +
-			"</select>");
+				"<option value='red'>Red</option>" +
+				"<option value='green'>Green</option>" +
+				"<option value='ultraviolet'>Ultraviolet</option>" +
+				"</select>");
 
 		var list = new DefineList();
 
@@ -985,9 +985,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var template = stache('<select el:value:from="countryCode">'+
 			'{{#countries}}'+
-				'<option value="{{code}}">{{countryName}}</option>'+
+			'<option value="{{code}}">{{countryName}}</option>'+
 			'{{/countries}}'+
-		'</select>');
+			'</select>');
 
 		var frag = template(data);
 		var select = frag.firstChild;
@@ -1024,9 +1024,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var template = stache('<select el:value:bind="countryCode">'+
 			'{{#each countries}}'+
-				'<option value="{{code}}">{{countryName}}</option>'+
+			'<option value="{{code}}">{{countryName}}</option>'+
 			'{{/each}}'+
-		'</select>');
+			'</select>');
 
 		template(data);
 		stop();
@@ -1047,8 +1047,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	testIfRealDocument('<select> - previously non-existing select value gets selected from a list when it is added (#1762)', function() {
 		// this breaks with VDOM can-stache-bindings#258 because of selectedIndex
 		var template = stache('<select el:value:bind="{person}">' +
-				'<option></option>' +
-				'{{#each people}}<option value="{{.}}">{{.}}</option>{{/each}}' +
+			'<option></option>' +
+			'{{#each people}}<option value="{{.}}">{{.}}</option>{{/each}}' +
 			'</select>' +
 			'<input type="text" size="5" el:value:bind="person">'
 		);
@@ -1093,9 +1093,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var template = stache('<select value:bind="countryCode">'+
 			'{{#each countries}}'+
-				'<option value="{{code}}">{{countryName}}</option>'+
+			'<option value="{{code}}">{{countryName}}</option>'+
 			'{{/each}}'+
-		'</select>');
+			'</select>');
 
 		var data = new SimpleMap({
 			countryCode: 'US',
@@ -1120,17 +1120,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				"<option value=''>Choose</option>" +
 				"<option value='red'>Red</option>" +
 				"<option value='green'>Green</option>" +
-			"</select>" +
-			"<select id='undefined-select' value:bind='color-2'>" +
+				"</select>" +
+				"<select id='undefined-select' value:bind='color-2'>" +
 				"<option value=''>Choose</option>" +
 				"<option value='red'>Red</option>" +
 				"<option value='green'>Green</option>" +
-			"</select>"+
-			"<select id='string-select' value:bind='color-3'>" +
+				"</select>"+
+				"<select id='string-select' value:bind='color-3'>" +
 				"<option value=''>Choose</option>" +
 				"<option value='red'>Red</option>" +
 				"<option value='green'>Green</option>" +
-			"</select>");
+				"</select>");
 
 		var map = new SimpleMap({
 			'color-1': null,
@@ -1191,18 +1191,18 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		stop();
 
 	});
-	
+
 	testIfRealDocument("Bi-directional binding among sibling components, new syntax (#325)", function () {
 		var demoContext = new DefineMap({
 			person: ''
 		});
-	
+
 		var demoRenderer = stache(
-			'<span>{{./person}}</span>' + 
-			'<source-component person:bind="./person" />' + 
-			'<clear-button person:bind="./person" />'
+			'<span>{{./person}}</span>' +
+				'<source-component person:bind="./person" />' +
+				'<clear-button person:bind="./person" />'
 		);
-	
+
 		var SourceComponentVM = DefineMap.extend({
 			defaultPerson: {
 				value: 'John'
@@ -1213,13 +1213,13 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				}
 			}
 		});
-	
+
 		MockComponent.extend({
 			tag: "source-component",
 			viewModel: SourceComponentVM,
 			template: stache('<span>{{person}}</span><input type="text" value:bind="./person" />')
 		});
-		
+
 		var ClearComponentVM = DefineMap.extend({
 			person: {
 				value: ''
@@ -1228,32 +1228,32 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				this.set('person', '');
 			}
 		});
-		
+
 		MockComponent.extend({
 			tag: "clear-button",
 			viewModel: ClearComponentVM,
 			template: stache('<input type="button" value="Clear" on:click="./clearPerson()" /><span>{{./person}}</span>')
 		});
-	
+
 		var frag = demoRenderer(demoContext);
-	
+
 		var sourceComponentVM = canViewModel(frag.childNodes[1]);
 		var clearButtonVM = canViewModel(frag.childNodes[2]);
-	
+
 		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person is empty");
 		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person is default");
 		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person is empty");
-		
+
 		sourceComponentVM.person = 'Bob';
-	
+
 		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'Bob', "demoContext person set correctly");
 		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'Bob', "source-component person set correctly");
 		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'Bob', "clear-button person set correctly");
-	
+
 		clearButtonVM.clearPerson();
-	
-		// Note that 'John' will not be set on the parent or clear button because parent was already set 
-		// to an empty string and the bindingSemaphore will not allow another change to the parent 
+
+		// Note that 'John' will not be set on the parent or clear button because parent was already set
+		// to an empty string and the bindingSemaphore will not allow another change to the parent
 		// (giving the parent priority) to prevent cyclic dependencies.
 		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'John', "demoContext person set correctly");
 		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
