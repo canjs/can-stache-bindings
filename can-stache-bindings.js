@@ -811,14 +811,6 @@ var bind = {
 			queues.batch.start();
 			canReflect.setValue(childObservable, newValue);
 
-			// If child value is not the same as parent after update warn that child is out of sync
-			//!steal-remove-start
-			if((bindingInfo.parentToChild && bindingInfo.childToParent) && peek(childObservable) !== peek(parentObservable)) {
-				canLogDev.warn('Child out of sync with parent on binding: ' + attrName + " for component: " + 
-				el.localName + ". See https://canjs.com/doc/can-stache-bindings.toParent.html");
-			}
-			//!steal-remove-end
-
 			// only after computes have been updated, reduce the update counter
 			queues.mutateQueue.enqueue(function decrementParentToChildSemaphore() {
 				--bindingsSemaphore[attrName];
