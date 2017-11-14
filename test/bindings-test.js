@@ -1137,12 +1137,19 @@ testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", 
 	domMutate.appendChild.call(this.fixture, frag);
 
 	var target = this.fixture.getElementsByTagName('div')[0];
+	var afterAttribute = function (callback) {
+		domEvents.addEventListener.call(target, 'attributes', function onAttributes () {
+			domEvents.removeEventListener.call(target, 'attributes', onAttributes);
+			callback();
+		});
+	};
+
 	afterMutation(function () {
 		canEvent.trigger.call(target, {type: "click"});
 		assert.equal(clickHandlerCount, 1, "click handler should be called");
 
 		flag(false);
-		afterMutation(function () {
+		afterAttribute(function () {
 			canEvent.trigger.call(target, {type: 'click'});
 			assert.equal(clickHandlerCount, 1, "click handler should not be called");
 
@@ -2792,18 +2799,18 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 	});
 
 	var frag = template(viewModel);
-	var fixture = this.fixture;
-	domMutate.appendChild.call(fixture, frag);
+	domMutate.appendChild.call(this.fixture, frag);
+	var input = this.fixture.firstChild;
 	afterMutation(function() {
-		assert.equal(fixture.firstChild.value, "jeffrey");
+		assert.equal(input.value, "jeffrey", 'input value uses firstName value');
 
 		viewModel.bindValue = "lastName";
 		afterMutation(function() {
-			assert.equal(fixture.firstChild.value, "king");
+			assert.equal(input.value, "king", 'input value uses lastName value');
 
-			fixture.firstChild.value = "KING";
-			canEvent.trigger.call(fixture.firstChild, "change");
-			assert.equal(fixture.firstChild.value, "king");
+			input.value = "KING";
+			canEvent.trigger.call(input, "change");
+			assert.equal(input.value, 'king', 'should lowercase input changes');
 			done();
 		});
 	});
