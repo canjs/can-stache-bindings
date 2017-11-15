@@ -423,21 +423,6 @@ var behaviors = {
 				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in "+data.attributeName+"="+JSON.stringify(attrVal));
 			}
 
-			//!steal-remove-start
-			function makeWarning(prefix, property, value){
-				return function(){
-					var filename = data.scope.peek('scope.filename');
-					var lineNumber = data.scope.peek('scope.lineNumber');
-					dev.warn(
-						(filename ? filename + ': ' : '') +
-							(lineNumber ? lineNumber + ': ' : '') +
-							prefix + property + " is deprecated. Use scope." + property + " instead."
-					);
-					return value;
-				};
-			}
-			//!steal-remove-end
-
 			// create "spcial" values that can be looked up using
 			// {{scope.element}}, etc
 			var specialValues = {
@@ -447,51 +432,8 @@ var behaviors = {
 				arguments: arguments
 			};
 
-			var legacySpecialValues = {
-				"@element": el,
-				"@event": ev,
-				"@viewModel": viewModel,
-				"@scope": data.scope,
-				"@context": data.scope._context,
-
-				"%element": this,
-				"%event": ev,
-				"%viewModel": viewModel,
-				"%scope": data.scope,
-				"%context": data.scope._context,
-				"%arguments": arguments
-			};
-
-			//!steal-remove-start
-			Object.defineProperties(legacySpecialValues, {
-				"%element": {
-					get: makeWarning("%", "element", this)
-				},
-				"%event": {
-					get: makeWarning("%", "event", ev)
-				},
-				"%viewModel": {
-					get: makeWarning("%", "viewModel", viewModel)
-				},
-				"%arguments": {
-					get: makeWarning("%", "arguments", arguments)
-				},
-
-				"@element": {
-					get: makeWarning("@", "element", this)
-				},
-				"@event": {
-					get: makeWarning("@", "event", ev)
-				},
-				"@viewModel": {
-					get: makeWarning("@", "viewModel", viewModel)
-				}
-			});
-			//!steal-remove-end
-
 			// make a scope with these things just under
 			var localScope = data.scope
-				.add(legacySpecialValues, { notContext: true })
 				.add(specialValues, { special: true });
 
 			// We grab the first item and treat it as a method that
@@ -1099,10 +1041,6 @@ var initializeValues = function(bindingInfo, childObservable, parentObservable, 
 		}
 	}
 };
-
-
-
-
 
 var unbindUpdate = function(observable, updater) {
 	if(observable && observable[getValueSymbol] && typeof updater === "function") {
