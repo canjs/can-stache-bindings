@@ -347,7 +347,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			}
 		});
 
-		var template = stache("<foo-bar @method:to='@*refKey'></foo-bar>{{*refKey()}}");
+		var template = stache("<foo-bar @method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
 
 		var frag = template({});
 		equal( frag.lastChild.nodeValue, "5");
@@ -457,7 +457,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	});
 
 
-	test('two-way - reference - child:bind="*ref" (#1700)', function(){
+	test('two-way - reference - child:bind="scope.vars.ref" (#1700)', function(){
 		var data = new SimpleMap({person: new SimpleMap({name: new SimpleMap({})}) });
 		MockComponent.extend({
 			tag: 'reference-export',
@@ -472,8 +472,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			}
 		});
 
-		var template = stache("<reference-export name:bind='*refName'/>"+
-			"<ref-import name:bind='*refName'/> {{helperToGetScope}}");
+		var template = stache("<reference-export name:bind='scope.vars.refName'/>"+
+			"<ref-import name:bind='scope.vars.refName'/> {{helperToGetScope}}");
 
 		var scope;
 		var frag = template(data,{
@@ -487,7 +487,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		refExport.set("name", "v1");
 
-		equal( scope.getRefs().peek("*refName"), "v1", "reference scope updated");
+		equal( scope.getRefs().peek("scope.vars.refName"), "v1", "reference scope updated");
 
 		equal(refImport.get("name"), "v1", "updated ref-import");
 
@@ -495,7 +495,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		equal(refExport.get("name"), "v2", "updated ref-export");
 
-		equal( scope.getRefs().peek("*refName"), "v2", "actually put in refs scope");
+		equal( scope.getRefs().peek("scope.vars.refName"), "v2", "actually put in refs scope");
 
 	});
 
