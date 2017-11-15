@@ -248,7 +248,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			tag: "view-model-able"
 		});
 
-		var template = stache("<view-model-able on:prop:by:obj='someMethod(%arguments)'/>");
+		var template = stache("<view-model-able on:prop:by:obj='someMethod(scope.arguments)'/>");
 
 		var map = new SimpleMap({
 			obj: new SimpleMap({
@@ -272,7 +272,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			tag: "view-model-able"
 		});
 
-		var template = stache("<view-model-able on:prop:by:this='someMethod(%arguments[0])'/>");
+		var template = stache("<view-model-able on:prop:by:this='someMethod(scope.arguments[0])'/>");
 
 		var map = new SimpleMap({
 			prop: "Mercury"
@@ -308,7 +308,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			viewModel: map
 		});
 
-		var template = stache("<view-model-able on:vm:prop='someMethod(%arguments[0])'/>");
+		var template = stache("<view-model-able on:vm:prop='someMethod(scope.arguments[0])'/>");
 
 		template(parent);
 		map.attr("prop", "Venus");
@@ -380,8 +380,8 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 
-	QUnit.test("%arguments gives the event arguments", function(){
-		var template = stache("<button on:click='doSomething(%event, %arguments)'>Default Args</button>");
+	QUnit.test("scope.arguments gives the event arguments", function(){
+		var template = stache("<button on:click='doSomething(scope.event, scope.arguments)'>Default Args</button>");
 
 		var MyMap = SimpleMap.extend({
 			doSomething: function(ev, args){
@@ -401,7 +401,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		MockComponent.extend({
 			tag: 'ref-syntax',
-			template: stache("<input on:change=\"%scope.set('*foo', %element.value)\">"),
+			template: stache("<input on:change=\"scope.set('*foo', scope.element.value)\">"),
 			viewModel: new ( SimpleMap.extend({
 				method: function() {
 					assert.ok(true, "method called");
@@ -411,7 +411,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			}) )()
 		});
 
-		var template = stache("<ref-syntax on:el:inserted=\"%viewModel.method()\"></ref-syntax>");
+		var template = stache("<ref-syntax on:el:inserted=\"scope.viewModel.method()\"></ref-syntax>");
 		var frag = template({});
 		domMutate.appendChild.call(this.fixture, frag);
 		QUnit.stop();
