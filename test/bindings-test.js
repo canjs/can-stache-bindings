@@ -2800,12 +2800,20 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 
 	var frag = template(viewModel);
 	domMutate.appendChild.call(this.fixture, frag);
+
 	var input = this.fixture.firstChild;
+	var afterAttribute = function (callback) {
+		domEvents.addEventListener.call(input, 'attributes', function onAttributes () {
+			domEvents.removeEventListener.call(input, 'attributes', onAttributes);
+			callback();
+		});
+	};
+
 	afterMutation(function() {
 		assert.equal(input.value, "jeffrey", 'input value uses firstName value');
 
 		viewModel.bindValue = "lastName";
-		afterMutation(function() {
+		afterAttribute(function() {
 			assert.equal(input.value, "king", 'input value uses lastName value');
 
 			input.value = "KING";
