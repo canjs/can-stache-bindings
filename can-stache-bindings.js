@@ -1213,14 +1213,23 @@ var makeDataBinding = function(node, el, bindingData) {
 		return;
 	}
 
+	//!steal-remove-start
 	if(
 		bindingInfo.child === "viewModel" &&
 		!isBindingsAttribute(bindingInfo.bindingAttributeName)
 	) {
 		var name = node.nodeName || node.name;
 		var value = node.nodeValue || node.value;
-		dev.warn(name + "=\"" + value + "\" is deprecated. Use " + name + ":from=\"'" + value + "'\" instead.");
+		var filename = bindingData.scope.peek("scope.filename");
+		var lineNumber = bindingData.scope.peek('scope.lineNumber');
+
+		dev.warn(
+			(filename ? filename + ": " : "") +
+			(lineNumber ? lineNumber + ": " : "") +
+			name + "=\"" + value + "\" is deprecated. Use " + name + ":from=\"'" + value + "'\" instead."
+		);
 	}
+	//!steal-remove-end
 
 	// assign some bindingData props to the bindingInfo
 	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;

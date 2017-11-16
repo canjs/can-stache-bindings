@@ -3208,6 +3208,7 @@ testHelpers.dev.devOnlyTest('using @viewModel shows a deprecation warning', func
 });
 
 test("set string on the viewModel", function(){
+	expect(2);
 	var ViewModel = DefaultMap.extend({
 		foo: {
 			type: "string",
@@ -3233,7 +3234,7 @@ test("set string on the viewModel", function(){
 });
 
 test("warn about using attributes to set values on the viewModel", function(){
-	var teardown = testHelpers.dev.willWarn(/foo="bar" is deprecated\. Use foo:from="'bar'" instead\./);
+	var teardown = testHelpers.dev.willWarn(/file.stache: 1: .+=\".+\" is deprecated. Use .+:from=\"'.+'\" instead./);
 	var ViewModel = DefaultMap.extend({
 		foo: {
 			type: "string"
@@ -3245,10 +3246,11 @@ test("warn about using attributes to set values on the viewModel", function(){
 		viewModel: ViewModel
 	});
 
-	var template = stache("<test-elem foo=\"bar\" baz=\"qux\"/>");
+	var template = stache("file.stache", "<test-elem foo=\"bar\" baz=\"qux\"/>");
+
 	template();
 
-	equal(teardown(), 1);
+	equal(teardown(), 2);
 });
 
 // Add new tests above this line
