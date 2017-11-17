@@ -735,7 +735,7 @@ var bind = {
 		//!steal-remove-end
 
 		if(childObservable && childObservable[getValueSymbol]) {
-			canReflect.onValue(childObservable, updateParent,"mutate");
+			canReflect.onValue(childObservable, updateParent,"domUI");
 		}
 
 		return updateParent;
@@ -764,7 +764,7 @@ var bind = {
 		//!steal-remove-end
 
 		if(parentObservable && parentObservable[getValueSymbol]) {
-			canReflect.onValue(parentObservable, updateChild,"mutate");
+			canReflect.onValue(parentObservable, updateChild,"domUI");
 		}
 
 		return updateChild;
@@ -1044,7 +1044,7 @@ var initializeValues = function(bindingInfo, childObservable, parentObservable, 
 
 var unbindUpdate = function(observable, updater) {
 	if(observable && observable[getValueSymbol] && typeof updater === "function") {
-		canReflect.offValue(observable, updater,"mutate");
+		canReflect.offValue(observable, updater,"domUI");
 	}
 },
 cleanVMName = function(name) {

@@ -1197,12 +1197,6 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			person: ''
 		});
 
-		var demoRenderer = stache(
-			'<span>{{./person}}</span>' +
-				'<source-component person:bind="./person" />' +
-				'<clear-button person:bind="./person" />'
-		);
-
 		var SourceComponentVM = DefineMap.extend({
 			defaultPerson: {
 				value: 'John'
@@ -1214,19 +1208,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			}
 		});
 
+		var ClearComponentVM = DefineMap.extend({
+			person: 'string',
+			clearPerson: function() {
+				this.set('person', '');
+			}
+		});
+
 		MockComponent.extend({
 			tag: "source-component",
 			viewModel: SourceComponentVM,
 			template: stache('<span>{{person}}</span><input type="text" value:bind="./person" />')
-		});
-
-		var ClearComponentVM = DefineMap.extend({
-			person: {
-				value: ''
-			},
-			clearPerson: function() {
-				this.set('person', '');
-			}
 		});
 
 		MockComponent.extend({
@@ -1234,6 +1226,12 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			viewModel: ClearComponentVM,
 			template: stache('<input type="button" value="Clear" on:click="./clearPerson()" /><span>{{./person}}</span>')
 		});
+
+		var demoRenderer = stache(
+			'<span>{{./person}}</span>' +
+			'<source-component person:bind="./person" />' +
+			'<clear-button person:bind="./person" />'
+		);
 
 		var frag = demoRenderer(demoContext);
 
@@ -1255,8 +1253,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		// Note that 'John' will not be set on the parent or clear button because parent was already set
 		// to an empty string and the bindingSemaphore will not allow another change to the parent
 		// (giving the parent priority) to prevent cyclic dependencies.
-		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'John', "demoContext person set correctly");
+		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person set correctly");
 		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
-		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'John', "clear-button person set correctly");
+		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person set correctly");
 	});
 });
