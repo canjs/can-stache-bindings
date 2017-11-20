@@ -590,4 +590,21 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		equal(viewModelSetCalled, 3, "set is called again on viewModel");
 	});
 
+	test("standard attributes should not set viewModel props", function(){
+		MockComponent.extend({
+			tag: "test-elem",
+			viewModel: SimpleMap
+		});
+	
+		var template = stache("<test-elem foo=\"bar\"/>");
+	
+		var frag = template(new SimpleMap({
+			bar: true
+		}));
+	
+		var vm = canViewModel(frag.firstChild);
+	
+		equal(vm.get('foo'), undefined);
+	});
+
 });
