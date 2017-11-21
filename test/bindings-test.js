@@ -735,6 +735,57 @@ function interceptDomEvents (addFn, removeFn) {
 	};
 }
 
+test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
+	MockComponent.extend({
+		tag: "view-model-binder",
+		viewModel: {},
+		template: stache('<span />')
+	});
+
+	var done = assert.async();
+	var isTarget = function (target) {
+		return target.nodeName === 'VIEW-MODEL-BINDER';
+	};
+	var listenerCount = 0;
+	var hasAddedBindingListener = false;
+	var hasRemovedBindingListener = false;
+	var undo = interceptDomEvents(
+		function add () {
+			if (isTarget(this)) {
+				listenerCount++;
+				hasAddedBindingListener = true;
+			}
+		},
+		function remove () {
+			if (isTarget(this)) {
+				listenerCount--;
+				hasRemovedBindingListener = true;
+			}
+		}
+	);
+
+	var viewModel = new CanMap({
+		isShowing: true,
+		bar: 'baz'
+	});
+	var template = stache('<div>{{#if isShowing}}<view-model-binder {foo}="bar"/><hr/>{{/isShowing}}</div>');
+	var fragment = template(viewModel);
+	domMutate.appendChild.call(this.fixture, fragment);
+	// We use the also effected hr so we
+	// can test the span handlers in isolation.
+	var hr = this.fixture.firstChild.lastChild;
+	domEvents.addEventListener.call(hr, 'removed', function andThen () {
+		domEvents.removeEventListener.call(hr, 'removed', andThen);
+
+		assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+		assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
+		assert.equal(listenerCount, 0, 'all listeners should be removed');
+		undo();
+		done();
+	});
+	viewModel.attr('isShowing', false);
+});
+
 test('data behavior event bindings should be removed when the bound element is', function (assert) {
 	var done = assert.async();
 	var template = stache('<div>{{#if isShowing}}<span {foo}="bar"></span><hr/>{{/isShowing}}</div>');
@@ -746,15 +797,19 @@ test('data behavior event bindings should be removed when the bound element is',
 		return target.nodeName === 'SPAN';
 	};
 	var listenerCount = 0;
+	var hasAddedBindingListener = false;
+	var hasRemovedBindingListener = false;
 	var undo = interceptDomEvents(
 		function add () {
 			if (isTarget(this)) {
 				listenerCount++;
+				hasAddedBindingListener = true;
 			}
 		},
 		function remove () {
 			if (isTarget(this)) {
 				listenerCount--;
+				hasRemovedBindingListener = true;
 			}
 		}
 	);
@@ -768,6 +823,8 @@ test('data behavior event bindings should be removed when the bound element is',
 	domEvents.addEventListener.call(hr, 'removed', function andThen () {
 		domEvents.removeEventListener.call(hr, 'removed', andThen);
 
+		assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+		assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
 		assert.equal(listenerCount, 0, 'all listeners should be removed');
 		undo();
 		done();
