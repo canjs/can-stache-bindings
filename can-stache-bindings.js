@@ -67,6 +67,12 @@ var onMatchStr = "on:",
 	onValueSymbol = "can.onValue",
 	offValueSymbol = "can.offValue";
 
+function isBindingsAttribute(attributeName){
+	return attributeName.indexOf(toMatchStr) !== -1 ||
+		attributeName.indexOf(fromMatchStr) !== -1 ||
+		attributeName.indexOf(bindMatchStr) !== -1;
+}
+
 function setPriority(observable, priority){
 	if(observable instanceof Observation) {
 	    observable.compute._primaryDepth = priority;
@@ -1202,9 +1208,29 @@ var decodeAttrName = function(name){
 var makeDataBinding = function(node, el, bindingData) {
 	// Get information about the binding.
 	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
+
 	if(!bindingInfo) {
 		return;
 	}
+
+	//!steal-remove-start
+	if(
+		bindingInfo.child === "viewModel" &&
+		!isBindingsAttribute(bindingInfo.bindingAttributeName)
+	) {
+		var name = node.nodeName || node.name;
+		var value = node.nodeValue || node.value;
+		var filename = bindingData.scope.peek("scope.filename");
+		var lineNumber = bindingData.scope.peek('scope.lineNumber');
+
+		dev.warn(
+			(filename ? filename + ":" : "") +
+			(lineNumber ? lineNumber + ": " : "") +
+			name + "=\"" + value + "\" is deprecated. Use " + name + ":from=\"'" + value + "'\" instead."
+		);
+	}
+	//!steal-remove-end
+
 	// assign some bindingData props to the bindingInfo
 	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
 	if( bindingData.initializeValues) {
