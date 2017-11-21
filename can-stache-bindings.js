@@ -1224,7 +1224,7 @@ var makeDataBinding = function(node, el, bindingData) {
 		var lineNumber = bindingData.scope.peek('scope.lineNumber');
 
 		dev.warn(
-			(filename ? filename + ": " : "") +
+			(filename ? filename + ":" : "") +
 			(lineNumber ? lineNumber + ": " : "") +
 			name + "=\"" + value + "\" is deprecated. Use " + name + ":from=\"'" + value + "'\" instead."
 		);

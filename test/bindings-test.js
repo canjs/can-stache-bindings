@@ -3234,7 +3234,7 @@ test("set string on the viewModel", function(){
 });
 
 test("warn about using attributes to set values on the viewModel", function(){
-	var teardown = testHelpers.dev.willWarn(/file.stache: 1: .+=\".+\" is deprecated. Use .+:from=\"'.+'\" instead./);
+	var teardown = testHelpers.dev.willWarn(/file.stache:1: .+=\".+\" is deprecated. Use .+:from=\"'.+'\" instead./);
 	var ViewModel = DefaultMap.extend({
 		foo: {
 			type: "string"
