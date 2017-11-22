@@ -445,22 +445,4 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 		canViewModel(frag.firstChild).makeMyEvent();
 	});
-
-	QUnit.test("methods on objects are called with call expressions (#1839)", function(){
-		var template = stache("<div on:click='setSomething(person.message)'/>");
-		var data = {
-			setSomething: function(message){
-				equal(message, "Matthew P finds good bugs");
-				equal(this, data, "setSomething called with correct scope");
-			},
-			person: {
-				name: "Matthew P",
-				message: function(){
-					return this.name + " finds good bugs";
-				}
-			}
-		};
-		var frag = template(data);
-		domEvents.dispatch.call( frag.firstChild, "click" );
-	});
 });
