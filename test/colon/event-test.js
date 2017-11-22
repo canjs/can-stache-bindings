@@ -101,7 +101,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 
-	test("event bindings should be removed when the bound element is", function(assert) {
+	test("event behavior event bindings should be removed when the bound element is", function(assert) {
 		// This test checks whether when an element
 		// with an event binding is removed from the
 		// DOM properly cleans up its event binding.

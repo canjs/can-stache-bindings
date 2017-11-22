@@ -9,6 +9,7 @@ var SimpleMap = require("can-simple-map");
 var MockComponent = require("../mock-component-simple-map");
 var domEvents = require("can-util/dom/events/events");
 var domMutate = require('can-util/dom/mutate/mutate');
+var DefineMap = require("can-define/map/map");
 
 var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
@@ -588,6 +589,83 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		equal(viewModel.get("viewModelProp"), "WORLD", "binding from parent to child" );
 		equal(scopeMapSetCalled, 1, "can.setKey is not called again on scope map");
 		equal(viewModelSetCalled, 3, "set is called again on viewModel");
+	});
+
+	test("set string on the viewModel", function(){
+		expect(2);
+		var ViewModel = DefineMap.extend({
+			foo: {
+				type: "string",
+				set: function(val){
+					equal(val, "bar");
+				}
+			},
+			baz: {
+				type: "string",
+				set: function(val){
+					equal(val, "qux");
+				}
+			}
+		});
+
+		MockComponent.extend({
+			tag: "test-elem",
+			viewModel: ViewModel
+		});
+
+		var template = stache("<test-elem foo:from=\"'bar'\" baz:from=\"'qux'\"/>");
+		template();
+	});
+
+	test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
+		MockComponent.extend({
+			tag: "view-model-binder",
+			viewModel: {},
+			template: stache('<span />')
+		});
+
+		var done = assert.async();
+		var isTarget = function (target) {
+			return target.nodeName === 'VIEW-MODEL-BINDER';
+		};
+		var listenerCount = 0;
+		var hasAddedBindingListener = false;
+		var hasRemovedBindingListener = false;
+		var undo = testHelpers.interceptDomEvents(
+			function add () {
+				if (isTarget(this)) {
+					listenerCount++;
+					hasAddedBindingListener = true;
+				}
+			},
+			function remove () {
+				if (isTarget(this)) {
+					listenerCount--;
+					hasRemovedBindingListener = true;
+				}
+			}
+		);
+
+		var viewModel = new SimpleMap({
+			isShowing: true,
+			bar: 'baz'
+		});
+		var template = stache('<div>{{#if isShowing}}<view-model-binder {foo}="bar"/><hr/>{{/isShowing}}</div>');
+		var fragment = template(viewModel);
+		domMutate.appendChild.call(this.fixture, fragment);
+		// We use the also effected hr so we
+		// can test the span handlers in isolation.
+		var hr = this.fixture.firstChild.lastChild;
+		domEvents.addEventListener.call(hr, 'removed', function andThen () {
+			domEvents.removeEventListener.call(hr, 'removed', andThen);
+
+			assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+			assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
+			assert.equal(listenerCount, 0, 'all listeners should be removed');
+			undo();
+			done();
+		});
+		viewModel.attr('isShowing', false);
 	});
 
 });
