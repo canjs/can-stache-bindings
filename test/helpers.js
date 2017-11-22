@@ -62,6 +62,24 @@ var helpers = {
 		var doc = makeDocument();
 		helpers.makeQUnitModule(name+" - vdom", doc, false);
 		makeTest(name+" - vdom", doc, false, function(){});
+	},
+
+	interceptDomEvents: function(addFn, removeFn) {
+		var realAddEventListener = domEvents.addEventListener;
+		var realRemoveEventListener = domEvents.removeEventListener;
+		domEvents.addEventListener = function(eventName) {
+			addFn.call(this, arguments);
+			return realAddEventListener.apply(this, arguments);
+		};
+		domEvents.removeEventListener = function(eventName) {
+			removeFn.call(this, arguments);
+			return realRemoveEventListener.apply(this, arguments);
+		};
+
+		return function undo () {
+			domEvents.addEventListener = realAddEventListener;
+			domEvents.removeEventListener = realRemoveEventListener;
+		};
 	}
 };
 

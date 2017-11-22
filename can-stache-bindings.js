@@ -219,8 +219,9 @@ var behaviors = {
 
 		// Listen to attribute changes and re-initialize
 		// the bindings.
+		var attributeListener;
 		if(!bindingsState.isSettingViewModel) {
-			domEvents.addEventListener.call(el, attributesEventStr, function (ev) {
+			attributeListener = function (ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -252,10 +253,13 @@ var behaviors = {
 						onTeardowns[attrName] = dataBinding.onTeardown;
 					}
 				}
-			});
+			};
+
+			domEvents.addEventListener.call(el, attributesEventStr, attributeListener);
 		}
 
 		return function() {
+			domEvents.removeEventListener.call(el, attributesEventStr, attributeListener);
 			for(var attrName in onTeardowns) {
 				onTeardowns[attrName]();
 			}
@@ -299,13 +303,7 @@ var behaviors = {
 				dataBinding.onCompleteBinding();
 			}
 
-			teardown = dataBinding.onTeardown;
-			canEvent.one.call(el, removedStr, function() {
-				teardown();
-			});
-
-			// Listen for changes
-			domEvents.addEventListener.call(el, attributesEventStr, function (ev) {
+			var attributeListener = function (ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -334,6 +332,14 @@ var behaviors = {
 						}
 					}
 				}
+			};
+			// Listen for changes
+			domEvents.addEventListener.call(el, attributesEventStr, attributeListener);
+
+			teardown = dataBinding.onTeardown;
+			canEvent.one.call(el, removedStr, function () {
+				teardown();
+				domEvents.removeEventListener.call(el, attributesEventStr, attributeListener);
 			});
 	},
 	// ### bindings.behaviors.event
