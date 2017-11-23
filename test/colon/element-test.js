@@ -1,9 +1,8 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-require('can-stache-bindings');
-
 var stache = require('can-stache');
+require('can-stache-bindings');
 
 var SimpleMap = require("can-simple-map");
 var DefineList = require("can-define/list/list");

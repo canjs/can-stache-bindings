@@ -29,6 +29,7 @@ var attr = require('can-util/dom/attr/attr');
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
+var canReflectDeps = require('can-reflect-dependencies');
 var singleReference = require("can-util/js/single-reference/single-reference");
 var encoder = require("can-attribute-encoder");
 var queues = require("can-queues");
@@ -89,7 +90,9 @@ var onMatchStr = "on:",
 	getValueSymbol = canSymbol.for("can.getValue"),
 	setValueSymbol = canSymbol.for("can.setValue"),
 	onValueSymbol = canSymbol.for("can.onValue"),
-	offValueSymbol = canSymbol.for("can.offValue");
+	offValueSymbol = canSymbol.for("can.offValue"),
+	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord"),
+	getValueDependenciesSymbol = canSymbol.for("can.getValueDependencies");
 
 
 var throwOnlyOneTypeOfBindingError = function(){
@@ -559,11 +562,57 @@ var getObservableFrom = {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
 				return parentExpression.value(scope, new Scope.Options({}));
 			} else {
-				var observation = new Observation(function() {});
+				var observation = {};
 
-				observation[setValueSymbol] = function(newVal) {
-					scope.set(cleanVMName(scopeProp), newVal);
-				};
+
+				canReflect.assignSymbols(observation, {
+					"can.getValue": function() {},
+
+					"can.valueHasDependencies": function() {
+						return false;
+					},
+
+					"can.setValue": function setValue(newVal) {
+						scope.set(cleanVMName(scopeProp), newVal);
+					},
+
+					// Register what the custom observation changes
+					"can.getWhatIChange": function getWhatIChange() {
+						var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
+
+						return {
+							mutate: {
+								keyDependencies: new Map([
+									[data.parent, new Set([data.key])]
+								])
+							}
+						};
+					}
+				});
+
+				var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
+
+				if (data.parent && data.key) {
+					// Register what changes the Scope's parent key
+					canReflectDeps.addMutatedBy(data.parent, data.key, observation);
+
+					//!steal-remove-start
+					Object.defineProperty(observation, "name", {
+						value:
+							"ObservableFromScope<" +
+							canReflect.getName(data.parent) +
+							"." +
+							data.key +
+							">"
+					});
+					//!steal-remove-end
+				} else {
+					//!steal-remove-start
+					Object.defineProperty(observation, "name", {
+						value: "ObservableFromScope<>"
+					});
+					//!steal-remove-end
+				}
 
 				return observation;
 			}
@@ -611,7 +660,7 @@ var getObservableFrom = {
 	},
 	// ### getObservableFrom.attribute
 	// Returns a compute that is two-way bound to an attribute or property on the element.
-	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event) {
+	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event, bindingInfo) {
 		// Determine the event or events we need to listen to
 		// when this value changes.
 		if(!event) {
@@ -654,7 +703,10 @@ var getObservableFrom = {
 			observation[setValueSymbol] = set;
 			observation[getValueSymbol] = get;
 
+			var onValue = observation[onValueSymbol];
 			observation[onValueSymbol] = function(updater) {
+				onValue.apply(this, arguments);
+
 				var translationHandler = function() {
 					updater(get());
 				};
@@ -667,7 +719,9 @@ var getObservableFrom = {
 				canEvent.on.call(el, event, translationHandler);
 			};
 
+			var offValue = observation[offValueSymbol];
 			observation[offValueSymbol] = function(updater) {
+				offValue.apply(this, arguments);
 				var translationHandler = singleReference.getAndDelete(updater, this);
 
 				if (event === "radiochange") {
@@ -677,7 +731,29 @@ var getObservableFrom = {
 				canEvent.off.call(el, event, translationHandler);
 			};
 
-			return observation;
+		//!steal-remove-start
+		// give the attribute observation a pretty name
+		Object.defineProperty(get, "name", {
+			value:
+				el.nodeName.toLowerCase() +
+				":" +
+				((bindingInfo && bindingInfo.bindingAttributeName) || prop)
+		});
+
+		// register what changes the element's attribute
+		canReflectDeps.addMutatedBy(el, prop, observation);
+
+		// The observation is two way bound to the element's attribute
+		observation[getValueDependenciesSymbol] = function getValueDependencies() {
+			return {
+				keyDependencies: new Map([
+					[el, new Set([prop])]
+				])
+			};
+		};
+		//!steal-remove-end
+
+		return observation;
 	}
 };
 
@@ -741,7 +817,16 @@ var bind = {
 		//!steal-remove-end
 
 		if(childObservable && childObservable[getValueSymbol]) {
-			canReflect.onValue(childObservable, updateParent,"domUI");
+			canReflect.onValue(childObservable, updateParent, "domUI");
+
+			//!steal-remove-start
+			updateParent[getChangesSymbol] = function() {
+				return {
+					valueDependencies: new Set([ parentObservable ])
+				};
+			};
+			canReflectDeps.addMutatedBy(parentObservable, childObservable);
+			//!steal-remove-end
 		}
 
 		return updateParent;
@@ -770,7 +855,10 @@ var bind = {
 		//!steal-remove-end
 
 		if(parentObservable && parentObservable[getValueSymbol]) {
-			canReflect.onValue(parentObservable, updateChild,"domUI");
+			canReflect.onValue(parentObservable, updateChild, "domUI");
+			//!steal-remove-start
+			canReflectDeps.addMutatedBy(childObservable, parentObservable);
+			//!steal-remove-end
 		}
 
 		return updateChild;
@@ -924,7 +1012,8 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 // - `object` - An object with information about the binding.
 var makeDataBinding = function(node, el, bindingData) {
 	// Get information about the binding.
-	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
+	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings,
+		bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
 	if(!bindingInfo) {
 		return;
 	}
