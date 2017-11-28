@@ -12,7 +12,6 @@
 // - initializeValues - A helper that initializes a data binding.
 var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
-var Scope = require('can-view-scope');
 var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
 var Observation = require('can-observation');
@@ -560,7 +559,7 @@ var getObservableFrom = {
 		} else {
 			if(mustBeSettable) {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
-				return parentExpression.value(scope, new Scope.Options({}));
+				return parentExpression.value(scope);
 			} else {
 				var observation = {};
 

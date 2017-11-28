@@ -488,7 +488,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		refExport.set("name", "v1");
 
-		equal( scope.getRefs().peek("scope.vars.refName"), "v1", "reference scope updated");
+		equal( scope.peek("scope.vars.refName"), "v1", "reference scope updated");
 
 		equal(refImport.get("name"), "v1", "updated ref-import");
 
@@ -496,7 +496,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		equal(refExport.get("name"), "v2", "updated ref-export");
 
-		equal( scope.getRefs().peek("scope.vars.refName"), "v2", "actually put in refs scope");
+		equal( scope.peek("scope.vars.refName"), "v2", "actually put in refs scope");
 
 	});
 
