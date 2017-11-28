@@ -203,3 +203,40 @@ devOnlyTest("view model parent to child binding", function(assert) {
 		"The ScopeKeyData is bound to map.scopeProp"
 	);
 });
+
+devOnlyTest("view model child to parent binding", function(assert) {
+	var template = stache('<div id="comp" vm:viewModelProp:to="scopeProp"></div>');
+	var map = new SimpleMap({scopeProp: "Venus"});
+
+	var ta = this.fixture;
+	ta.appendChild(template(map));
+
+	var vm = canViewModel(ta.getElementsByTagName("div")[0]);
+	var vmDeps = canReflectDeps.getDependencyDataOf(vm, "viewModelProp")
+		.whatChangesMe;
+
+	assert.ok(
+		vmDeps.mutate.valueDependencies.size,
+		"The viewmodel property should have value dependencies"
+	);
+
+	// viewModel.viewModelProp <-> SettableObservable
+	var settableObservable = Array.from(vmDeps.mutate.valueDependencies)[0];
+	var settableObservableDeps = canReflectDeps.getDependencyDataOf(
+		settableObservable
+	).whatIChange;
+
+	assert.ok(
+		settableObservableDeps.mutate.valueDependencies.size,
+		"The settable observable should have value dependencies"
+	);
+
+	// SettableObservable -> ObservableFromScope
+	var scopeObs = Array.from(settableObservableDeps.mutate.valueDependencies)[0];
+	var scopeObsDeps = canReflectDeps.getDependencyDataOf(scopeObs).whatIChange;
+
+	assert.ok(
+		scopeObsDeps.mutate.keyDependencies.get(map).has("scopeProp"),
+		"The ObservableFromScope is bound to map.scopeProp"
+	);
+});
