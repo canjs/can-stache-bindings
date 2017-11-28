@@ -24,15 +24,14 @@ var dev = require('can-log/dev/dev');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
-var attr = require('can-util/dom/attr/attr');
 var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
-var canReflectDeps = require('can-reflect-dependencies');
-var singleReference = require("can-util/js/single-reference/single-reference");
+var canReflectDeps = require("can-reflect-dependencies");
 var encoder = require("can-attribute-encoder");
 var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
+var AttributeObservable = require("./attribute-observable/attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 
 var addEnterEvent = require('can-event-dom-enter/compat');
@@ -41,36 +40,7 @@ addEnterEvent(domEvents);
 var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
 
-var canEvent = {
-	on: function(eventName, handler, queue) {
-		var listenWithDOM = domEvents.canAddEventListener.call(this);
-		if(listenWithDOM) {
-			domEvents.addEventListener.call(this, eventName, handler, queue);
-		} else {
-			canReflect.onKeyValue(this, eventName, handler, queue);
-		}
-	},
-	off: function(eventName, handler, queue) {
-		var listenWithDOM = domEvents.canAddEventListener.call(this);
-		if(listenWithDOM) {
-			domEvents.removeEventListener.call(this, eventName, handler, queue);
-		} else {
-			canReflect.offKeyValue(this, eventName, handler, queue);
-		}
-	},
-	one: function(event, handler, queue) {
-		// Unbind the listener after it has been executed
-		var one = function() {
-			canEvent.off.call(this, event, one, queue);
-			return handler.apply(this, arguments);
-		};
-
-		// Bind the altered listener
-		canEvent.on.call(this, event, one, queue);
-		return this;
-	}
-};
-
+var canEvent = require("./can-event");
 var noop = function() {};
 
 var onMatchStr = "on:",
@@ -87,11 +57,8 @@ var onMatchStr = "on:",
 	scopeBindingStr = "scope",
 	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
 	getValueSymbol = canSymbol.for("can.getValue"),
-	setValueSymbol = canSymbol.for("can.setValue"),
 	onValueSymbol = canSymbol.for("can.onValue"),
-	offValueSymbol = canSymbol.for("can.offValue"),
-	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord"),
-	getValueDependenciesSymbol = canSymbol.for("can.getValueDependencies");
+	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord");
 
 
 var throwOnlyOneTypeOfBindingError = function(){
@@ -660,99 +627,7 @@ var getObservableFrom = {
 	// ### getObservableFrom.attribute
 	// Returns a compute that is two-way bound to an attribute or property on the element.
 	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event, bindingInfo) {
-		// Determine the event or events we need to listen to
-		// when this value changes.
-		if(!event) {
-			event = "change";
-			var isRadioInput = el.nodeName === 'INPUT' && el.type === 'radio';
-			var isValidProp = prop === 'checked' && !bindingData.legacyBindings;
-			if (isRadioInput && isValidProp) {
-				event = 'radiochange';
-			}
-
-			var isSpecialProp = attr.special[prop] && attr.special[prop].addEventListener;
-			if (isSpecialProp) {
-				event = prop;
-			}
-		}
-
-		var hasChildren = el.nodeName.toLowerCase() === "select",
-			isMultiselectValue = prop === "value" && hasChildren && el.multiple,
-			// Sets the element property or attribute.
-			set = function(newVal) {
-				if(bindingData.legacyBindings && hasChildren &&
-					("selectedIndex" in el) && prop === "value") {
-					attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
-				} else {
-					attr.setAttrOrProp(el, prop, newVal);
-				}
-
-				return newVal;
-			},
-			get = function() {
-				return attr.get(el, prop);
-			};
-
-			if(isMultiselectValue) {
-				prop = "values";
-			}
-
-			var observation = new Observation(get);
-
-			observation[setValueSymbol] = set;
-			observation[getValueSymbol] = get;
-
-			var onValue = observation[onValueSymbol];
-			observation[onValueSymbol] = function(updater) {
-				onValue.apply(this, arguments);
-
-				var translationHandler = function() {
-					updater(get());
-				};
-				singleReference.set(updater, this, translationHandler);
-
-				if (event === "radiochange") {
-					canEvent.on.call(el, "change", translationHandler);
-				}
-
-				canEvent.on.call(el, event, translationHandler);
-			};
-
-			var offValue = observation[offValueSymbol];
-			observation[offValueSymbol] = function(updater) {
-				offValue.apply(this, arguments);
-				var translationHandler = singleReference.getAndDelete(updater, this);
-
-				if (event === "radiochange") {
-					canEvent.off.call(el, "change", translationHandler);
-				}
-
-				canEvent.off.call(el, event, translationHandler);
-			};
-
-		//!steal-remove-start
-		// give the attribute observation a pretty name
-		Object.defineProperty(get, "name", {
-			value:
-				el.nodeName.toLowerCase() +
-				":" +
-				((bindingInfo && bindingInfo.bindingAttributeName) || prop)
-		});
-
-		// register what changes the element's attribute
-		canReflectDeps.addMutatedBy(el, prop, observation);
-
-		// The observation is two way bound to the element's attribute
-		observation[getValueDependenciesSymbol] = function getValueDependencies() {
-			return {
-				keyDependencies: new Map([
-					[el, new Set([prop])]
-				])
-			};
-		};
-		//!steal-remove-end
-
-		return observation;
+		return new AttributeObservable(el, prop, bindingData, event);
 	}
 };
 
