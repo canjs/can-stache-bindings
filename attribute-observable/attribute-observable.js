@@ -33,6 +33,18 @@ function AttributeObservable(el, prop, bindingData, event) {
 	//!steal-remove-start
 	// register what changes the element's attribute
 	canReflectDeps.addMutatedBy(this.el, this.prop, this);
+
+	canReflect.assignSymbols(this, {
+		"can.getName": function getName() {
+			return (
+				"AttributeObservable<" +
+				el.nodeName.toLowerCase() +
+				"." +
+				this.prop +
+				">"
+			);
+		}
+	});
 	//!steal-remove-end
 }
 
