@@ -650,7 +650,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			isShowing: true,
 			bar: 'baz'
 		});
-		var template = stache('<div>{{#if isShowing}}<view-model-binder {foo}="bar"/><hr/>{{/if}}</div>');
+		var template = stache('<div>{{#if isShowing}}<view-model-binder foo:bind="bar"/><hr/>{{/if}}</div>');
 		var fragment = template(viewModel);
 		domMutate.appendChild.call(this.fixture, fragment);
 		// We use the also effected hr so we
