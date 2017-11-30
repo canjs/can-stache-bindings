@@ -24,7 +24,6 @@ var dev = require('can-log/dev/dev');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
-var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
 var canReflectDeps = require("can-reflect-dependencies");
@@ -398,7 +397,7 @@ var behaviors = {
 				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in "+data.attributeName+"="+JSON.stringify(attrVal));
 			}
 
-			// create "spcial" values that can be looked up using
+			// create "special" values that can be looked up using
 			// {{scope.element}}, etc
 			var specialValues = {
 				element: el,
@@ -411,42 +410,27 @@ var behaviors = {
 			var localScope = data.scope
 				.add(specialValues, { special: true });
 
-			// We grab the first item and treat it as a method that
-			// we'll call.
-			var scopeData = localScope.read(expr.methodExpr.key, {
-				isArgument: true
-			}),
-			args, stacheHelper, stacheHelperResult;
-
-			if (!scopeData.value) {
-				// nothing found yet, look for a stache helper
-				var name = observeReader.reads(expr.methodExpr.key).map(function(part) {
-					return part.key;
-				}).join(".");
-
-				stacheHelper = stacheHelperCore.getHelper(name);
-				if(stacheHelper) {
-					args = expr.args(localScope, null)();
-					stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
-					if(typeof stacheHelperResult === "function") {
-						stacheHelperResult(el);
-					}
-					return stacheHelperResult;
-				}
-
-				//!steal-remove-start
-				dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
-					element: el,
-					scope: data.scope
+			var updateFn = function() {
+				var value = expr.value(localScope, {
+					doNotWrapInObservation: true
 				});
-				//!steal-remove-end
 
-				return null;
-			}
+				value = canReflect.isValueLike(value) ?
+					canReflect.getValue(value) :
+					value;
 
-			args = expr.args(localScope, null)();
+				return typeof value === 'function' ?
+					value(el) :
+					value;
+			};
+			//!steal-remove-start
+			Object.defineProperty(updateFn, "name", {
+				value: attributeName + '="' + attrVal + '"'
+			});
+			//!steal-remove-end
+
 			queues.batch.start();
-			queues.notifyQueue.enqueue(scopeData.value, scopeData.parent, args, {
+			queues.notifyQueue.enqueue(updateFn, null, null, {
 				//!steal-remove-start
 				reasonLog: [el, ev, attributeName+"="+attrVal]
 				//!steal-remove-end
