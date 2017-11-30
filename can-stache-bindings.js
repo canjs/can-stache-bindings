@@ -530,11 +530,10 @@ var getObservableFrom = {
 			} else {
 				var observation = {};
 
-
 				canReflect.assignSymbols(observation, {
-					"can.getValue": function() {},
+					"can.getValue": function getValue() {},
 
-					"can.valueHasDependencies": function() {
+					"can.valueHasDependencies": function hasValueDependencies() {
 						return false;
 					},
 
@@ -553,31 +552,30 @@ var getObservableFrom = {
 								])
 							}
 						};
-					}
+					},
+
+					"can.getName": function getName() {
+						//!steal-remove-start
+						var result = "ObservableFromScope<>";
+						var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
+
+						if (data.parent && data.key) {
+							result = "ObservableFromScope<" +
+								canReflect.getName(data.parent) +
+								"." +
+								data.key +
+								">";
+						}
+
+						return result;
+						//!steal-remove-end
+					},
 				});
 
 				var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
-
 				if (data.parent && data.key) {
 					// Register what changes the Scope's parent key
 					canReflectDeps.addMutatedBy(data.parent, data.key, observation);
-
-					//!steal-remove-start
-					Object.defineProperty(observation, "name", {
-						value:
-							"ObservableFromScope<" +
-							canReflect.getName(data.parent) +
-							"." +
-							data.key +
-							">"
-					});
-					//!steal-remove-end
-				} else {
-					//!steal-remove-start
-					Object.defineProperty(observation, "name", {
-						value: "ObservableFromScope<>"
-					});
-					//!steal-remove-end
 				}
 
 				return observation;
@@ -602,25 +600,40 @@ var getObservableFrom = {
 		});
 		//!steal-remove-end
 
-		var observation = new SettableObservable(getViewModelProperty,function setViewModelProperty(newVal){
-			var viewModel = bindingData.getViewModel();
-			if(stickyCompute) {
-				// TODO: Review what this is used for.
-				var oldValue = canReflect.getKeyValue(viewModel, setName);
-				if (canReflect.isObservableLike(oldValue)) {
-					canReflect.setValue(oldValue, newVal);
-				} else {
-					canReflect.setKeyValue(viewModel, setName, new SimpleObservable(canReflect.getValue(stickyCompute)));
-				}
-			} else {
-				if(isBoundToContext) {
-					canReflect.setValue(viewModel, newVal);
-				} else {
-					canReflect.setKeyValue(viewModel, setName, newVal);
-				}
+		var observation = new SettableObservable(
+			getViewModelProperty,
 
+			function setViewModelProperty(newVal){
+				var viewModel = bindingData.getViewModel();
+
+				if(stickyCompute) {
+					// TODO: Review what this is used for.
+					var oldValue = canReflect.getKeyValue(viewModel, setName);
+					if (canReflect.isObservableLike(oldValue)) {
+						canReflect.setValue(oldValue, newVal);
+					} else {
+						canReflect.setKeyValue(
+							viewModel,
+							setName,
+							new SimpleObservable(canReflect.getValue(stickyCompute))
+						);
+					}
+				} else {
+					if(isBoundToContext) {
+						canReflect.setValue(viewModel, newVal);
+					} else {
+						canReflect.setKeyValue(viewModel, setName, newVal);
+					}
+				}
 			}
-		});
+		);
+
+		//!steal-remove-start
+		var viewModel = bindingData.getViewModel();
+		if (viewModel && setName) {
+			canReflectDeps.addMutatedBy(viewModel, setName, observation);
+		}
+		//!steal-remove-end
 
 		return observation;
 	},
