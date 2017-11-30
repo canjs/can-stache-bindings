@@ -663,7 +663,9 @@ var getObservableFrom = {
 
 		//!steal-remove-start
 		var viewModel = bindingData.getViewModel();
-		canReflectDeps.addMutatedBy(viewModel, setName, observation);
+		if (viewModel && setName) {
+			canReflectDeps.addMutatedBy(viewModel, setName, observation);
+		}
 		//!steal-remove-end
 
 		return observation;
