@@ -64,16 +64,7 @@ Object.assign(AttributeObservable.prototype, {
 	},
 
 	set: function set(newVal) {
-		if (
-			this.bindingData.legacyBindings &&
-			isSelect(this.el) &&
-			"selectedIndex" in this.el &&
-			this.prop === "value"
-		) {
-			attr.setAttrOrProp(this.el, this.prop, newVal == null ? "" : newVal);
-		} else {
-			attr.setAttrOrProp(this.el, this.prop, newVal);
-		}
+		attr.setAttrOrProp(this.el, this.prop, newVal);
 
 		// update the observation internal value
 		this.value = newVal;
@@ -111,28 +102,30 @@ Object.assign(AttributeObservable.prototype, {
 
 		// make sure `this.handler` gets the new value instead of
 		// the event object passed to the event handler
-		var handler = function() {
+		observable._handler = function() {
 			observable.handler(attr.get(observable.el, observable.prop));
 		};
 
 		if (observable.event === "radiochange") {
-			canEvent.on.call(observable.el, "change", handler);
+			canEvent.on.call(observable.el, "change", observable._handler);
 		}
 
-		canEvent.on.call(observable.el, observable.event, handler);
+		canEvent.on.call(observable.el, observable.event, observable._handler);
 
 		// initial value
 		this.value = attr.get(this.el, this.prop);
 	},
 
 	teardown: function teardown() {
-		this.bound = false;
+		var observable = this;
 
-		if (this.event === "radiochange") {
-			canEvent.off.call(this.el, "change", this.handler);
+		observable.bound = false;
+
+		if (observable.event === "radiochange") {
+			canEvent.off.call(observable.el, "change", observable._handler);
 		}
 
-		canEvent.off.call(this.el, this.event, this.handler);
+		canEvent.off.call(observable.el, observable.event, observable._handler);
 	},
 
 	valueHasDependencies: function valueHasDependencies() {
