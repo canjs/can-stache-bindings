@@ -47,11 +47,11 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 	});
 
-	QUnit.skip("can call intermediate functions before calling the final function (#1474)", function(assert) {
+	QUnit.test("can call intermediate functions before calling the final function (#1474)", function(assert) {
 		var ta = this.fixture;
 		var done = assert.async();
 
-		var template = stache("<div id='click-me' on:click='does.some.thing(this)'></div>");
+		var template = stache("<div id='click-me' on:click='does().some().thing(this)'></div>");
 		var frag = template({
 			does: function(){
 				return {
@@ -369,10 +369,10 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 	QUnit.test("events should bind when using a plain object", function () {
 		var flip = false;
-		var template = stache("<div {{#if test}}on:foo=\"log()\"{{/if}}>Test</div>");
+		var template = stache("<div {{#if test}}on:foo=\"flip()\"{{/if}}>Test</div>");
 
 		var frag = template({
-			log: function() {flip = true;},
+			flip: function() {flip = true;},
 			test: true
 		});
 

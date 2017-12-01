@@ -43,7 +43,7 @@
     "can-reflect-dependencies": "<2.0.0",
     "can-simple-map": "^4.0.0-pre.13",
     "can-simple-observable": "^2.0.0-pre.23",
-    "can-stache": "^4.0.0-pre.20",
+    "can-stache": "^4.0.0-pre.23",
     "can-stache-key": "^1.0.0-pre.14",
     "can-symbol": "^1.0.0",
     "can-util": "^3.9.0",
