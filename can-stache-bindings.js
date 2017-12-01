@@ -14,7 +14,7 @@ var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
-var Observation = require('can-observation');
+var ObservationRecorder = require('can-observation-recorder');
 var SimpleObservable = require('can-simple-observable');
 
 var assign = require('can-util/js/assign/assign');
@@ -241,7 +241,7 @@ var behaviors = {
 			return;
 		}
 		var viewModel,
-			getViewModel = Observation.ignore(function() {
+			getViewModel = ObservationRecorder.ignore(function() {
 				return viewModel || (viewModel = canViewModel(el));
 			}),
 			semaphore = {},
