@@ -37,7 +37,7 @@
     "can-globals": "^0.2.2",
     "can-log": "^0.1.2",
     "can-observation": "^4.0.0-pre.22",
-    "can-observation-recorder": "^0.1.0",
+    "can-observation-recorder": "<2.0.0",
     "can-queues": "<2.0.0",
     "can-reflect": "^1.6.0",
     "can-reflect-dependencies": "<2.0.0",
