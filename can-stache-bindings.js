@@ -165,7 +165,7 @@ var behaviors = {
 							// the initial data is the context
 							bindingsState.initialViewModelData = dataBinding.value;
 						} else {
-							bindingsState.initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+							bindingsState.initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName, tagData.scope)] = dataBinding.value;
 						}
 
 					}
@@ -522,12 +522,12 @@ var getObservableFrom = {
 					},
 
 					"can.setValue": function setValue(newVal) {
-						scope.set(cleanVMName(scopeProp), newVal);
+						scope.set(cleanVMName(scopeProp, scope), newVal);
 					},
 
 					// Register what the custom observation changes
 					"can.getWhatIChange": function getWhatIChange() {
-						var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
+						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
 
 						return {
 							mutate: {
@@ -541,7 +541,7 @@ var getObservableFrom = {
 					"can.getName": function getName() {
 						//!steal-remove-start
 						var result = "ObservableFromScope<>";
-						var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
+						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
 
 						if (data.parent && data.key) {
 							result = "ObservableFromScope<" +
@@ -556,7 +556,7 @@ var getObservableFrom = {
 					},
 				});
 
-				var data = scope.getDataForScopeSet(cleanVMName(scopeProp));
+				var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
 				if (data.parent && data.key) {
 					// Register what changes the Scope's parent key
 					canReflectDeps.addMutatedBy(data.parent, data.key, observation);
@@ -570,7 +570,7 @@ var getObservableFrom = {
 	// Returns a compute that's two-way bound to the `viewModel` returned by
 	// `options.getViewModel()`.
 	viewModel: function(el, scope, vmName, bindingData, mustBeSettable, stickyCompute, childEvent) {
-		var setName = cleanVMName(vmName);
+		var setName = cleanVMName(vmName, scope);
 		var isBoundToContext = vmName === "." || vmName === "this";
 		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
 
@@ -1013,10 +1013,18 @@ var unbindUpdate = function(observable, updater) {
 		canReflect.offValue(observable, updater,"domUI");
 	}
 },
-cleanVMName = function(name) {
+cleanVMName = function(name, scope) {
+	//!steal-remove-start
 	if (name.indexOf("@") >= 0) {
-		debugger;
+		var filename = scope.peek('scope.filename');
+		var lineNumber = scope.peek('scope.lineNumber');
+
+		dev.warn(
+			(filename ? filename + ':' : '') +
+			(lineNumber ? lineNumber + ': ' : '') +
+			'functions are no longer called by default so @ is unnecessary in \'' + name + '\'.');
 	}
+	//!steal-remove-end
 	return name.replace(/@/g, "");
 };
 

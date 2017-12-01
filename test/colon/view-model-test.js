@@ -668,4 +668,26 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		viewModel.attr('isShowing', false);
 	});
 
+	test("warning displayed when using @", function(){
+		expect(3);
+		var teardown = canTestHelpers.dev.willWarn("myTemplate.stache:1: functions are no longer called by default so @ is unnecessary in '@scope.vars.refKey'.");
+
+		MockComponent.extend({
+			tag : 'foo-bar',
+			viewModel : {
+				method : function() {
+					ok(true, "foo called");
+					return 5;
+				}
+			}
+		});
+
+		var template = stache("myTemplate.stache",
+			"<foo-bar method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
+
+		var frag = template({});
+		equal( frag.lastChild.nodeValue, "5");
+		equal(teardown(), 2, "warnings displayed for read and write");
+
+	});
 });
