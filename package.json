@@ -34,7 +34,7 @@
     "can-event-dom-enter": "^1.0.2",
     "can-event-dom-radiochange": "^1.0.2",
     "can-event-queue": "<2.0.0",
-    "can-globals": "^0.2.2",
+    "can-globals": "<2.0.0",
     "can-log": "^0.1.2",
     "can-observation": "^4.0.0-pre.22",
     "can-observation-recorder": "<2.0.0",
