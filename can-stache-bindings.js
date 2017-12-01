@@ -1014,6 +1014,9 @@ var unbindUpdate = function(observable, updater) {
 	}
 },
 cleanVMName = function(name) {
+	if (name.indexOf("@") >= 0) {
+		debugger;
+	}
 	return name.replace(/@/g, "");
 };
 
