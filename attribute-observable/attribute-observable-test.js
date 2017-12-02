@@ -9,7 +9,7 @@ testHelpers.makeTests("AttributeObservable", function(
 	enableMO,
 	testIfRealDocument
 ) {
-	testIfRealDocument("setup/teardown works correctly", function(assert) {
+	testIfRealDocument("onBound/onUnbound works correctly", function(assert) {
 		var done = assert.async(2);
 		var input = document.createElement("input");
 

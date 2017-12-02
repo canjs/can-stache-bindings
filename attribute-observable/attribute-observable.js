@@ -6,7 +6,6 @@ var attr = require("can-util/dom/attr/attr");
 var getEventName = require("./get-event-name");
 var canReflectDeps = require("can-reflect-dependencies");
 var ObservationRecorder = require("can-observation-recorder");
-var valueEventBindings = require("can-event-queue/value/value");
 var SettableObservable = require("can-simple-observable/settable/settable");
 
 var isSelect = function isSelect(el) {
@@ -18,11 +17,6 @@ var isMultipleSelect = function isMultipleSelect(el, prop) {
 };
 
 function AttributeObservable(el, prop, bindingData, event) {
-	valueEventBindings.addHandlers(this, {
-		onFirst: this.setup.bind(this),
-		onEmpty: this.teardown.bind(this)
-	});
-
 	this.el = el;
 	this.bound = false;
 	this.bindingData = bindingData;
@@ -95,7 +89,7 @@ Object.assign(AttributeObservable.prototype, {
 		}
 	},
 
-	setup: function setup() {
+	onBound: function onBound() {
 		var observable = this;
 
 		observable.bound = true;
@@ -116,7 +110,7 @@ Object.assign(AttributeObservable.prototype, {
 		this.value = attr.get(this.el, this.prop);
 	},
 
-	teardown: function teardown() {
+	onUnbound: function onUnbound() {
 		var observable = this;
 
 		observable.bound = false;
