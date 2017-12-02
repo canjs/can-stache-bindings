@@ -256,7 +256,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 	test("function reference to child binding (#2116)", function(){
 		expect(2);
-		var template = stache('<foo-bar vm:child:from="@parent"></foo-bar>');
+		var template = stache('<foo-bar vm:child:from="parent"></foo-bar>');
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel: { }
@@ -269,7 +269,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		vm.attr("parent", function(){ ok(false, "should not be called"); });
 		equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
-		template = stache('<foo-bar vm:@method:to="vmMethod"></foo-bar>');
+		template = stache('<foo-bar vm:method:to="vmMethod"></foo-bar>');
 		vm = new VM({});
 		frag = template(vm);
 
@@ -303,9 +303,9 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	});
 
 
-	test("@function reference to child (#2116)", function(){
+	test("function reference to child (#2116)", function(){
 		expect(2);
-		var template = stache('<foo-bar vm:@child:from="@parent"></foo-bar>');
+		var template = stache('<foo-bar vm:child:from="parent"></foo-bar>');
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel : {
@@ -327,7 +327,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
 
-		template = stache('<foo-bar vm:@method:to="@vmMethod"></foo-bar>');
+		template = stache('<foo-bar vm:method:to="vmMethod"></foo-bar>');
 		vm = new VM({});
 		template(vm);
 
@@ -348,7 +348,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			}
 		});
 
-		var template = stache("<foo-bar @method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
+		var template = stache("<foo-bar method:to='scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
 
 		var frag = template({});
 		equal( frag.lastChild.nodeValue, "5");
@@ -668,4 +668,26 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		viewModel.attr('isShowing', false);
 	});
 
+	test("warning displayed when using @", function(){
+		expect(3);
+		var teardown = canTestHelpers.dev.willWarn("myTemplate.stache:1: functions are no longer called by default so @ is unnecessary in '@scope.vars.refKey'.");
+
+		MockComponent.extend({
+			tag : 'foo-bar',
+			viewModel : {
+				method : function() {
+					ok(true, "foo called");
+					return 5;
+				}
+			}
+		});
+
+		var template = stache("myTemplate.stache",
+			"<foo-bar method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
+
+		var frag = template({});
+		equal( frag.lastChild.nodeValue, "5");
+		equal(teardown(), 2, "warnings displayed for read and write");
+
+	});
 });
