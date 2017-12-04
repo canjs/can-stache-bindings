@@ -668,7 +668,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		viewModel.attr('isShowing', false);
 	});
 
-	test("warning displayed when using @", function(){
+	canTestHelpers.dev.devOnlyTest("warning displayed when using @", function(){
 		expect(3);
 		var teardown = canTestHelpers.dev.willWarn("myTemplate.stache:1: functions are no longer called by default so @ is unnecessary in '@scope.vars.refKey'.");
 
