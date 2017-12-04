@@ -28,6 +28,7 @@ var makeDocument = require('can-vdom/make-document/make-document');
 var canEach = require('can-util/js/each/each');
 var types = require('can-types');
 var testHelpers = require('can-test-helpers');
+var CIDSet = require('can-cid/set/set');
 
 var MockComponent = require("./mock-component");
 
@@ -788,7 +789,7 @@ test('viewModel behavior event bindings should be removed when the bound element
 
 test('data behavior event bindings should be removed when the bound element is', function (assert) {
 	var done = assert.async();
-	var template = stache('<div>{{#if isShowing}}<span {foo}="bar"></span><hr/>{{/isShowing}}</div>');
+	var template = stache('<div>{{#if isShowing}}<span {foo}="bar"></span><hr/>{{/if}}</div>');
 	var viewModel = new CanMap({
 		isShowing: true,
 		bar: 'baz'
@@ -796,19 +797,19 @@ test('data behavior event bindings should be removed when the bound element is',
 	var isTarget = function (target) {
 		return target.nodeName === 'SPAN';
 	};
-	var listenerCount = 0;
+	var listeners = new CIDSet();
 	var hasAddedBindingListener = false;
 	var hasRemovedBindingListener = false;
 	var undo = interceptDomEvents(
-		function add () {
+		function add (event, handler) {
 			if (isTarget(this)) {
-				listenerCount++;
+				listeners.add(handler);
 				hasAddedBindingListener = true;
 			}
 		},
-		function remove () {
+		function remove (event, handler) {
 			if (isTarget(this)) {
-				listenerCount--;
+				listeners.delete(handler);
 				hasRemovedBindingListener = true;
 			}
 		}
@@ -825,7 +826,7 @@ test('data behavior event bindings should be removed when the bound element is',
 
 		assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
 		assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
-		assert.equal(listenerCount, 0, 'all listeners should be removed');
+		assert.equal(listeners.size, 0, 'all listeners should be removed');
 		undo();
 		done();
 	});
