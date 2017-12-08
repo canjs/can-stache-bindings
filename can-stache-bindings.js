@@ -349,7 +349,7 @@ var behaviors = {
 			var name = string.camelize( attrData.attributeName.substr(1).toLowerCase() );
 
 			//!steal-remove-start
-			dev.warn(attrData.attributeName + ' shorthand is deprecated. Use this:to="' + name + '" instead.');
+			dev.warn(attrData.attributeName + ' shorthand is deprecated. Use this:to="scope.vars.' + name + '" instead.');
 			//!steal-remove-end
 
 			var viewModel = canViewModel(el);
