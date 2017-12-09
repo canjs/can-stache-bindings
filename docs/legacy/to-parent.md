@@ -3,6 +3,8 @@
 
 @description One-way bind a value in the current [can-component.prototype.view-model viewModel] to the parent scope.
 
+@deprecated {3.8} This syntax is deprecated in favor of [can-stache-bindings.toParent childProp:to="key"]
+
 @signature `{^child-prop}="key"`
 
 Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates

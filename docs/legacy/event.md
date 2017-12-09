@@ -3,6 +3,8 @@
 
 @description Respond to events on elements or component ViewModels.
 
+@deprecated {3.8} This syntax is deprecated in favor of [can-stache-bindings.event on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
+
 @signature `($DOM_EVENT)='CALL_EXPRESSION'`
 
 Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.

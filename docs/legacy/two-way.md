@@ -3,6 +3,8 @@
 
 @description Two-way bind a value in the [can-component.prototype.view-model viewModel] or the element to the parent scope.
 
+@deprecated {3.8} This syntax is deprecated in favor of [can-stache-bindings.twoWay childProp:bind="key"]
+
 @signature `{(child-prop)}="key"`
 
   Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
