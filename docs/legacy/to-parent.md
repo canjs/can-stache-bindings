@@ -50,7 +50,7 @@ In the following example, it connects the __selected__ driver in `<drivers-list>
     <drivers-list {^selected}="*editing"/>
     <edit-plate {(plate-name)}="*editing.licensePlate"/>
 
-@demo demos/can-stache-bindings/to-parent.html
+@demo demos/can-stache-bindings-legacy/to-parent.html
 
 ## Exporting DOM properties
 
@@ -78,6 +78,6 @@ And pass the method like:
 
 Check it out in this demo:
 
-@demo demos/can-stache-bindings/to-parent-function.html
+@demo demos/can-stache-bindings-legacy/to-parent-function.html
 
 Notice that `@` is used to prevent reading the function.  

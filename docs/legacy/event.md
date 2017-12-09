@@ -66,7 +66,7 @@ handler in the order they were given.
 The following uses `($click)="items.splice(%index,1)"` to remove a
 item from `items` when that item is clicked on.
 
-@demo demos/can-stache-bindings/event-args.html
+@demo demos/can-stache-bindings-legacy/event-args.html
 
 ### Special Event Types
 

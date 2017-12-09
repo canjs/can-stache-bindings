@@ -23,4 +23,4 @@ hyphenated name of the reference scope property:
 ```
 
 
-@demo demos/can-stache-bindings/reference-one-way.html
+@demo demos/can-stache-bindings-legacy/reference-one-way.html

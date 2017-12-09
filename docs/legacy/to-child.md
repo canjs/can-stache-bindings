@@ -43,4 +43,4 @@
 <player-scores {scores}="game.scoresForPlayer('Jeff')"/>
 ```
 
-@demo demos/can-stache-bindings/to-child.html
+@demo demos/can-stache-bindings-legacy/to-child.html
