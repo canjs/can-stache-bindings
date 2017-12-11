@@ -67,6 +67,41 @@ devOnlyTest("parent to child dependencies", function(assert) {
 	);
 });
 
+devOnlyTest("parent to child - map", function(assert) {
+	var template = stache('<input value:from="age">');
+
+	var map = new SimpleMap({ age: 10 });
+	var frag = template(map);
+
+	var ta = this.fixture;
+	ta.appendChild(frag);
+
+	var ageDeps = canReflectDeps.getDependencyDataOf(map, "age").whatChangesMe;
+	assert.ok(
+		ageDeps.mutate.valueDependencies.size,
+		"map.age should have mutation dependencies"
+	);
+
+	var scopeKeyData = Array.from(ageDeps.mutate.valueDependencies)[0];
+	var scopeKeyDataDeps = canReflectDeps.getDependencyDataOf(scopeKeyData)
+		.whatIChange;
+
+	assert.ok(
+		scopeKeyDataDeps.mutate.valueDependencies.size,
+		"the scopeKeyData should have [whatIChange] mutation dependencies"
+	);
+
+	var attributeObservable = Array.from(
+		scopeKeyDataDeps.mutate.valueDependencies
+	)[0];
+
+	assert.equal(
+		attributeObservable.constructor.name,
+		"AttributeObservable",
+		"scopeKeyData affects the AttributeObservable instance"
+	);
+});
+
 // input <-> attribute observation
 // parent: scope, child: viewModelOrAttribute
 devOnlyTest("child to parent dependencies", function(assert) {
