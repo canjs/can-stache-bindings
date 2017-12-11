@@ -3,6 +3,8 @@
 
 @description One-way bind a value in the current [can-component.prototype.view-model viewModel] to the parent scope.
 
+@deprecated {3.8} This syntax is deprecated in favor of [can-stache-bindings.toParent childProp:to="key"]
+
 @signature `{^child-prop}="key"`
 
 Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
@@ -50,7 +52,7 @@ In the following example, it connects the __selected__ driver in `<drivers-list>
     <drivers-list {^selected}="*editing"/>
     <edit-plate {(plate-name)}="*editing.licensePlate"/>
 
-@demo demos/can-stache-bindings/to-parent.html
+@demo demos/can-stache-bindings-legacy/to-parent.html
 
 ## Exporting DOM properties
 
@@ -78,6 +80,6 @@ And pass the method like:
 
 Check it out in this demo:
 
-@demo demos/can-stache-bindings/to-parent-function.html
+@demo demos/can-stache-bindings-legacy/to-parent-function.html
 
 Notice that `@` is used to prevent reading the function.  

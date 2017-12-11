@@ -1851,7 +1851,7 @@ test('one way - child to parent - importing viewModel {^prop}="test"', function(
 		'Imported: David',  '{name} component scope imported into variable');
 });
 
-test('one way - child to parent - importing viewModel {^hypenated-prop}="test"', function(){
+test('one way - child to parent - importing viewModel {^hyphenated-prop}="test"', function(){
 	MockComponent.extend({
 		tag: 'import-prop-scope',
 		template: stache('Hello {{userName}}'),
@@ -1879,7 +1879,7 @@ test('one way - child to parent - importing viewModel {^hypenated-prop}="test"',
 
 	var importPropParentViewModel = canViewModel(importPropParent);
 
-	equal(importPropParentViewModel.attr("test"), "Justin", "got hypenated prop");
+	equal(importPropParentViewModel.attr("test"), "Justin", "got hyphenated prop");
 
 	equal(importPropParentViewModel.attr("childComponent"), canViewModel(importPropScope), "got view model");
 
@@ -3182,7 +3182,7 @@ testHelpers.dev.devOnlyTest("warn when using reference shorthand", function() {
 
 	var template = stache("<reference-export *reference-export/>");
 
-	var teardown = testHelpers.dev.willWarn('*reference-export shorthand is deprecated. Use this:to="referenceExport" instead.');
+	var teardown = testHelpers.dev.willWarn('*reference-export shorthand is deprecated. Use this:to="scope.vars.referenceExport" instead.');
 	template({});
 	QUnit.equal(teardown(), 1, 'warning shown');
 });

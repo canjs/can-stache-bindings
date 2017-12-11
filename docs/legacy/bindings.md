@@ -1,5 +1,4 @@
-@module deprecated\ \{\(\$\^\)\}\ bindings Deprecated Syntaxes
-@group can-stache-bindings.legacy-syntaxes Deprecated Syntaxes
+@module can-stache-bindings.legacy-syntaxes Deprecated Syntaxes
 @parent can-stache-bindings.syntaxes 5
 
 Provides template event, one-way bindings, and two-way bindings.
@@ -22,7 +21,7 @@ The deprecated bindings are as follows:
 
 Prepending `$` to a binding like `($event)="key()"` changes the binding from the `ViewModel` to the element’s attributes or properties.
 
-> __Note:__ DOM attribute names are case-insensitive, use hypens (-) to in the attribute name to setup camelCase bindings.
+> __Note:__ DOM attribute names are case-insensitive, use hyphens (-) to in the attribute name to setup camelCase bindings.
 
 The following are the deprecated bindings that can be used with [can-stache]:
 

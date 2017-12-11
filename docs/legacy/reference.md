@@ -1,9 +1,9 @@
 @function can-stache-bindings.reference *REFERENCE
-@parent can-stache-bindings.syntaxes 4
+@parent can-stache-bindings.legacy-syntaxes 4
 
 @description Export a viewModel into a template's references scope.
 
-@deprecated {4.0} This syntax is deprecated in favor of [can-stache-bindings.toParent `this:to="refProp"`]
+@deprecated {3.10} This syntax is deprecated in favor of [can-stache-bindings.toParent this:to="scope.vars.refProp"]
 
 @signature `*ref-prop`
 
@@ -15,12 +15,12 @@
 
 ## Use
 
-Export a view model to the references scope by adding an attribute with the 
-hypenated name of the reference scope property:
+Export a view model to the references scope by adding an attribute with the
+hyphenated name of the reference scope property:
 
 ```
 <year-selector *year-selector />
 ```
 
 
-@demo demos/can-stache-bindings/reference-one-way.html
+@demo demos/can-stache-bindings-legacy/reference-one-way.html
