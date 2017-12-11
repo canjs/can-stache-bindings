@@ -691,12 +691,12 @@ var bind = {
 			canReflect.onValue(childObservable, updateParent, "domUI");
 
 			//!steal-remove-start
-			updateParent[getChangesSymbol] = function() {
+			canReflectDeps.addMutatedBy(parentObservable, childObservable);
+			updateParent[getChangesSymbol] = function getChangesDependencyRecord() {
 				return {
 					valueDependencies: new Set([ parentObservable ])
 				};
 			};
-			canReflectDeps.addMutatedBy(parentObservable, childObservable);
 			//!steal-remove-end
 		}
 
@@ -705,7 +705,7 @@ var bind = {
 	// parent -> child binding
 	parentToChild: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, bindingInfo) {
 		// setup listening on parent and forwarding to viewModel
-		var updateChild = function(newValue) {
+		var updateChild = function updateChild(newValue) {
 			// Save the viewModel property name so it is not updated multiple times.
 			// We listen for when the batch has ended, and all observation updates have ended.
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
@@ -729,6 +729,11 @@ var bind = {
 			canReflect.onValue(parentObservable, updateChild, "domUI");
 			//!steal-remove-start
 			canReflectDeps.addMutatedBy(childObservable, parentObservable);
+			updateChild[getChangesSymbol] = function getChangesDependencyRecord() {
+				return {
+					valueDependencies: new Set([ childObservable])
+				};
+			};
 			//!steal-remove-end
 		}
 
