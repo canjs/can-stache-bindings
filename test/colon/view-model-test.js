@@ -355,7 +355,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 	});
 
-	test('one way - child to parent - importing viewModel hypenatedProp:to="test"', function(){
+	test('one way - child to parent - importing viewModel hyphenatedProp:to="test"', function(){
 		MockComponent.extend({
 			tag: 'import-prop-scope',
 			template: stache('Hello {{userName}}'),
@@ -383,7 +383,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		var importPropParentViewModel = canViewModel(importPropParent);
 
-		equal(importPropParentViewModel.get("test"), "Justin", "got hypenated prop");
+		equal(importPropParentViewModel.get("test"), "Justin", "got hyphenated prop");
 
 		equal(importPropParentViewModel.get("childComponent"), canViewModel(importPropScope), "got view model");
 
