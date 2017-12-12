@@ -17,9 +17,14 @@ var tempate = stache(`
 `);
 
 
+var instance = new CounterVM();
 
+window.queues = queues;
+//instance.on("count", function instanceCountChanged(){
+//    debugger;
+//})
 
 queues.log('flush')
-document.body.appendChild(tempate(new CounterVM()));
+document.body.appendChild(tempate(instance));
 
 </script>
