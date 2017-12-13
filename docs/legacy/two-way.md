@@ -3,6 +3,8 @@
 
 @description Two-way bind a value in the [can-component.prototype.view-model viewModel] or the element to the parent scope.
 
+@deprecated {3.8} This syntax is deprecated in favor of [can-stache-bindings.twoWay childProp:bind="key"]
+
 @signature `{(child-prop)}="key"`
 
   Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
@@ -50,11 +52,11 @@ The following two-way binds the `<edit-plate>` element’s `plateName` to the `e
 value in the scope.  This allows `plateName` to update if `editing.licensePlate` changes and
 `editing.licensePlate` to update if `plateName` changes.
 
-@demo demos/can-stache-bindings/two-way.html
+@demo demos/can-stache-bindings-legacy/two-way.html
 
 This demo can be expressed a bit easier with the references scope:
 
-@demo demos/can-stache-bindings/reference.html
+@demo demos/can-stache-bindings-legacy/reference.html
 
 ## Initialization
 

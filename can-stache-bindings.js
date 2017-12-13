@@ -12,10 +12,9 @@
 // - initializeValues - A helper that initializes a data binding.
 var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
-var Scope = require('can-view-scope');
 var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
-var Observation = require('can-observation');
+var ObservationRecorder = require('can-observation-recorder');
 var SimpleObservable = require('can-simple-observable');
 
 var assign = require('can-util/js/assign/assign');
@@ -25,14 +24,13 @@ var dev = require('can-log/dev/dev');
 var domEvents = require('can-util/dom/events/events');
 require('can-util/dom/events/removed/removed');
 var domData = require('can-util/dom/data/data');
-var attr = require('can-util/dom/attr/attr');
-var stacheHelperCore = require("can-stache/helpers/core");
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
-var singleReference = require("can-util/js/single-reference/single-reference");
+var canReflectDeps = require("can-reflect-dependencies");
 var encoder = require("can-attribute-encoder");
 var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
+var AttributeObservable = require("./attribute-observable/attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 
 var addEnterEvent = require('can-event-dom-enter/compat');
@@ -41,36 +39,7 @@ addEnterEvent(domEvents);
 var addRadioChange = require('can-event-dom-radiochange/compat');
 addRadioChange(domEvents);
 
-var canEvent = {
-	on: function(eventName, handler, queue) {
-		var listenWithDOM = domEvents.canAddEventListener.call(this);
-		if(listenWithDOM) {
-			domEvents.addEventListener.call(this, eventName, handler, queue);
-		} else {
-			canReflect.onKeyValue(this, eventName, handler, queue);
-		}
-	},
-	off: function(eventName, handler, queue) {
-		var listenWithDOM = domEvents.canAddEventListener.call(this);
-		if(listenWithDOM) {
-			domEvents.removeEventListener.call(this, eventName, handler, queue);
-		} else {
-			canReflect.offKeyValue(this, eventName, handler, queue);
-		}
-	},
-	one: function(event, handler, queue) {
-		// Unbind the listener after it has been executed
-		var one = function() {
-			canEvent.off.call(this, event, one, queue);
-			return handler.apply(this, arguments);
-		};
-
-		// Bind the altered listener
-		canEvent.on.call(this, event, one, queue);
-		return this;
-	}
-};
-
+var canEvent = require("./can-event");
 var noop = function() {};
 
 var onMatchStr = "on:",
@@ -87,9 +56,8 @@ var onMatchStr = "on:",
 	scopeBindingStr = "scope",
 	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
 	getValueSymbol = canSymbol.for("can.getValue"),
-	setValueSymbol = canSymbol.for("can.setValue"),
 	onValueSymbol = canSymbol.for("can.onValue"),
-	offValueSymbol = canSymbol.for("can.offValue");
+	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord");
 
 
 var throwOnlyOneTypeOfBindingError = function(){
@@ -197,7 +165,7 @@ var behaviors = {
 							// the initial data is the context
 							bindingsState.initialViewModelData = dataBinding.value;
 						} else {
-							bindingsState.initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName)] = dataBinding.value;
+							bindingsState.initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName, tagData.scope)] = dataBinding.value;
 						}
 
 					}
@@ -219,8 +187,9 @@ var behaviors = {
 
 		// Listen to attribute changes and re-initialize
 		// the bindings.
+		var attributeListener;
 		if(!bindingsState.isSettingViewModel) {
-			domEvents.addEventListener.call(el, attributesEventStr, function (ev) {
+			attributeListener = function (ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -252,10 +221,13 @@ var behaviors = {
 						onTeardowns[attrName] = dataBinding.onTeardown;
 					}
 				}
-			});
+			};
+
+			domEvents.addEventListener.call(el, attributesEventStr, attributeListener);
 		}
 
 		return function() {
+			domEvents.removeEventListener.call(el, attributesEventStr, attributeListener);
 			for(var attrName in onTeardowns) {
 				onTeardowns[attrName]();
 			}
@@ -269,7 +241,7 @@ var behaviors = {
 			return;
 		}
 		var viewModel,
-			getViewModel = Observation.ignore(function() {
+			getViewModel = ObservationRecorder.ignore(function() {
 				return viewModel || (viewModel = canViewModel(el));
 			}),
 			semaphore = {},
@@ -299,13 +271,7 @@ var behaviors = {
 				dataBinding.onCompleteBinding();
 			}
 
-			teardown = dataBinding.onTeardown;
-			canEvent.one.call(el, removedStr, function() {
-				teardown();
-			});
-
-			// Listen for changes
-			domEvents.addEventListener.call(el, attributesEventStr, function (ev) {
+			var attributeListener = function (ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -334,6 +300,14 @@ var behaviors = {
 						}
 					}
 				}
+			};
+			// Listen for changes
+			domEvents.addEventListener.call(el, attributesEventStr, attributeListener);
+
+			teardown = dataBinding.onTeardown;
+			canEvent.one.call(el, removedStr, function () {
+				teardown();
+				domEvents.removeEventListener.call(el, attributesEventStr, attributeListener);
 			});
 	},
 	// ### bindings.behaviors.event
@@ -423,7 +397,7 @@ var behaviors = {
 				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in "+data.attributeName+"="+JSON.stringify(attrVal));
 			}
 
-			// create "spcial" values that can be looked up using
+			// create "special" values that can be looked up using
 			// {{scope.element}}, etc
 			var specialValues = {
 				element: el,
@@ -436,42 +410,27 @@ var behaviors = {
 			var localScope = data.scope
 				.add(specialValues, { special: true });
 
-			// We grab the first item and treat it as a method that
-			// we'll call.
-			var scopeData = localScope.read(expr.methodExpr.key, {
-				isArgument: true
-			}),
-			args, stacheHelper, stacheHelperResult;
-
-			if (!scopeData.value) {
-				// nothing found yet, look for a stache helper
-				var name = observeReader.reads(expr.methodExpr.key).map(function(part) {
-					return part.key;
-				}).join(".");
-
-				stacheHelper = stacheHelperCore.getHelper(name);
-				if(stacheHelper) {
-					args = expr.args(localScope, null)();
-					stacheHelperResult = stacheHelper.fn.apply(localScope.peek("."), args);
-					if(typeof stacheHelperResult === "function") {
-						stacheHelperResult(el);
-					}
-					return stacheHelperResult;
-				}
-
-				//!steal-remove-start
-				dev.warn("can-stache-bindings: " + attributeName + " couldn't find method named " + expr.methodExpr.key, {
-					element: el,
-					scope: data.scope
+			var updateFn = function() {
+				var value = expr.value(localScope, {
+					doNotWrapInObservation: true
 				});
-				//!steal-remove-end
 
-				return null;
-			}
+				value = canReflect.isValueLike(value) ?
+					canReflect.getValue(value) :
+					value;
 
-			args = expr.args(localScope, null)();
+				return typeof value === 'function' ?
+					value(el) :
+					value;
+			};
+			//!steal-remove-start
+			Object.defineProperty(updateFn, "name", {
+				value: attributeName + '="' + attrVal + '"'
+			});
+			//!steal-remove-end
+
 			queues.batch.start();
-			queues.notifyQueue.enqueue(scopeData.value, scopeData.parent, args, {
+			queues.notifyQueue.enqueue(updateFn, null, null, {
 				//!steal-remove-start
 				reasonLog: [el, ev, attributeName+"="+attrVal]
 				//!steal-remove-end
@@ -551,13 +510,57 @@ var getObservableFrom = {
 		} else {
 			if(mustBeSettable) {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
-				return parentExpression.value(scope, new Scope.Options({}));
+				return parentExpression.value(scope);
 			} else {
-				var observation = new Observation(function() {});
+				var observation = {};
 
-				observation[setValueSymbol] = function(newVal) {
-					scope.set(cleanVMName(scopeProp), newVal);
-				};
+				canReflect.assignSymbols(observation, {
+					"can.getValue": function getValue() {},
+
+					"can.valueHasDependencies": function hasValueDependencies() {
+						return false;
+					},
+
+					"can.setValue": function setValue(newVal) {
+						scope.set(cleanVMName(scopeProp, scope), newVal);
+					},
+
+					// Register what the custom observation changes
+					"can.getWhatIChange": function getWhatIChange() {
+						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
+
+						return {
+							mutate: {
+								keyDependencies: new Map([
+									[data.parent, new Set([data.key])]
+								])
+							}
+						};
+					},
+
+					"can.getName": function getName() {
+						//!steal-remove-start
+						var result = "ObservableFromScope<>";
+						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
+
+						if (data.parent && data.key) {
+							result = "ObservableFromScope<" +
+								canReflect.getName(data.parent) +
+								"." +
+								data.key +
+								">";
+						}
+
+						return result;
+						//!steal-remove-end
+					},
+				});
+
+				var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
+				if (data.parent && data.key) {
+					// Register what changes the Scope's parent key
+					canReflectDeps.addMutatedBy(data.parent, data.key, observation);
+				}
 
 				return observation;
 			}
@@ -567,7 +570,7 @@ var getObservableFrom = {
 	// Returns a compute that's two-way bound to the `viewModel` returned by
 	// `options.getViewModel()`.
 	viewModel: function(el, scope, vmName, bindingData, mustBeSettable, stickyCompute, childEvent) {
-		var setName = cleanVMName(vmName);
+		var setName = cleanVMName(vmName, scope);
 		var isBoundToContext = vmName === "." || vmName === "this";
 		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
 
@@ -581,97 +584,47 @@ var getObservableFrom = {
 		});
 		//!steal-remove-end
 
-		var observation = new SettableObservable(getViewModelProperty,function setViewModelProperty(newVal){
-			var viewModel = bindingData.getViewModel();
-			if(stickyCompute) {
-				// TODO: Review what this is used for.
-				var oldValue = canReflect.getKeyValue(viewModel, setName);
-				if (canReflect.isObservableLike(oldValue)) {
-					canReflect.setValue(oldValue, newVal);
-				} else {
-					canReflect.setKeyValue(viewModel, setName, new SimpleObservable(canReflect.getValue(stickyCompute)));
-				}
-			} else {
-				if(isBoundToContext) {
-					canReflect.setValue(viewModel, newVal);
-				} else {
-					canReflect.setKeyValue(viewModel, setName, newVal);
-				}
+		var observation = new SettableObservable(
+			getViewModelProperty,
 
+			function setViewModelProperty(newVal){
+				var viewModel = bindingData.getViewModel();
+
+				if(stickyCompute) {
+					// TODO: Review what this is used for.
+					var oldValue = canReflect.getKeyValue(viewModel, setName);
+					if (canReflect.isObservableLike(oldValue)) {
+						canReflect.setValue(oldValue, newVal);
+					} else {
+						canReflect.setKeyValue(
+							viewModel,
+							setName,
+							new SimpleObservable(canReflect.getValue(stickyCompute))
+						);
+					}
+				} else {
+					if(isBoundToContext) {
+						canReflect.setValue(viewModel, newVal);
+					} else {
+						canReflect.setKeyValue(viewModel, setName, newVal);
+					}
+				}
 			}
-		});
+		);
+
+		//!steal-remove-start
+		var viewModel = bindingData.getViewModel();
+		if (viewModel && setName) {
+			canReflectDeps.addMutatedBy(viewModel, setName, observation);
+		}
+		//!steal-remove-end
 
 		return observation;
 	},
 	// ### getObservableFrom.attribute
 	// Returns a compute that is two-way bound to an attribute or property on the element.
-	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event) {
-		// Determine the event or events we need to listen to
-		// when this value changes.
-		if(!event) {
-			event = "change";
-			var isRadioInput = el.nodeName === 'INPUT' && el.type === 'radio';
-			var isValidProp = prop === 'checked' && !bindingData.legacyBindings;
-			if (isRadioInput && isValidProp) {
-				event = 'radiochange';
-			}
-
-			var isSpecialProp = attr.special[prop] && attr.special[prop].addEventListener;
-			if (isSpecialProp) {
-				event = prop;
-			}
-		}
-
-		var hasChildren = el.nodeName.toLowerCase() === "select",
-			isMultiselectValue = prop === "value" && hasChildren && el.multiple,
-			// Sets the element property or attribute.
-			set = function(newVal) {
-				if(bindingData.legacyBindings && hasChildren &&
-					("selectedIndex" in el) && prop === "value") {
-					attr.setAttrOrProp(el, prop, newVal == null ? "" : newVal);
-				} else {
-					attr.setAttrOrProp(el, prop, newVal);
-				}
-
-				return newVal;
-			},
-			get = function() {
-				return attr.get(el, prop);
-			};
-
-			if(isMultiselectValue) {
-				prop = "values";
-			}
-
-			var observation = new Observation(get);
-
-			observation[setValueSymbol] = set;
-			observation[getValueSymbol] = get;
-
-			observation[onValueSymbol] = function(updater) {
-				var translationHandler = function() {
-					updater(get());
-				};
-				singleReference.set(updater, this, translationHandler);
-
-				if (event === "radiochange") {
-					canEvent.on.call(el, "change", translationHandler);
-				}
-
-				canEvent.on.call(el, event, translationHandler);
-			};
-
-			observation[offValueSymbol] = function(updater) {
-				var translationHandler = singleReference.getAndDelete(updater, this);
-
-				if (event === "radiochange") {
-					canEvent.off.call(el, "change", translationHandler);
-				}
-
-				canEvent.off.call(el, event, translationHandler);
-			};
-
-			return observation;
+	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event, bindingInfo) {
+		return new AttributeObservable(el, prop, bindingData, event);
 	}
 };
 
@@ -735,7 +688,16 @@ var bind = {
 		//!steal-remove-end
 
 		if(childObservable && childObservable[getValueSymbol]) {
-			canReflect.onValue(childObservable, updateParent,"domUI");
+			canReflect.onValue(childObservable, updateParent, "domUI");
+
+			//!steal-remove-start
+			canReflectDeps.addMutatedBy(parentObservable, childObservable);
+			updateParent[getChangesSymbol] = function getChangesDependencyRecord() {
+				return {
+					valueDependencies: new Set([ parentObservable ])
+				};
+			};
+			//!steal-remove-end
 		}
 
 		return updateParent;
@@ -743,7 +705,7 @@ var bind = {
 	// parent -> child binding
 	parentToChild: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, bindingInfo) {
 		// setup listening on parent and forwarding to viewModel
-		var updateChild = function(newValue) {
+		var updateChild = function updateChild(newValue) {
 			// Save the viewModel property name so it is not updated multiple times.
 			// We listen for when the batch has ended, and all observation updates have ended.
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
@@ -764,7 +726,15 @@ var bind = {
 		//!steal-remove-end
 
 		if(parentObservable && parentObservable[getValueSymbol]) {
-			canReflect.onValue(parentObservable, updateChild,"domUI");
+			canReflect.onValue(parentObservable, updateChild, "domUI");
+			//!steal-remove-start
+			canReflectDeps.addMutatedBy(childObservable, parentObservable);
+			updateChild[getChangesSymbol] = function getChangesDependencyRecord() {
+				return {
+					valueDependencies: new Set([ childObservable])
+				};
+			};
+			//!steal-remove-end
 		}
 
 		return updateChild;
@@ -918,7 +888,8 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 // - `object` - An object with information about the binding.
 var makeDataBinding = function(node, el, bindingData) {
 	// Get information about the binding.
-	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings, bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
+	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings,
+		bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
 	if(!bindingInfo) {
 		return;
 	}
@@ -1047,7 +1018,18 @@ var unbindUpdate = function(observable, updater) {
 		canReflect.offValue(observable, updater,"domUI");
 	}
 },
-cleanVMName = function(name) {
+cleanVMName = function(name, scope) {
+	//!steal-remove-start
+	if (name.indexOf("@") >= 0) {
+		var filename = scope.peek('scope.filename');
+		var lineNumber = scope.peek('scope.lineNumber');
+
+		dev.warn(
+			(filename ? filename + ':' : '') +
+			(lineNumber ? lineNumber + ': ' : '') +
+			'functions are no longer called by default so @ is unnecessary in \'' + name + '\'.');
+	}
+	//!steal-remove-end
 	return name.replace(/@/g, "");
 };
 

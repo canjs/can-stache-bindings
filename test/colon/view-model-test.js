@@ -9,6 +9,7 @@ var SimpleMap = require("can-simple-map");
 var MockComponent = require("../mock-component-simple-map");
 var domEvents = require("can-util/dom/events/events");
 var domMutate = require('can-util/dom/mutate/mutate');
+var DefineMap = require("can-define/map/map");
 
 var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
@@ -255,7 +256,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 	test("function reference to child binding (#2116)", function(){
 		expect(2);
-		var template = stache('<foo-bar vm:child:from="@parent"></foo-bar>');
+		var template = stache('<foo-bar vm:child:from="parent"></foo-bar>');
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel: { }
@@ -268,7 +269,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		vm.attr("parent", function(){ ok(false, "should not be called"); });
 		equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
-		template = stache('<foo-bar vm:@method:to="vmMethod"></foo-bar>');
+		template = stache('<foo-bar vm:method:to="vmMethod"></foo-bar>');
 		vm = new VM({});
 		frag = template(vm);
 
@@ -302,9 +303,9 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	});
 
 
-	test("@function reference to child (#2116)", function(){
+	test("function reference to child (#2116)", function(){
 		expect(2);
-		var template = stache('<foo-bar vm:@child:from="@parent"></foo-bar>');
+		var template = stache('<foo-bar vm:child:from="parent"></foo-bar>');
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel : {
@@ -326,7 +327,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
 
-		template = stache('<foo-bar vm:@method:to="@vmMethod"></foo-bar>');
+		template = stache('<foo-bar vm:method:to="vmMethod"></foo-bar>');
 		vm = new VM({});
 		template(vm);
 
@@ -347,14 +348,14 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			}
 		});
 
-		var template = stache("<foo-bar @method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
+		var template = stache("<foo-bar method:to='scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
 
 		var frag = template({});
 		equal( frag.lastChild.nodeValue, "5");
 
 	});
 
-	test('one way - child to parent - importing viewModel hypenatedProp:to="test"', function(){
+	test('one way - child to parent - importing viewModel hyphenatedProp:to="test"', function(){
 		MockComponent.extend({
 			tag: 'import-prop-scope',
 			template: stache('Hello {{userName}}'),
@@ -382,7 +383,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		var importPropParentViewModel = canViewModel(importPropParent);
 
-		equal(importPropParentViewModel.get("test"), "Justin", "got hypenated prop");
+		equal(importPropParentViewModel.get("test"), "Justin", "got hyphenated prop");
 
 		equal(importPropParentViewModel.get("childComponent"), canViewModel(importPropScope), "got view model");
 
@@ -487,7 +488,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		refExport.set("name", "v1");
 
-		equal( scope.getRefs().peek("scope.vars.refName"), "v1", "reference scope updated");
+		equal( scope.peek("scope.vars.refName"), "v1", "reference scope updated");
 
 		equal(refImport.get("name"), "v1", "updated ref-import");
 
@@ -495,7 +496,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		equal(refExport.get("name"), "v2", "updated ref-export");
 
-		equal( scope.getRefs().peek("scope.vars.refName"), "v2", "actually put in refs scope");
+		equal( scope.peek("scope.vars.refName"), "v2", "actually put in refs scope");
 
 	});
 
@@ -607,4 +608,103 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		equal(vm.get('foo'), undefined);
 	});
 
+	test("set string on the viewModel", function(){
+		expect(2);
+		var ViewModel = DefineMap.extend({
+			foo: {
+				type: "string",
+				set: function(val){
+					equal(val, "bar");
+				}
+			},
+			baz: {
+				type: "string",
+				set: function(val){
+					equal(val, "qux");
+				}
+			}
+		});
+
+		MockComponent.extend({
+			tag: "test-elem",
+			viewModel: ViewModel
+		});
+
+		var template = stache("<test-elem foo:from=\"'bar'\" baz:from=\"'qux'\"/>");
+		template();
+	});
+
+	test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
+		MockComponent.extend({
+			tag: "view-model-binder",
+			viewModel: {},
+			template: stache('<span />')
+		});
+
+		var done = assert.async();
+		var isTarget = function (target) {
+			return target.nodeName === 'VIEW-MODEL-BINDER';
+		};
+		var listenerCount = 0;
+		var hasAddedBindingListener = false;
+		var hasRemovedBindingListener = false;
+		var undo = testHelpers.interceptDomEvents(
+			function add () {
+				if (isTarget(this)) {
+					listenerCount++;
+					hasAddedBindingListener = true;
+				}
+			},
+			function remove () {
+				if (isTarget(this)) {
+					listenerCount--;
+					hasRemovedBindingListener = true;
+				}
+			}
+		);
+
+		var viewModel = new SimpleMap({
+			isShowing: true,
+			bar: 'baz'
+		});
+		var template = stache('<div>{{#if isShowing}}<view-model-binder foo:bind="bar"/><hr/>{{/if}}</div>');
+		var fragment = template(viewModel);
+		domMutate.appendChild.call(this.fixture, fragment);
+		// We use the also effected hr so we
+		// can test the span handlers in isolation.
+		var hr = this.fixture.firstChild.lastChild;
+		domEvents.addEventListener.call(hr, 'removed', function andThen () {
+			domEvents.removeEventListener.call(hr, 'removed', andThen);
+
+			assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+			assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
+			assert.equal(listenerCount, 0, 'all listeners should be removed');
+			undo();
+			done();
+		});
+		viewModel.attr('isShowing', false);
+	});
+
+	canTestHelpers.dev.devOnlyTest("warning displayed when using @", function(){
+		expect(3);
+		var teardown = canTestHelpers.dev.willWarn("myTemplate.stache:1: functions are no longer called by default so @ is unnecessary in '@scope.vars.refKey'.");
+
+		MockComponent.extend({
+			tag : 'foo-bar',
+			viewModel : {
+				method : function() {
+					ok(true, "foo called");
+					return 5;
+				}
+			}
+		});
+
+		var template = stache("myTemplate.stache",
+			"<foo-bar method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
+
+		var frag = template({});
+		equal( frag.lastChild.nodeValue, "5");
+		equal(teardown(), 2, "warnings displayed for read and write");
+
+	});
 });

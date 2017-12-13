@@ -47,17 +47,19 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 	});
 
-	test("can call intermediate functions before calling the final function(#1474)", function() {
+	QUnit.test("can call intermediate functions before calling the final function (#1474)", function(assert) {
 		var ta = this.fixture;
-		var template = stache("<div id='click-me' on:click='does.some.thing(this)'></div>");
+		var done = assert.async();
+
+		var template = stache("<div id='click-me' on:click='does().some().thing(this)'></div>");
 		var frag = template({
 			does: function(){
 				return {
 					some: function(){
 						return {
 							thing: function(context) {
-								ok(typeof context.does === "function");
-								start();
+								assert.ok(typeof context.does === "function");
+								done();
 							}
 						};
 					}
@@ -65,7 +67,6 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			}
 		});
 
-		stop();
 		ta.appendChild(frag);
 		domEvents.dispatch.call(doc.getElementById("click-me"), "click");
 	});
@@ -101,7 +102,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 
-	test("event bindings should be removed when the bound element is", function(assert) {
+	test("event behavior event bindings should be removed when the bound element is", function(assert) {
 		// This test checks whether when an element
 		// with an event binding is removed from the
 		// DOM properly cleans up its event binding.
@@ -368,10 +369,10 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 	QUnit.test("events should bind when using a plain object", function () {
 		var flip = false;
-		var template = stache("<div {{#if test}}on:foo=\"log()\"{{/if}}>Test</div>");
+		var template = stache("<div {{#if test}}on:foo=\"flip()\"{{/if}}>Test</div>");
 
 		var frag = template({
-			log: function() {flip = true;},
+			flip: function() {flip = true;},
 			test: true
 		});
 
@@ -444,23 +445,5 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			}
 		});
 		canViewModel(frag.firstChild).makeMyEvent();
-	});
-
-	QUnit.test("methods on objects are called with call expressions (#1839)", function(){
-		var template = stache("<div on:click='setSomething(person.message)'/>");
-		var data = {
-			setSomething: function(message){
-				equal(message, "Matthew P finds good bugs");
-				equal(this, data, "setSomething called with correct scope");
-			},
-			person: {
-				name: "Matthew P",
-				message: function(){
-					return this.name + " finds good bugs";
-				}
-			}
-		};
-		var frag = template(data);
-		domEvents.dispatch.call( frag.firstChild, "click" );
 	});
 });

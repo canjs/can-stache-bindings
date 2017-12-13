@@ -86,8 +86,8 @@ child component into the parent scope. Typically, the values are exported to the
 In the following example, it connects the __selected__ driver in `<drivers-list>` with an editable __plateName__ in
 `<edit-plate>`:
 
-    <drivers-list selected:to="*editing"/>
-    <edit-plate plateName:bind="*editing.licensePlate"/>
+    <drivers-list selected:to="scope.vars.editing"/>
+    <edit-plate plateName:bind="scope.vars.editing.licensePlate"/>
 
 @demo demos/can-stache-bindings/to-parent.html
 

@@ -3,6 +3,8 @@
 
 @description Respond to events on elements or component ViewModels.
 
+@deprecated {3.8} This syntax is deprecated in favor of [can-stache-bindings.event on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
+
 @signature `($DOM_EVENT)='CALL_EXPRESSION'`
 
 Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
@@ -66,7 +68,7 @@ handler in the order they were given.
 The following uses `($click)="items.splice(%index,1)"` to remove a
 item from `items` when that item is clicked on.
 
-@demo demos/can-stache-bindings/event-args.html
+@demo demos/can-stache-bindings-legacy/event-args.html
 
 ### Special Event Types
 

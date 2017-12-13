@@ -3,6 +3,7 @@
 		"steal": true,
 		"can": true,
 		"QUnit": true,
+		"Set": true,
 		"System": true,
 		"SimpleDOM": true,
 		"test": true,
@@ -22,7 +23,9 @@
 		"stop": true,
 		"global": true,
 		"Promise": true,
-		"KeyboardEvent": true
+		"KeyboardEvent": true,
+		"Set": true,
+		"Map": true
 	},
 	"strict": false,
 	"curly": true,
