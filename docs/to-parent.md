@@ -58,9 +58,9 @@ Parameters are the same as [can-stache-bindings.toParent#child_prop_to__key_ chi
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT:value:to='SCOPE_VALUE'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element's value to the SCOPE_VALUE when that event occurs.
+If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the SCOPE_VALUE when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element's value to the SCOPE_VALUE when that event occurs.
+If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element’s value to the SCOPE_VALUE when that event occurs.
 
 ```
 <my-component on:show:value:to="myScopeProp"/>
@@ -103,20 +103,22 @@ Updates `name` in the scope when the `<input>` element’s `value` changes.
 
 ## Exporting Functions
 
-You can export a function to the parent scope with a binding like:
+You can export a function to the [can-stache/keys/scope/scope.vars parent references scope]
+with a binding like:
 
 ```
-<my-tabs @addPanel:to="@*addPanel">
+<my-tabs @addPanel:to="scope.vars.addPanel">
 ```
 
 And pass the method like:
 
 ```
-<my-panel addPanel:from="@*addPanel" title="CanJS">CanJS Content</my-panel>
+<my-panel addPanel:from="scope.vars@addPanel" title:from="'CanJS'">CanJS Content</my-panel>
 ```
 
 Check it out in this demo:
 
 @demo demos/can-stache-bindings/to-parent-function.html
 
-Notice that `@` is used to prevent reading the function. You can read more about the [@ operator in the can-stache docs](https://canjs.com/doc/can-stache/keys/at.html).
+Notice that `@` is used to prevent reading the function. You can read more about
+the [can-stache/keys/at @ operator in the can-stache docs].

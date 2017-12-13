@@ -37,7 +37,7 @@
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```
-  <my-component vm:someProp:from="value"/>
+  <my-component vm:someProp:from="key"/>
   ```
 
   > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
@@ -64,7 +64,8 @@ Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ ch
 
 ## Use
 
-`childProp:from="key"` is used to pass values from the scope to a component.  You can use CallExpressions like:
+`childProp:from="key"` is used to pass values from the scope to a component.
+You can use [can-stache.expressions#Callexpressions call expressions] like:
 
 ```
 <player-scores scores:from="game.scoresForPlayer('Alison')"/>

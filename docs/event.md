@@ -47,9 +47,9 @@ Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT:value:to='SCOPE_VALUE'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element's value to the SCOPE_VALUE when that event occurs.
+If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the SCOPE_VALUE when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element's value to the SCOPE_VALUE when that event occurs.
+If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element’s value to the SCOPE_VALUE when that event occurs.
 
 ```
 <my-component on:show:value:to="myScopeProp"/>
@@ -105,7 +105,7 @@ passed any number of arguments from the surrounding scope, or `name=value`
 attributes for named arguments. Direct arguments will be provided to the
 handler in the order they were given.
 
-The following uses `on:click="items.splice(%index,1)"` to remove a
+The following uses `on:click="items.splice(scope.index,1)"` to remove an
 item from `items` when that item is clicked on.
 
 @demo demos/can-stache-bindings/event-args.html
@@ -160,11 +160,11 @@ hides the player editor:
 
 ## Changing a property when an event occurs
 
-An event on either the element or viewModel can be set to bind the element's value to a property 
+An event on either the element or viewModel can be set to bind the element’s value to a property
 on the scope like:
 
 ```
 <input type="text" value="" on:blur:value:to="myScopeProp">
 ```
 
-This will set the value of myScopeProp to the input's value anytime the input loses focus.
+This will set the value of myScopeProp to the input’s value anytime the input loses focus.
