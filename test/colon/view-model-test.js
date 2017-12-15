@@ -474,7 +474,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		});
 
 		var template = stache("<reference-export name:bind='scope.vars.refName'/>"+
-			"<ref-import name:bind='scope.vars.refName'/> {{helperToGetScope}}");
+			"<ref-import name:bind='scope.vars.refName'/> {{helperToGetScope()}}");
 
 		var scope;
 		var frag = template(data,{
