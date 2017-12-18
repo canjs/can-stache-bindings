@@ -31,11 +31,11 @@
     "main": "can-stache-bindings"
   },
   "dependencies": {
-    "can-attribute-encoder": "^0.3.0",
+    "can-attribute-encoder": "^0.3.2",
     "can-compute": "^3.3.1",
-    "can-event": "^3.5.0",
-    "can-event-dom-enter": "^1.0.2",
-    "can-event-dom-radiochange": "^1.0.2",
+    "can-event": "^3.7.6",
+    "can-event-dom-enter": "^1.0.4",
+    "can-event-dom-radiochange": "^1.0.5",
     "can-globals": "<2.0.0",
     "can-log": "^0.1.0",
     "can-observation": "^3.3.1",
