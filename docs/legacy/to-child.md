@@ -9,7 +9,7 @@
 
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
-  ```
+  ```html
   <my-component {some-prop}="value"/>
   ```
 
@@ -24,13 +24,13 @@
 
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` property or attribute on the element.
 
-  ```
+  ```html
   <input {$value}="name"/>
   ```
 
   This signature works, but the following should be used instead:
 
-  ```
+  ```html
   <input value="{{name}}"/>
   ```
 
@@ -40,7 +40,7 @@
 
 `{child-prop}="key"` is used to pass values from the scope to a component.  You can use CallExpressions like:
 
-```
+```html
 <player-scores {scores}="game.scoresForPlayer('Alison')"/>
 <player-scores {scores}="game.scoresForPlayer('Jeff')"/>
 ```

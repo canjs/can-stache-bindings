@@ -9,7 +9,7 @@
 
 Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <div ($click)="doSomething()"/>
 ```
 
@@ -28,7 +28,7 @@ Listens to an event on the element and calls the [can-stache/expressions/call] w
 
 Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <my-component (show)="doSomething()"/>
 ```
 
@@ -55,7 +55,7 @@ The use of `(event)` bindings changes between listening on __DOM events__ and __
 
 To listen for a DOM event, wrap the event name with `($event)` like:
 
-```
+```html
 <div ($click)="doSomething()"/>
 ```
 
@@ -92,7 +92,7 @@ the user hits the enter key on this input.
 
 To listen on a [can-component Component’s] [can-component.prototype.ViewModel ViewModel], wrap the event name with `(event)` like:
 
-```
+```html
 <player-edit
   	(close)="removeEdit()"
   	{player}="editingPlayer"/>
@@ -101,7 +101,7 @@ To listen on a [can-component Component’s] [can-component.prototype.ViewModel 
 ViewModels can publish events on themselves. The following `<player-edit>` component
 dispatches a `"close"` event on itself when its `close` method is called:
 
-```
+```js
 Component.extend({
   tag: "player-edit",
   template: can.view('player-edit-stache'),

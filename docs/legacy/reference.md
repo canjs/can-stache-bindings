@@ -18,7 +18,7 @@
 Export a view model to the references scope by adding an attribute with the
 hyphenated name of the reference scope property:
 
-```
+```html
 <year-selector *year-selector />
 ```
 

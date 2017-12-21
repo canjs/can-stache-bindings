@@ -7,7 +7,7 @@
 
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
-  ```
+  ```html
   <my-component someProp:from="value"/>
   ```
 
@@ -22,13 +22,13 @@
 
   Imports [can-stache.key] in the [can-view-scope scope] to `child-prop` property or attribute on the element.
 
-  ```
+  ```html
   <input value:from="name"/>
   ```
 
   This signature works, but the following should be used instead:
 
-  ```
+  ```html
   <input value="{{name}}"/>
   ```
 
@@ -36,7 +36,7 @@
 
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
-  ```
+  ```html
   <my-component vm:someProp:from="key"/>
   ```
 
@@ -48,13 +48,13 @@ Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ chi
 
   Imports [can-stache.key] in the [can-view-scope scope] to `child-prop` property or attribute on the element.
 
-  ```
+  ```html
   <input el:value:from="name"/>
   ```
 
   This signature works, but the following should be used instead:
 
-  ```
+  ```html
   <input value="{{name}}"/>
   ```
 
@@ -67,7 +67,7 @@ Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ ch
 `childProp:from="key"` is used to pass values from the scope to a component.
 You can use [can-stache.expressions#Callexpressions call expressions] like:
 
-```
+```html
 <player-scores scores:from="game.scoresForPlayer('Alison')"/>
 <player-scores scores:from="game.scoresForPlayer('Jeff')"/>
 ```

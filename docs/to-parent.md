@@ -8,7 +8,7 @@
 Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
-```
+```html
 <my-component someProp:to="value"/>
 ```
 
@@ -24,7 +24,7 @@ child components viewmodel. Use `this:to` or `.:to` to export the entire viewMod
   Exports the element’s `child-prop` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
   `key` with the value of `child-prop` when `child-prop` changes.
 
-  ```
+  ```html
   <input value:to="name"/>
   ```
 
@@ -37,7 +37,7 @@ child components viewmodel. Use `this:to` or `.:to` to export the entire viewMod
 Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can-stache.key] in the parent [can-view-scope scope]. It also updates
 `key` with the value of `childProp` when `childProp` changes.
 
-```
+```html
 <my-component vm:someProp:to="value"/>
 ```
 
@@ -50,7 +50,7 @@ Parameters are the same as [can-stache-bindings.toParent#childProp_to__key_ chil
   Exports the element’s `child-prop` property or attribute to [can-stache.key] in the parent [can-view-scope scope]. It also updates
   `key` with the value of `child-prop` when `child-prop` changes.
 
-  ```
+  ```html
   <input el:value:to="name"/>
   ```
 
@@ -62,7 +62,7 @@ If the element has a [can-component::ViewModel ViewModel], listens to an event o
 
 If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element’s value to the SCOPE_VALUE when that event occurs.
 
-```
+```html
 <my-component on:show:value:to="myScopeProp"/>
 ```
 
@@ -86,8 +86,10 @@ child component into the parent scope. Typically, the values are exported to the
 In the following example, it connects the __selected__ driver in `<drivers-list>` with an editable __plateName__ in
 `<edit-plate>`:
 
-    <drivers-list selected:to="scope.vars.editing"/>
-    <edit-plate plateName:bind="scope.vars.editing.licensePlate"/>
+```html
+<drivers-list selected:to="scope.vars.editing"/>
+<edit-plate plateName:bind="scope.vars.editing.licensePlate"/>
+```
 
 @demo demos/can-stache-bindings/to-parent.html
 
@@ -95,7 +97,7 @@ In the following example, it connects the __selected__ driver in `<drivers-list>
 
 `child-prop:to="key"` can be used to export an attribute value into the scope.  For example:
 
-```
+```html
 <input value:to="name"/>
 ```
 
@@ -106,13 +108,13 @@ Updates `name` in the scope when the `<input>` element’s `value` changes.
 You can export a function to the [can-stache/keys/scope/scope.vars parent references scope]
 with a binding like:
 
-```
+```html
 <my-tabs @addPanel:to="scope.vars.addPanel">
 ```
 
 And pass the method like:
 
-```
+```html
 <my-panel addPanel:from="scope.vars@addPanel" title:from="'CanJS'">CanJS Content</my-panel>
 ```
 
