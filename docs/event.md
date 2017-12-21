@@ -9,7 +9,7 @@ If the element has a [can-component::ViewModel ViewModel], listens to an event o
 
 If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <my-component on:show="doSomething()"/>
 ```
 
@@ -29,7 +29,7 @@ is fired. The following key values are also supported:
 
 Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <div on:el:click="doSomething()"/>
 ```
 
@@ -39,7 +39,7 @@ Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT
 
 Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <my-component on:vm:show="doSomething()"/>
 ```
 
@@ -51,7 +51,7 @@ If the element has a [can-component::ViewModel ViewModel], listens to an event o
 
 If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element’s value to the SCOPE_VALUE when that event occurs.
 
-```
+```html
 <my-component on:show:value:to="myScopeProp"/>
 ```
 
@@ -63,7 +63,7 @@ If the element does **not** have a [can-component::ViewModel ViewModel], listens
 
 Listens to an event on the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <my-component on:show:by:this="doSomething()"/>
 ```
 
@@ -75,7 +75,7 @@ Listens to an event on the [can-view-scope scope] and calls the [can-stache/expr
 
 Listens to an event on a property of the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
 
-```
+```html
 <my-component on:show:by:obj="doSomething()"/>
 ```
 
@@ -95,7 +95,7 @@ is fired. Same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EX
 
 `on:el:` will listen for events on the DOM, `on:` can also be used to listen for DOM events if the element does not have a [can-component::ViewModel ViewModel].
 
-```
+```html
 <div on:click="doSomething()"/>
 ```
 
@@ -105,7 +105,7 @@ passed any number of arguments from the surrounding scope, or `name=value`
 attributes for named arguments. Direct arguments will be provided to the
 handler in the order they were given.
 
-The following uses `on:click="items.splice(scope.index,1)"` to remove an
+The following uses `on:click='../items.splice(scope.index,1)'` to remove an
 item from `items` when that item is clicked on.
 
 @demo demos/can-stache-bindings/event-args.html
@@ -122,7 +122,9 @@ similar to [$.special](http://benalman.com/news/2010/03/jquery-special-events/).
 `on:enter` is a special event that calls its handler whenever the enter
 key is pressed while focused on the current element. For example:
 
-	<input type='text' on:enter='save()' />
+```html
+<input type='text' on:enter='save()' />
+```
 
 The above template snippet would call the save method
 (in the [can-view-scope scope]) whenever
@@ -132,7 +134,7 @@ the user hits the enter key on this input.
 
 To listen on a [can-component Component’s] [can-component.prototype.ViewModel ViewModel], prepend the event with `on:` (`on:vm:` can also be used to be make this more explicit) like:
 
-```
+```html
 <player-edit
 	on:close="removeEdit()"
 	player:from="editingPlayer"/>
@@ -141,15 +143,16 @@ To listen on a [can-component Component’s] [can-component.prototype.ViewModel 
 ViewModels can publish events on themselves. The following `<player-edit>` component
 dispatches a `"close"` event on itself when its `close` method is called:
 
-```
+```js
 Component.extend({
-  tag: "player-edit",
-  template: can.view('player-edit-stache'),
-  viewModel: {
-    close: function(){
-      this.dispatch("close");
-    }
-  }
+	tag: "player-edit",
+	view: stache($('#player-edit-stache').html()),
+	ViewModel: DefineMap.extend({
+		player: Player,
+		close: function(){
+			this.dispatch("close");
+		}
+	})
 });
 ```
 
@@ -163,7 +166,7 @@ hides the player editor:
 An event on either the element or viewModel can be set to bind the element’s value to a property
 on the scope like:
 
-```
+```html
 <input type="text" value="" on:blur:value:to="myScopeProp">
 ```
 

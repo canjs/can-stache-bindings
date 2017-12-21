@@ -9,7 +9,7 @@
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
-  ```
+  ```html
   <my-component someProp:bind="value"/>
   ```
 
@@ -31,7 +31,7 @@
   [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated `key` will be updated
   and vice-versa.
 
-  ```
+  ```html
   <input value:bind="name"/>
   ```
 
@@ -45,7 +45,7 @@
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
-  ```
+  ```html
   <my-component vm:someProp:bind="value"/>
   ```
 
@@ -65,7 +65,7 @@ Parameters are the same as [can-stache-bindings.twoWay#childProp_bind__key_ chil
   [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated `key` will be updated
   and vice-versa.
 
-  ```
+  ```html
   <input el:value:bind="name"/>
   ```
 
