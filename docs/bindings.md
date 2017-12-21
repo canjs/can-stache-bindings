@@ -28,14 +28,14 @@ The following are the bindings that should be used with [can-stache]:
 Binds to `childEvent` on `<my-component>`'s [can-component::ViewModel ViewModel] and calls
 `method` on the [can-view-scope scope] with the specified arguments:
 
-```
+```html
 <my-component on:childEvent="method('primitive', key, hash1=key1)"/>
 ```
 
 If the element does not have a [can-component::ViewModel ViewModel], binds to `domEvent` on the element and calls
 `method` on the [can-view-scope scope] with the specified arguments.
 
-```
+```html
 <div on:domEvent="method('primitive', key, hash1=key1)"/>
 ```
 
@@ -45,7 +45,7 @@ You can also explicitly listen to events on the [can-component::ViewModel ViewMo
 
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope]:
 
-```
+```html
 <my-component childProp:from="value"/>
 ```
 
@@ -54,7 +54,7 @@ Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel]
 If the element does not have a [can-component::ViewModel ViewModel], updates the `child-attr` attribute or property of the
 element with `value` in the [can-view-scope scope]:
 
-```
+```html
 <div child-attr:from="value"/>
 ```
 
@@ -67,7 +67,7 @@ You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:c
 Updates `value` in the [can-view-scope scope]  with `childProp`
 in `<my-component>`’s [can-component::ViewModel ViewModel]:
 
-```
+```html
 <my-component childProp:to="value"/>
 ```
 
@@ -76,7 +76,7 @@ in `<my-component>`’s [can-component::ViewModel ViewModel]:
 If the element does not have a [can-component::ViewModel ViewModel], updates `value`
 in the [can-view-scope scope] with the `child-attr` attribute or property of the element.
 
-```
+```html
 <div child-attr:to="value"/>
 ```
 
@@ -88,14 +88,14 @@ You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:c
 
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope] and vice versa:
 
-```
+```html
 <my-component childProp:bind="value"/>
 ```
 
 Updates the `child-attr` attribute or property of the element with `value`
 in the [can-view-scope scope] and vice versa:
 
-```
+```html
 <div child-attr:bind="value"/>
 ```
 
@@ -107,7 +107,7 @@ You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:c
 
 Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
 
-```javascript
+```js
 function component(bar) {
 	// changes to bar's properties are preserved
 	bar.quux = 'barfoo';

@@ -11,7 +11,7 @@
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
-  ```
+  ```html
   <my-component {(some-prop)}="value"/>
   ```
 
@@ -33,7 +33,7 @@
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
-  ```
+  ```html
   <input {($value)}="name"/>
   ```
 

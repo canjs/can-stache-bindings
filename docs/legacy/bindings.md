@@ -30,14 +30,14 @@ The following are the deprecated bindings that can be used with [can-stache]:
 Binds to `childEvent` on `<my-component>`'s [can-component::ViewModel ViewModel] and calls
 `method` on the [can-view-scope scope] with the specified arguments:
 
-```
+```html
 <my-component (child-event)="method('primitive', key, hash1=key1)"/>
 ```
 
 Binds to `domEvent` on `<my-component>` and calls
 `method` on the [can-view-scope scope] with the specified arguments.
 
-```
+```html
 <my-component ($dom-event)="method('primitive', key, hash1=key1)"/>
 ```
 
@@ -45,14 +45,14 @@ Binds to `domEvent` on `<my-component>` and calls
 
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope]:
 
-```
+```html
 <my-component {child-prop}="value"/>
 ```
 
 Updates the `child-attr` attribute or property on `<my-component>` with `value`
 in the [can-view-scope scope]:
 
-```
+```html
 <my-component {$child-attr}="value"/>
 ```
 
@@ -63,14 +63,14 @@ in the [can-view-scope scope]:
 Updates `value` in the [can-view-scope scope]  with `childProp`
 in `<my-component>`’s [can-component::ViewModel ViewModel]:
 
-```
+```html
 <my-component {^child-prop}="value"/>
 ```
 
 Updates `value`
 in the [can-view-scope scope] with the `child-attr` attribute or property on `<my-component>`:
 
-```
+```html
 <my-component {^$child-attr}="value"/>
 ```
 
@@ -80,14 +80,14 @@ in the [can-view-scope scope] with the `child-attr` attribute or property on `<m
 
 Updates `childProp` in `<my-component>`’s [can-component::ViewModel ViewModel] with `value` in the [can-view-scope scope] and vice versa:
 
-```
+```html
 <my-component {(child-prop)}="value"/>
 ```
 
 Updates the `child-attr` attribute or property on `<my-component>` with `value`
 in the [can-view-scope scope] and vice versa:
 
-```
+```html
 <my-component {($child-attr)}="value"/>
 ```
 
@@ -97,7 +97,7 @@ in the [can-view-scope scope] and vice versa:
 
 Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, [can-define/map/map DefineMap], etc), it is passed as a reference, behaving in much the same way as the following snippet.
 
-```javascript
+```js
 function component(bar) {
 	// changes to bar's properties are preserved
 	bar.quux = 'barfoo';
