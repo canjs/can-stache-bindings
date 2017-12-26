@@ -1,9 +1,9 @@
 var globals = require('can-globals');
-var domEvents = require('can-util/dom/events/events');
-var domMutate = require('can-util/dom/mutate/mutate');
+var domEvents = require('can-dom-events');
+var domMutate = require('can-dom-mutate');
+var domMutateNode = require('can-dom-mutate/node');
 var domData = require('can-util/dom/data/data');
 var makeDocument = require('can-vdom/make-document/make-document');
-require('can-util/dom/events/inserted/inserted');
 var helpers = {
 	makeQUnitModule: function(name, doc, enableMO){
 		QUnit.module(name, {
@@ -46,14 +46,14 @@ var helpers = {
 	afterMutation: function(cb) {
 		var doc = globals.getKeyValue('document');
 		var div = doc.createElement("div");
-		domEvents.addEventListener.call(div, "inserted", function(){
+		var undo = domMutate.onNodeInsertion(div, function () {
+			undo();
 			doc.body.removeChild(div);
 			setTimeout(cb, 5);
 		});
-		setTimeout(function(){
-			domMutate.appendChild.call(doc.body, div);
-		},10);
-
+		setTimeout(function () {
+			domMutateNode.appendChild.call(doc.body, div);
+		}, 10);
 	},
 	makeTests: function(name, makeTest) {
 

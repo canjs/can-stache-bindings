@@ -13,9 +13,8 @@ var SimpleObservable = require("can-simple-observable");
 var canSymbol = require('can-symbol');
 var canReflect = require('can-reflect');
 
-
-var domMutate = require('can-util/dom/mutate/mutate');
-var domEvents = require('can-util/dom/events/events');
+var domMutate = require('can-dom-mutate/node');
+var domEvents = require('can-dom-events');
 
 var canEach = require('can-util/js/each/each');
 var DefineMap = require("can-define/map/map");
@@ -45,7 +44,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		input.value = "32";
 
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 
 		equal(map.get("age"), "32", "updated from input");
 	});
@@ -75,7 +74,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
 
 		inputTo.value = '4';
-		domEvents.dispatch.call(inputTo, 'change');
+		domEvents.dispatch(inputTo, 'change');
 		equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
 
 		scope.attr('scope1', 'scope4');
@@ -85,7 +84,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
 
 		inputFrom.value = 'scope5';
-		domEvents.dispatch.call(inputFrom, 'change');
+		domEvents.dispatch(inputFrom, 'change');
 		equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
 
 		scope.attr('scope2', 'scope6');
@@ -95,7 +94,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
 
 		inputBind.value = 'scope6';
-		domEvents.dispatch.call(inputBind, 'change');
+		domEvents.dispatch(inputBind, 'change');
 		equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
 
 		scope.attr('scope3', 'scope7');
@@ -122,7 +121,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 					equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
 					input.value = "Lueke";
-					domEvents.dispatch.call(input, "change");
+					domEvents.dispatch(input, "change");
 
 					testHelpers.afterMutation(function() {
 						equal(map.get("last"), "Lueke", "updated from input");
@@ -159,7 +158,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		// Set to non-number
 		input.value = "30f";
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 
 		equal(compute.get(), 30, "Still the old value");
 		equal(input.value, "30", "Text input has also not changed");
@@ -193,7 +192,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		ok(!kebabPropInput.value, "input bound to kebab-case prop value not updated when camelCase prop changes");
 
 		camelPropInput.value = "32";
-		domEvents.dispatch.call(camelPropInput, "change");
+		domEvents.dispatch(camelPropInput, "change");
 		equal(map.attr("theProp"), "31", "camelCase prop NOT updated when input bound to camelCase prop changes");
 		ok(!map.attr("the-prop"), "kebabCase prop NOT updated when input bound to camelCase prop changes");
 
@@ -206,7 +205,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
 
 		kebabPropInput.value = "35";
-		domEvents.dispatch.call(kebabPropInput, "change");
+		domEvents.dispatch(kebabPropInput, "change");
 		equal(map.attr("the-prop"), "34", "kebab-case prop NOT updated from input bound to kebab-case prop");
 		equal(map.attr("theProp"), "31", "camelCase prop NOT updated from input bound to kebab-case prop");
 	});
@@ -228,7 +227,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var kebabPropInput = ta.getElementsByTagName("input")[1];
 
 		camelPropInput.value = "32";
-		domEvents.dispatch.call(camelPropInput, "change");
+		domEvents.dispatch(camelPropInput, "change");
 		equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
 		ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -237,7 +236,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
 		kebabPropInput.value = "33";
-		domEvents.dispatch.call(kebabPropInput, "change");
+		domEvents.dispatch(kebabPropInput, "change");
 		equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
 		equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -264,7 +263,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var kebabPropInput = ta.getElementsByTagName("input")[1];
 
 		camelPropInput.value = "32";
-		domEvents.dispatch.call(camelPropInput, "change");
+		domEvents.dispatch(camelPropInput, "change");
 		equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
 		ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -273,7 +272,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
 		kebabPropInput.value = "33";
-		domEvents.dispatch.call(kebabPropInput, "change");
+		domEvents.dispatch(kebabPropInput, "change");
 		equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
 		equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
@@ -311,7 +310,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		input.value = "REVERSE REVERSE";
 
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 
 		equal(data.get("two.hops"), "REVERSE REVERSE", "updated from input");
 	});
@@ -344,7 +343,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		input.value = "REVERSE REVERSE";
 
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 
 		equal(data.get("two:hops"), "REVERSE REVERSE", "updated from input");
 	});
@@ -374,7 +373,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
 
 		inputTo.value = '4';
-		domEvents.dispatch.call(inputTo, 'change');
+		domEvents.dispatch(inputTo, 'change');
 		equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
 
 		scope.attr('scope1', 'scope4');
@@ -384,7 +383,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
 
 		inputFrom.value = 'scope5';
-		domEvents.dispatch.call(inputFrom, 'change');
+		domEvents.dispatch(inputFrom, 'change');
 		equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
 
 		scope.attr('scope2', 'scope6');
@@ -394,7 +393,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
 
 		inputBind.value = 'scope6';
-		domEvents.dispatch.call(inputBind, 'change');
+		domEvents.dispatch(inputBind, 'change');
 		equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
 
 		scope.attr('scope3', 'scope7');
@@ -432,7 +431,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 				input.value = "32";
 
-				domEvents.dispatch.call(input, "change");
+				domEvents.dispatch(input, "change");
 
 				stop();
 				testHelpers.afterMutation(function() {
@@ -453,10 +452,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		}
 	});
 
-	test("updates happen on two-way even when one binding is satisfied", function() {
+	test("updates happen on two-way even when one binding is satisfied", function(assert) {
+		var done = assert.async();
 		var template = stache('<input value:bind="firstName"/>');
-
-
 		var viewModel = new SimpleMap({ firstName: "jeffrey" });
 		canReflect.assignSymbols(viewModel,{
 			"can.setKeyValue": function(key, val) {
@@ -465,19 +463,23 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				}
 			}
 		});
-		stop(); // Stop here just to ensure the attributes event generated here is handled before the next test.
+		
 		var frag = template(viewModel);
 		domMutate.appendChild.call(this.fixture, frag);
-		equal(this.fixture.firstChild.value, "jeffrey");
 
-		this.fixture.firstChild.value = "JEFFREY";
-		domEvents.dispatch.call(this.fixture.firstChild, "change");
-		equal(this.fixture.firstChild.value, "jeffrey");
-		testHelpers.afterMutation(start);
+		var input = this.fixture.firstChild;
+		assert.equal(input.value, "jeffrey", 'initial value should be "jeffrey"');
+
+		input.value = "JEFFREY";
+		domEvents.dispatch(input, "change");
+		assert.equal(input.value, "jeffrey", 'updated value should be "jeffrey"');
+		testHelpers.afterMutation(function () {
+			done();
+		});
 	});
 
-	QUnit.test("updates happen on changed two-way even when one binding is satisfied", function() {
-		stop();
+	QUnit.test("updates happen on changed two-way even when one binding is satisfied", function(assert) {
+		var done = assert.async();
 		var template = stache('<input value:bind="{{bindValue}}"/>');
 
 		var ViewModel = DefineMap.extend({
@@ -501,17 +503,19 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var frag = template(viewModel);
 		domMutate.appendChild.call(this.fixture, frag);
+
+		var input = this.fixture.firstChild;
 		testHelpers.afterMutation(function() {
-			equal(this.fixture.firstChild.value, "jeffrey");
+			assert.equal(input.value, "jeffrey");
 
 			viewModel.bindValue = "lastName";
 			testHelpers.afterMutation(function() {
-				equal(this.fixture.firstChild.value, "king");
+				assert.equal(input.value, "king");
 
-				this.fixture.firstChild.value = "KING";
-				domEvents.dispatch.call(this.fixture.firstChild, "change");
-				equal(this.fixture.firstChild.value, "king");
-				start();
+				input.value = "KING";
+				domEvents.dispatch(input, "change");
+				assert.equal(input.value, "king");
+				done();
 			}.bind(this));
 		}.bind(this));
 	});
@@ -575,7 +579,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		frag.firstChild.value = "1";
 
-		domEvents.dispatch.call(frag.firstChild, "change");
+		domEvents.dispatch(frag.firstChild, "change");
 
 		stop();
 		testHelpers.afterMutation(function() {
@@ -617,10 +621,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		}
 
 		fooRadio.checked = true;
-		domEvents.dispatch.call(fooRadio, 'change');
+		domEvents.dispatch(fooRadio, 'change');
 
 		barRadio.checked = true;
-		domEvents.dispatch.call(barRadio, 'change');
+		domEvents.dispatch(barRadio, 'change');
 
 		equal(text(fooText), 'false', 'foo text is false');
 		equal(text(barText), 'true', 'bar text is true');
@@ -641,7 +645,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var input = frag.firstChild;
 
 		input.checked = true;
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 
 		QUnit.equal(map.get('attending'), true, "now it is true");
 	});
@@ -691,11 +695,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		data.attr('completed', false);
 		equal(input.checked, data.get('completed'), 'checkbox value bound (via attr uncheck)');
 		input.checked = true;
-		domEvents.dispatch.call(input, 'change');
+		domEvents.dispatch(input, 'change');
 		equal(input.checked, true, 'checkbox value bound (via check)');
 		equal(data.get('completed'), true, 'checkbox value bound (via check)');
 		input.checked = false;
-		domEvents.dispatch.call(input, 'change');
+		domEvents.dispatch(input, 'change');
 		equal(input.checked, false, 'checkbox value bound (via uncheck)');
 		equal(data.get('completed'), false, 'checkbox value bound (via uncheck)');
 	});
@@ -906,7 +910,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		});
 
 		equal(map.get("color"), "green", "not yet updated from input");
-		domEvents.dispatch.call(inputs[0], "change");
+		domEvents.dispatch(inputs[0], "change");
 		equal(map.get("color"), "red", "updated from input");
 
 		canEach(ta.getElementsByTagName('option'), function(opt) {
@@ -915,7 +919,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			}
 		});
 		equal(map.get("color"), "red", "not yet updated from input");
-		domEvents.dispatch.call(inputs[0], "change");
+		domEvents.dispatch(inputs[0], "change");
 		equal(map.get("color"), "green", "updated from input");
 	});
 
@@ -946,17 +950,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		setTimeout(function(){
 			// Test updating the DOM changes observable values
 			options[0].selected = true;
-			domEvents.dispatch.call(select, "change");
+			domEvents.dispatch(select, "change");
 
 			deepEqual(list.get(), ["red"], "A DefineList value is set even if none existed");
 
 			options[1].selected = true;
-			domEvents.dispatch.call(select, "change");
+			domEvents.dispatch(select, "change");
 
 			deepEqual(list.get(), ["red", "green"], "Adds items to the list");
 
 			options[0].selected = false;
-			domEvents.dispatch.call(select, "change");
+			domEvents.dispatch(select, "change");
 
 			deepEqual(list.get(), ["green"], "Removes items from the list");
 

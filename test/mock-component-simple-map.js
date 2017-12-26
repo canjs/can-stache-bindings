@@ -3,9 +3,10 @@ var CanSimpleMap = require("can-simple-map");
 var viewCallbacks = require('can-view-callbacks');
 var Scope = require('can-view-scope');
 var nodeLists = require('can-view-nodelist');
+var canSymbol = require('can-symbol');
 
 var domData = require('can-util/dom/data/data');
-var domMutate = require('can-util/dom/mutate/mutate');
+var domMutateNode = require('can-dom-mutate/node');
 var MockComponent;
 module.exports = MockComponent = {
 	extend: function(proto){
@@ -24,7 +25,7 @@ module.exports = MockComponent = {
 				}
 
 			}, {});
-			domData.set.call(el, "viewModel", viewModel);
+			el[canSymbol.for('can.viewModel')] = viewModel;
 			domData.set.call(el, "preventDataBindings", true);
 
 			if(proto.template) {
@@ -38,7 +39,7 @@ module.exports = MockComponent = {
 				}, componentTagData.parentNodeList || true, false);
 				var frag = proto.template(shadowScope, componentTagData.options, nodeList);
 
-				domMutate.appendChild.call(el, frag);
+				domMutateNode.appendChild.call(el, frag);
 			}
 		});
 	}

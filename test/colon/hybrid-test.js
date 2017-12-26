@@ -6,7 +6,7 @@ require('can-stache-bindings');
 var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
-var domEvents = require("can-util/dom/events/events");
+var domEvents = require("can-dom-events");
 
 testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, doc, enableMO){
 
@@ -25,13 +25,13 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 
 		var bindFirstInput = ta.getElementsByTagName("input")[0];
 		bindFirstInput.value = "22";
-		domEvents.dispatch.call(bindFirstInput, "click");
+		domEvents.dispatch(bindFirstInput, "click");
 		QUnit.equal(map.get('theProp'), "22");
 
 
 		var eventFirstInput = ta.getElementsByTagName("input")[1];
 		eventFirstInput.value = "23";
-		domEvents.dispatch.call(eventFirstInput, "click");
+		domEvents.dispatch(eventFirstInput, "click");
 		QUnit.equal(map.get('theProp'), "23");
 	});
 
@@ -50,7 +50,7 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 		var inputTo = ta.getElementsByTagName('input')[0];
 
 		inputTo.value = 'wurld';
-		domEvents.dispatch.call(inputTo, 'input');
+		domEvents.dispatch(inputTo, 'input');
 
 		equal(scope.get('myProp'), 'wurld', "Got the value on the scope");
 
