@@ -109,18 +109,15 @@ You can export a function to the [can-stache/keys/scope/scope.vars parent refere
 with a binding like:
 
 ```html
-<my-tabs @addPanel:to="scope.vars.addPanel">
+<my-tabs addPanel:to="scope.vars.addPanel">
 ```
 
 And pass the method like:
 
 ```html
-<my-panel addPanel:from="scope.vars@addPanel" title:from="'CanJS'">CanJS Content</my-panel>
+<my-panel addPanel:from="scope.vars.addPanel" title:from="'CanJS'">CanJS Content</my-panel>
 ```
 
 Check it out in this demo:
 
 @demo demos/can-stache-bindings/to-parent-function.html
-
-Notice that `@` is used to prevent reading the function. You can read more about
-the [can-stache/keys/at @ operator in the can-stache docs].
