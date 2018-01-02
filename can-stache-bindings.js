@@ -21,8 +21,8 @@ var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var dev = require('can-log/dev/dev');
-var domEvents = require('can-util/dom/events/events');
-require('can-util/dom/events/removed/removed');
+var domEvents = require('can-dom-events');
+var domMutate = require('can-dom-mutate');
 var domData = require('can-util/dom/data/data');
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
@@ -33,11 +33,8 @@ var SettableObservable = require("can-simple-observable/setter/setter");
 var AttributeObservable = require("./attribute-observable/attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 
-var addEnterEvent = require('can-event-dom-enter/compat');
-addEnterEvent(domEvents);
-
-var addRadioChange = require('can-event-dom-radiochange/compat');
-addRadioChange(domEvents);
+var enterEvent = require('can-event-dom-enter');
+domEvents.addEvent(enterEvent);
 
 var canEvent = require("./can-event");
 var noop = function() {};
@@ -49,8 +46,6 @@ var onMatchStr = "on:",
 	toMatchStr = ":to",
 	fromMatchStr = ":from",
 	bindMatchStr = ":bind",
-	attributesEventStr = "attributes",
-	removedStr = "removed",
 	viewModelBindingStr = "viewModel",
 	attributeBindingStr = "attribute",
 	scopeBindingStr = "scope",
@@ -58,7 +53,6 @@ var onMatchStr = "on:",
 	getValueSymbol = canSymbol.for("can.getValue"),
 	onValueSymbol = canSymbol.for("can.onValue"),
 	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord");
-
 
 var throwOnlyOneTypeOfBindingError = function(){
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
@@ -187,9 +181,9 @@ var behaviors = {
 
 		// Listen to attribute changes and re-initialize
 		// the bindings.
-		var attributeListener;
+		var attributeDisposal;
 		if(!bindingsState.isSettingViewModel) {
-			attributeListener = function (ev) {
+			attributeDisposal = domMutate.onNodeAttributeChange(el, function (ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
@@ -221,13 +215,14 @@ var behaviors = {
 						onTeardowns[attrName] = dataBinding.onTeardown;
 					}
 				}
-			};
-
-			domEvents.addEventListener.call(el, attributesEventStr, attributeListener);
+			});
 		}
 
 		return function() {
-			domEvents.removeEventListener.call(el, attributesEventStr, attributeListener);
+			if (attributeDisposal) {
+				attributeDisposal();
+				attributeDisposal = undefined;
+			}
 			for(var attrName in onTeardowns) {
 				onTeardowns[attrName]();
 			}
@@ -302,12 +297,21 @@ var behaviors = {
 				}
 			};
 			// Listen for changes
-			domEvents.addEventListener.call(el, attributesEventStr, attributeListener);
-
 			teardown = dataBinding.onTeardown;
-			canEvent.one.call(el, removedStr, function () {
+			var attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
+			var removedDisposal = domMutate.onNodeRemoval(el, function () {
+				if (el.ownerDocument.contains(el)) {
+					return;
+				}
 				teardown();
-				domEvents.removeEventListener.call(el, attributesEventStr, attributeListener);
+				if (removedDisposal) {
+					removedDisposal();
+					removedDisposal = undefined;
+				}
+				if (attributeDisposal) {
+					attributeDisposal();
+					attributeDisposal = undefined;
+				}
 			});
 	},
 	// ### bindings.behaviors.event
@@ -333,10 +337,9 @@ var behaviors = {
 			return this.data(el, data);
 		}
 
-
 		if(startsWith.call(attributeName, onMatchStr)) {
 			event = attributeName.substr(onMatchStr.length);
-			var viewModel = domData.get.call(el, viewModelBindingStr);
+			var viewModel = el[canSymbol.for('can.viewModel')];
 
 			// when using on:prop:by:obj
 			// bindingContext should be scope.obj
@@ -439,30 +442,40 @@ var behaviors = {
 
 		};
 
+		var attributesDisposal,
+			removalDisposal;
+
 		// Unbind the event when the attribute is removed from the DOM
 		var attributesHandler = function(ev) {
 			var isEventAttribute = ev.attributeName === attributeName;
-			var isRemoved = !this.getAttribute(attributeName);
+			var isRemoved = !el.getAttribute(attributeName);
 			var isEventAttributeRemoved = isEventAttribute && isRemoved;
 			if (isEventAttributeRemoved) {
 				unbindEvent();
 			}
 		};
-		// Unbind the event when the target is removed from the DOM
-		var removedHandler = function(ev) {
-			unbindEvent();
+		var removalHandler = function () {
+			if (!el.ownerDocument.contains(el)) {
+				unbindEvent();
+			}
 		};
 		var unbindEvent = function() {
 			canEvent.off.call(bindingContext, event, handler);
-			canEvent.off.call(el, attributesEventStr, attributesHandler);
-			canEvent.off.call(el, removedStr, removedHandler);
+			if (attributesDisposal) {
+				attributesDisposal();
+				attributesDisposal = undefined;
+			}
+			if (removalDisposal) {
+				removalDisposal();
+				removalDisposal = undefined;
+			}
 		};
 
 		// Bind the handler defined above to the element we're currently processing and the event name provided in this
 		// attribute name (can-click="foo")
 		canEvent.on.call(bindingContext, event, handler);
-		canEvent.on.call(el, attributesEventStr, attributesHandler);
-		canEvent.on.call(el, removedStr, removedHandler);
+		attributesDisposal = domMutate.onNodeAttributeChange(el, attributesHandler);
+		removalDisposal = domMutate.onNodeRemoval(el, removalHandler);
 	}
 };
 
@@ -493,7 +506,7 @@ viewCallbacks.attr(/on:[\w\.:]+/, behaviors.event);
 var getObservableFrom = {
 	// ### getObservableFrom.viewModelOrAttribute
 	viewModelOrAttribute: function(el, scope, vmNameOrProp, bindingData, mustBeSettable, stickyCompute, event) {
-		var viewModel = domData.get.call(el, viewModelBindingStr);
+		var viewModel = el[canSymbol.for('can.viewModel')];
 
 		// if we have a viewModel, use it; otherwise, setup attribute binding
 		if (viewModel) {

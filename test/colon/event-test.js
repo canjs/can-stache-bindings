@@ -8,17 +8,13 @@ var MockComponent = require("../mock-component-simple-map");
 
 var SimpleMap = require("can-simple-map");
 
-
 var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
 
-
-
 var domData = require('can-util/dom/data/data');
-var domMutate = require('can-util/dom/mutate/mutate');
-var domEvents = require('can-util/dom/events/events');
-
-
+var domMutate = require('can-dom-mutate');
+var domMutateNode = require('can-dom-mutate/node');
+var domEvents = require('can-dom-events');
 
 testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO){
 
@@ -36,12 +32,12 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		var input = frag.childNodes.item(0);
 
-		domEvents.dispatch.call(input, {
+		domEvents.dispatch(input, {
 			type: "keyup",
 			keyCode: 38
 		});
 
-		domEvents.dispatch.call(input, {
+		domEvents.dispatch(input, {
 			type: "keyup",
 			keyCode: 13
 		});
@@ -68,7 +64,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 
 		ta.appendChild(frag);
-		domEvents.dispatch.call(doc.getElementById("click-me"), "click");
+		domEvents.dispatch(doc.getElementById("click-me"), "click");
 	});
 
 	test("two bindings on one element call back the correct method", function() {
@@ -90,13 +86,13 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		callingFirst = true;
 
-		domEvents.dispatch.call(input, {
+		domEvents.dispatch(input, {
 			type: "mousemove"
 		});
 
 		callingFirst = false;
 		callingSecond = true;
-		domEvents.dispatch.call(input, {
+		domEvents.dispatch(input, {
 			type: "click"
 		});
 	});
@@ -120,7 +116,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		// as we don't care about "click" events before
 		// our input is shown/hidden.
 		var fragment = template(viewModel);
-		domMutate.appendChild.call(this.fixture, fragment);
+		domMutateNode.appendChild.call(this.fixture, fragment);
 
 		// Predicate for relevant events
 		var isInputBindingEvent = function(element, eventName) {
@@ -130,28 +126,31 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		// Override domEvents to detect removed handlers
 		var realAddEventListener = domEvents.addEventListener;
 		var realRemoveEventListener = domEvents.removeEventListener;
-		domEvents.addEventListener = function(eventName) {
-			if (isInputBindingEvent(this, eventName)) {
+		domEvents.addEventListener = function(target, eventName) {
+			if (isInputBindingEvent(target, eventName)) {
 				bindingListenerCount++;
 				hasAddedBindingListener = true;
 			}
-			return realAddEventListener.apply(this, arguments);
+			return realAddEventListener.apply(null, arguments);
 		};
-		domEvents.removeEventListener = function(eventName) {
-			if (isInputBindingEvent(this, eventName)) {
+		domEvents.removeEventListener = function(target, eventName) {
+			if (isInputBindingEvent(target, eventName)) {
 				bindingListenerCount--;
 				hasRemovedBindingListener = true;
 			}
-			return realRemoveEventListener.apply(this, arguments);
+			return realRemoveEventListener.apply(null, arguments);
 		};
 
 		// Add and then remove the input from the DOM
 		// NOTE: the implementation uses "remove" which is asynchronous.
 		viewModel.set('isShowing', true);
 
-		var andThen = function() {
-			domEvents.removeEventListener.call(span, 'removed', andThen);
-			start();
+		// We use the also effected span so we
+		// can test the input handlers in isolation.
+		var span = this.fixture.firstChild.lastChild;
+		var done = assert.async();
+		var undo = domMutate.onNodeRemoval(span, function () {
+			undo();
 
 			// Reset domEvents
 			domEvents.addEventListener = realAddEventListener;
@@ -167,15 +166,11 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			if (removeEventListener < 0) {
 				message = 'Event listeners were removed more than necessary';
 			}
-			assert.equal(bindingListenerCount, 0, message);
-		};
 
-		// We use the also effected span so we
-		// can test the input handlers in isolation.
-		var span = this.fixture.firstChild.lastChild;
-		domEvents.addEventListener.call(span, 'removed', andThen);
+			assert.equal(bindingListenerCount, 0, message);
+			done();
+		});
 		viewModel.set('isShowing', false);
-		stop();
 	});
 
 	test("on:event throws an error when inside #if block (#1182)", function(assert){
@@ -191,11 +186,11 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var fixture = this.fixture;
 		var trig = function(){
 			var div = fixture.getElementsByTagName('div')[0];
-			domEvents.dispatch.call(div, {
+			domEvents.dispatch(div, {
 				type: "click"
 			});
 		};
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 		trig();
 		testHelpers.afterMutation(function() {
 			equal(clickHandlerCount, 0, "click handler not called");
@@ -341,7 +336,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var frag = template(parent);
 		var element = frag.firstChild;
 
-		domEvents.dispatch.call(element, "prop");
+		domEvents.dispatch(element, "prop");
 	});
 
 
@@ -363,7 +358,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		this.fixture.appendChild(frag);
 		var p0 = this.fixture.getElementsByTagName("p")[0];
-		domEvents.dispatch.call(p0, "click");
+		domEvents.dispatch(p0, "click");
 
 	});
 
@@ -376,7 +371,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			test: true
 		});
 
-		domEvents.dispatch.call(frag.firstChild, 'foo');
+		domEvents.dispatch(frag.firstChild, 'foo');
 		QUnit.ok(flip, "Plain object method successfully called");
 	});
 
@@ -393,39 +388,44 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var frag = template(new MyMap());
 		var button = frag.firstChild;
 
-		domEvents.dispatch.call(button, "click");
+		domEvents.dispatch(button, "click");
 	});
 
 	test("special values get called", function(assert) {
 		assert.expect(2);
-		var done = assert.async(1);
+		var done = assert.async();
+
+		var vm = new ( SimpleMap.extend('RefSyntaxVM', {
+			method: function() {
+				assert.ok(true, "method called");
+
+				done();
+			}
+		}) )();
+
+		vm._refSyntaxFlag = true; // Just identity check
 
 		MockComponent.extend({
 			tag: 'ref-syntax',
 			template: stache("<input on:change=\"scope.set('*foo', scope.element.value)\">"),
-			viewModel: new ( SimpleMap.extend({
-				method: function() {
-					assert.ok(true, "method called");
-
-					done();
-				}
-			}) )()
+			viewModel: vm
 		});
 
-		var template = stache("<ref-syntax on:el:inserted=\"scope.viewModel.method()\"></ref-syntax>");
+		var template = stache("<ref-syntax on:el:baz-event=\"scope.viewModel.method()\"></ref-syntax>");
 		var frag = template({});
-		domMutate.appendChild.call(this.fixture, frag);
-		QUnit.stop();
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		testHelpers.afterMutation(function() {
 			var input = doc.getElementsByTagName("input")[0];
 			input.value = "bar";
-			domEvents.dispatch.call(input, "change");
+			domEvents.dispatch(input, "change");
 
 			// Read from mock component's shadow scope for refs.
 			var scope = domData.get.call(this.fixture.firstChild).shadowScope;
 			assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
-			start();
+
+			var refElement = doc.getElementsByTagName('ref-syntax')[0];
+			domEvents.dispatch(refElement, 'baz-event');
 		}.bind(this));
 	});
 

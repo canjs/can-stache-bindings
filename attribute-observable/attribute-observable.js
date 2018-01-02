@@ -2,11 +2,18 @@ var queues = require("can-queues");
 var canEvent = require("../can-event");
 var canReflect = require("can-reflect");
 var Observation = require("can-observation");
-var attr = require("can-util/dom/attr/attr");
+var attr = require("./attribute-behaviors");
 var getEventName = require("./get-event-name");
 var canReflectDeps = require("can-reflect-dependencies");
 var ObservationRecorder = require("can-observation-recorder");
 var SettableObservable = require("can-simple-observable/settable/settable");
+
+// We register a namespaced radiochange event with the global
+// event registry so it does not interfere with user-defined events.
+var domEvents = require('can-dom-events');
+var radioChangeEvent = require('can-event-dom-radiochange');
+var internalRadioChangeEventType = 'can-stache-bindings-radiochange';
+domEvents.addEvent(radioChangeEvent, internalRadioChangeEventType);
 
 var isSelect = function isSelect(el) {
 	return el.nodeName.toLowerCase() === "select";
@@ -15,6 +22,20 @@ var isSelect = function isSelect(el) {
 var isMultipleSelect = function isMultipleSelect(el, prop) {
 	return isSelect(el) && prop === "value" && el.multiple;
 };
+
+var slice = Array.prototype.slice;
+
+function canUtilAEL () {
+	var args = slice.call(arguments, 0);
+	args.unshift(this);
+	return domEvents.addEventListener.apply(null, args);
+}
+
+function canUtilREL () {
+	var args = slice.call(arguments, 0);
+	args.unshift(this);
+	return domEvents.removeEventListener.apply(null, args);
+}
 
 function AttributeObservable(el, prop, bindingData, event) {
 	this.el = el;
@@ -100,11 +121,16 @@ Object.assign(AttributeObservable.prototype, {
 			observable.handler(attr.get(observable.el, observable.prop));
 		};
 
-		if (observable.event === "radiochange") {
+		if (observable.event === internalRadioChangeEventType) {
 			canEvent.on.call(observable.el, "change", observable._handler);
 		}
 
-		canEvent.on.call(observable.el, observable.event, observable._handler);
+		var specialBinding = attr.findSpecialListener(observable.prop);
+		if (specialBinding) {
+			observable._specialDisposal = specialBinding.call(observable.el, observable.prop, observable._handler, canUtilAEL);
+		}
+
+		canEvent.on.call(observable.el, observable.event, observable._handler);		
 
 		// initial value
 		this.value = attr.get(this.el, this.prop);
@@ -115,11 +141,16 @@ Object.assign(AttributeObservable.prototype, {
 
 		observable.bound = false;
 
-		if (observable.event === "radiochange") {
+		if (observable.event === internalRadioChangeEventType) {
 			canEvent.off.call(observable.el, "change", observable._handler);
 		}
 
-		canEvent.off.call(observable.el, observable.event, observable._handler);
+		if (observable._specialDisposal) {
+			observable._specialDisposal.call(observable.el, canUtilREL);
+			observable._specialDisposal = null;
+		}
+
+		canEvent.off.call(observable.el, observable.event, observable._handler);	
 	},
 
 	valueHasDependencies: function valueHasDependencies() {

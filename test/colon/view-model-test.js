@@ -7,8 +7,9 @@ var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
 var MockComponent = require("../mock-component-simple-map");
-var domEvents = require("can-util/dom/events/events");
-var domMutate = require('can-util/dom/mutate/mutate');
+var domEvents = require('can-dom-events');
+var domMutate = require('can-dom-mutate');
+var domMutateNode = require('can-dom-mutate/node');
 var DefineMap = require("can-define/map/map");
 
 var viewCallbacks = require('can-view-callbacks');
@@ -43,7 +44,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		var frag = template(parent);
 		var el = frag.firstChild;
-		domEvents.dispatch.call(el, "click");
+		domEvents.dispatch(el, "click");
 	});
 
 	QUnit.test("vm:prop:to/:from/:bind work (#280)", function() {
@@ -527,7 +528,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		var fragment = template({});
 
-		domMutate.appendChild.call(this.fixture, fragment);
+		domMutateNode.appendChild.call(this.fixture, fragment);
 		var button = this.fixture.getElementsByTagName('button')[0];
 
 		// Get first text for DOM and VDOM
@@ -539,9 +540,9 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		}
 
 		equal(text(button), 'false', 'Initial value is "false"');
-		domEvents.dispatch.call(button, 'click');
+		domEvents.dispatch(button, 'click');
 		equal(text(button), 'true', 'Value is "true" after first click');
-		domEvents.dispatch.call(button, 'click');
+		domEvents.dispatch(button, 'click');
 		equal(text(button), 'false', 'Value is "false" after second click');
 	});
 
@@ -642,26 +643,27 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		});
 
 		var done = assert.async();
+		var onNodeAttributeChange = domMutate.onNodeAttributeChange;
+
+		var attributeChangeCount = 0;
+		var isAttributeChangeTracked = false;
 		var isTarget = function (target) {
 			return target.nodeName === 'VIEW-MODEL-BINDER';
 		};
-		var listenerCount = 0;
-		var hasAddedBindingListener = false;
-		var hasRemovedBindingListener = false;
-		var undo = testHelpers.interceptDomEvents(
-			function add () {
-				if (isTarget(this)) {
-					listenerCount++;
-					hasAddedBindingListener = true;
-				}
-			},
-			function remove () {
-				if (isTarget(this)) {
-					listenerCount--;
-					hasRemovedBindingListener = true;
-				}
+
+		domMutate.onNodeAttributeChange = function (node) {
+			if (!isTarget(node)) {
+				return onNodeAttributeChange.apply(null, arguments);
 			}
-		);
+
+			attributeChangeCount++;
+			isAttributeChangeTracked = true;
+			var disposal = onNodeAttributeChange.apply(null, arguments);
+			return function () {
+				attributeChangeCount--;
+				return disposal();
+			};
+		};
 
 		var viewModel = new SimpleMap({
 			isShowing: true,
@@ -669,17 +671,16 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		});
 		var template = stache('<div>{{#if isShowing}}<view-model-binder foo:bind="bar"/><hr/>{{/if}}</div>');
 		var fragment = template(viewModel);
-		domMutate.appendChild.call(this.fixture, fragment);
+		domMutateNode.appendChild.call(this.fixture, fragment);
 		// We use the also effected hr so we
 		// can test the span handlers in isolation.
 		var hr = this.fixture.firstChild.lastChild;
-		domEvents.addEventListener.call(hr, 'removed', function andThen () {
-			domEvents.removeEventListener.call(hr, 'removed', andThen);
+		var removalDisposal = domMutate.onNodeRemoval(hr, function () {
+			removalDisposal();
+			domMutate.onNodeAttributeChange = onNodeAttributeChange;
 
-			assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
-			assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
-			assert.equal(listenerCount, 0, 'all listeners should be removed');
-			undo();
+			assert.ok(isAttributeChangeTracked, 'Attribute foo:bind="bar" should be tracked');
+			assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
 			done();
 		});
 		viewModel.attr('isShowing', false);

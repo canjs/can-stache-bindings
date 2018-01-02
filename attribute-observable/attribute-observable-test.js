@@ -1,6 +1,6 @@
 var canReflect = require("can-reflect");
 var testHelpers = require("../test/helpers");
-var domEvents = require("can-util/dom/events/events");
+var domEvents = require("can-dom-events");
 var AttributeObservable = require("./attribute-observable");
 
 testHelpers.makeTests("AttributeObservable", function(
@@ -37,12 +37,12 @@ testHelpers.makeTests("AttributeObservable", function(
 
 		// trigger the event to make sure handlers are called
 		input.value = "newVal";
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 
 		// unbound handler and trigger the event again,
 		// if teardown works fine, test should pass
 		canReflect.offValue(obs, onValue);
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 	});
 
 	testIfRealDocument("it listens to change event by default", function(assert) {
@@ -61,6 +61,6 @@ testHelpers.makeTests("AttributeObservable", function(
 		});
 
 		input.value = "newVal";
-		domEvents.dispatch.call(input, "change");
+		domEvents.dispatch(input, "change");
 	});
 });
