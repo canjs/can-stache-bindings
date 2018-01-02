@@ -893,6 +893,7 @@ var makeDataBinding = function(node, el, bindingData) {
 	if(!bindingInfo) {
 		return;
 	}
+
 	// assign some bindingData props to the bindingInfo
 	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
 	if( bindingData.initializeValues) {
@@ -942,6 +943,7 @@ var makeDataBinding = function(node, el, bindingData) {
 	// This completes the binding.  We can't call it right away because
 	// the `viewModel` might not have been created yet.
 	var completeBinding = function() {
+
 		if(bindingInfo.childToParent) {
 			// setup listening on parent and forwarding to viewModel
 			updateParent = bind.childToParent(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName,
