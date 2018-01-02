@@ -3350,7 +3350,7 @@ test("set string on the viewModel", function(){
 });
 
 test("warn about using attributes to set values on the viewModel", function(){
-	var teardown = testHelpers.dev.willWarn(/file.stache:1: .+=\".+\" is deprecated. Use .+:from=\"'.+'\" instead./);
+	var teardown = testHelpers.dev.willWarn("file.stache:1: foo=\"bar\" is deprecated. Use foo:from=\"'bar'\" instead.");
 	var ViewModel = DefaultMap.extend({
 		foo: {
 			type: "string"
@@ -3366,7 +3366,7 @@ test("warn about using attributes to set values on the viewModel", function(){
 
 	template();
 
-	equal(teardown(), 2);
+	equal(teardown(), 1);// 1 because it should warn on foo and not baz
 });
 
 // Add new tests above this line

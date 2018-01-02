@@ -1220,24 +1220,6 @@ var makeDataBinding = function(node, el, bindingData) {
 		return;
 	}
 
-	//!steal-remove-start
-	if(
-		bindingInfo.child === "viewModel" &&
-		!isBindingsAttribute(bindingInfo.bindingAttributeName)
-	) {
-		var name = node.nodeName || node.name;
-		var value = node.nodeValue || node.value;
-		var filename = bindingData.scope.peek("scope.filename");
-		var lineNumber = bindingData.scope.peek('scope.lineNumber');
-
-		dev.warn(
-			(filename ? filename + ":" : "") +
-			(lineNumber ? lineNumber + ": " : "") +
-			name + "=\"" + value + "\" is deprecated. Use " + name + ":from=\"'" + value + "'\" instead."
-		);
-	}
-	//!steal-remove-end
-
 	// assign some bindingData props to the bindingInfo
 	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
 	if( bindingData.initializeValues) {
@@ -1283,6 +1265,29 @@ var makeDataBinding = function(node, el, bindingData) {
 	// This completes the binding.  We can't call it right away because
 	// the `viewModel` might not have been created yet.
 	var completeBinding = function() {
+
+		//!steal-remove-start
+		if(
+			bindingInfo.child === "viewModel" &&
+			!isBindingsAttribute(bindingInfo.bindingAttributeName)
+		) {
+			// Check to see if the viewModel has the attribute name as a defined property
+			var viewModel = bindingData.getViewModel();
+			if (canReflect.hasOwnKey(viewModel, bindingInfo.bindingAttributeName) === false) {
+				var name = node.nodeName || node.name;
+				var value = node.nodeValue || node.value;
+				var filename = bindingData.scope.peek("scope.filename");
+				var lineNumber = bindingData.scope.peek('scope.lineNumber');
+
+				dev.warn(
+					(filename ? filename + ":" : "") +
+					(lineNumber ? lineNumber + ": " : "") +
+					name + "=\"" + value + "\" is deprecated. Use " + name + ":from=\"'" + value + "'\" instead."
+				);
+			}
+		}
+		//!steal-remove-end
+
 		if(bindingInfo.childToParent) {
 			// setup listening on parent and forwarding to viewModel
 			updateParent = bind.childToParent(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName,
