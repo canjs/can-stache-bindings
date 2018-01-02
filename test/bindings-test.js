@@ -63,7 +63,6 @@ var isRealDocument = function(){
 
 QUnit.module(name, {
 	setup: function() {
-
 		globals.setKeyValue('document', doc);
 		if(!enableMO){
 			globals.setKeyValue('MutationObserver', null);
@@ -1241,38 +1240,43 @@ test("can-event throws an error when inside #if block (#1182)", function(assert)
 });
 
 // Temporarily skipped until issue #2292 get's resolved
-testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", function(){
-	var flag = canCompute(true),
-		clickHandlerCount = 0;
+testIfRealDocument("can-EVENT removed in live bindings doesn't unbind (#1112)", function(assert) {
+	var done = assert.async();
+	var flag = canCompute(true);
+	var clickHandlerCount = 0;
 	var frag = stache("<div {{#if flag}}can-click='foo'{{/if}}>Click</div>")({
 		flag: flag,
 		foo: function() {
 			clickHandlerCount++;
 		}
 	});
-	var testEnv = this;
-	var trig = function() {
-		var div = testEnv.fixture.getElementsByTagName('div')[0];
-		canEvent.trigger.call(div, {
-			type: "click"
-		});
-	};
 	domMutate.appendChild.call(this.fixture, frag);
 
-	// Attribute mutation observers are called asyncronously,
-	// so give some time for the mutation handlers.
-	stop();
-	var numTrigs = 3;
-	var testTimer = setInterval(function() {
-		if (numTrigs--) {
-			trig();
-			flag( !flag() );
-		} else {
-			clearTimeout(testTimer);
-			equal(clickHandlerCount, 2, "click handler called twice");
-			start();
-		}
-	}, 100);
+	var target = this.fixture.getElementsByTagName('div')[0];
+	var afterAttribute = function (callback) {
+		domEvents.addEventListener.call(target, 'attributes', function onAttributes () {
+			domEvents.removeEventListener.call(target, 'attributes', onAttributes);
+			callback();
+		});
+	};
+
+	afterMutation(function () {
+		canEvent.trigger.call(target, {type: "click"});
+		assert.equal(clickHandlerCount, 1, "click handler should be called");
+
+		flag(false);
+		afterAttribute(function () {
+			canEvent.trigger.call(target, {type: 'click'});
+			assert.equal(clickHandlerCount, 1, "click handler should not be called");
+
+			flag(true);
+			afterMutation(function () {
+				canEvent.trigger.call(target, {type: 'click'});
+				assert.equal(clickHandlerCount, 2, "click handler should be called again");
+				done();
+			});
+		});
+	});
 });
 
 test("can-value compute rejects new value (#887)", function() {
@@ -1401,11 +1405,14 @@ test("by default can-EVENT calls with values, not computes", function(){
 
 });
 
-test('Conditional can-EVENT bindings are bound/unbound', 2, function() {
+test('Conditional can-EVENT bindings are bound/unbound', function(assert) {
+	assert.expect(2);
+	var done = assert.async();
+
 	var state = new CanMap({
 		enableClick: true,
 		clickHandler: function() {
-			ok(true, '"click" was handled');
+			assert.ok(true, '"click" was handled');
 		}
 	});
 
@@ -1420,15 +1427,18 @@ test('Conditional can-EVENT bindings are bound/unbound', 2, function() {
 	canEvent.trigger.call(btn, 'click');
 	state.attr('enableClick', false);
 
-	stop();
-	afterMutation(function() {
-		canEvent.trigger.call(btn, 'click');
-		state.attr('enableClick', true);
-
-		afterMutation(function() {
+	afterMutation(function () {
+		setTimeout(function () {
 			canEvent.trigger.call(btn, 'click');
-			start();
-		});
+			state.attr('enableClick', true);
+
+			afterMutation(function () {
+				setTimeout(function () {
+					canEvent.trigger.call(btn, 'click');
+					done();
+				}, 20);
+			});
+		}, 20);
 	});
 });
 
@@ -2878,10 +2888,9 @@ test("updates happen on two-way even when one binding is satisfied", function() 
 	afterMutation(start);
 });
 
-test("updates happen on changed two-way even when one binding is satisfied", function() {
-	stop();
+test("updates happen on changed two-way even when one binding is satisfied", function (assert) {
+	var done = assert.async();
 	var template = stache('<input {($value)}="{{bindValue}}"/>');
-
 	var ViewModel = DefaultMap.extend({
 		firstName: {
 			set: function(newValue) {
@@ -2899,23 +2908,36 @@ test("updates happen on changed two-way even when one binding is satisfied", fun
 		},
 		bindValue: "string"
 	});
-	var viewModel = new ViewModel({ firstName: "Jeffrey", lastName: "King", bindValue: "firstName" });
+	var viewModel = new ViewModel({
+		firstName: "Jeffrey",
+		lastName: "King",
+		bindValue: "firstName"
+	});
 
 	var frag = template(viewModel);
 	domMutate.appendChild.call(this.fixture, frag);
+
+	var input = this.fixture.firstChild;
+	var afterAttribute = function (callback) {
+		domEvents.addEventListener.call(input, 'attributes', function onAttributes () {
+			domEvents.removeEventListener.call(input, 'attributes', onAttributes);
+			callback();
+		});
+	};
+
 	afterMutation(function() {
-		equal(this.fixture.firstChild.value, "jeffrey");
+		assert.equal(input.value, "jeffrey", 'input value uses firstName value');
 
 		viewModel.bindValue = "lastName";
-		afterMutation(function() {
-			equal(this.fixture.firstChild.value, "king");
+		afterAttribute(function() {
+			assert.equal(input.value, "king", 'input value uses lastName value');
 
-			this.fixture.firstChild.value = "KING";
-			canEvent.trigger.call(this.fixture.firstChild, "change");
-			equal(this.fixture.firstChild.value, "king");
-			start();
-		}.bind(this));
-	}.bind(this));
+			input.value = "KING";
+			canEvent.trigger.call(input, "change");
+			assert.equal(input.value, 'king', 'should lowercase input changes');
+			done();
+		});
+	});
 });
 
 test('plain data objects should work for checkboxes [can-value] (#161)', function() {
