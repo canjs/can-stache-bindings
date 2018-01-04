@@ -63,4 +63,18 @@ testHelpers.makeTests("AttributeObservable", function(
 		input.value = "newVal";
 		domEvents.dispatch(input, "change");
 	});
+
+
+	testIfRealDocument("able to read normal attributes", function(assert) {
+
+		var div = document.createElement("div");
+		div.setAttribute("foo","bar");
+
+		var ta = this.fixture;
+		ta.appendChild(div);
+
+		var obs = new AttributeObservable(div, "foo", {});
+
+		assert.equal(canReflect.getValue(obs), "bar", "correct default value");
+	});
 });

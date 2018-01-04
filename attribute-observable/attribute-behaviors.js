@@ -466,7 +466,7 @@ var attr = {
 		if(typeof getter === "function" && test.call(el)) {
 			return getter.call(el);
 		} else {
-			return domMutateNode.getAttribute.call(el, attrName);
+			return el.getAttribute(attrName);
 		}
 	},
 	// ## attr.remove
