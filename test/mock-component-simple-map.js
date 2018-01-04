@@ -1,7 +1,6 @@
 var stacheBindings = require('can-stache-bindings');
 var CanSimpleMap = require("can-simple-map");
 var viewCallbacks = require('can-view-callbacks');
-var Scope = require('can-view-scope');
 var nodeLists = require('can-view-nodelist');
 var canSymbol = require('can-symbol');
 
@@ -29,10 +28,7 @@ module.exports = MockComponent = {
 			domData.set.call(el, "preventDataBindings", true);
 
 			if(proto.template) {
-				var shadowScope = componentTagData.scope.add(new Scope.Refs())
-					.add(viewModel, {
-						viewModel: true
-					});
+				var shadowScope = componentTagData.scope.add(viewModel);
 				domData.set.call(el, "shadowScope", shadowScope);
 				var nodeList = nodeLists.register([], function(){
 					teardownBindings();
