@@ -33,7 +33,6 @@
     "can-attribute-encoder": "^0.3.0",
     "can-dom-events": "^1.1.0",
     "can-dom-mutate": "<2.0.0",
-    "can-event-dom-enter": "^2.0.0",
     "can-event-dom-radiochange": "^2.0.0",
     "can-event-queue": "<2.0.0",
     "can-globals": "<2.0.0",
@@ -56,6 +55,7 @@
   },
   "devDependencies": {
     "can-define": "^2.0.0-pre.25",
+    "can-event-dom-enter": "^2.0.0",
     "can-test-helpers": "^1.1.0",
     "can-vdom": "^3.1.0",
     "can-view-nodelist": "^4.0.0-pre.5",

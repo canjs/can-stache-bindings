@@ -21,7 +21,6 @@ var assign = require('can-util/js/assign/assign');
 var makeArray  = require('can-util/js/make-array/make-array');
 var each  = require('can-util/js/each/each');
 var dev = require('can-log/dev/dev');
-var domEvents = require('can-dom-events');
 var domMutate = require('can-dom-mutate');
 var domData = require('can-util/dom/data/data');
 var canSymbol = require("can-symbol");
@@ -32,9 +31,6 @@ var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
 var AttributeObservable = require("./attribute-observable/attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
-
-var enterEvent = require('can-event-dom-enter');
-domEvents.addEvent(enterEvent);
 
 var canEvent = require("./can-event");
 var noop = function() {};
