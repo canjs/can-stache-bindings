@@ -19,6 +19,9 @@ var domEvents = require('can-dom-events');
 testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO){
 
 	QUnit.test("on:enter", function () {
+		var enterEvent = require('can-event-dom-enter');
+		var undo = domEvents.addEvent(enterEvent);
+
 		var template = stache("<input on:enter='update()'/>");
 
 		var called = 0;
@@ -41,6 +44,8 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			type: "keyup",
 			keyCode: 13
 		});
+
+		undo();
 	});
 
 	QUnit.test("can call intermediate functions before calling the final function (#1474)", function(assert) {
