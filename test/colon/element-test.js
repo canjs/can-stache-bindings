@@ -13,7 +13,8 @@ var SimpleObservable = require("can-simple-observable");
 var canSymbol = require('can-symbol');
 var canReflect = require('can-reflect');
 
-var domMutate = require('can-dom-mutate/node');
+var domMutate = require('can-dom-mutate');
+var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
 var canEach = require('can-util/js/each/each');
@@ -465,7 +466,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		});
 		
 		var frag = template(viewModel);
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.firstChild;
 		assert.equal(input.value, "jeffrey", 'initial value should be "jeffrey"');
@@ -502,14 +503,15 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var viewModel = new ViewModel({ firstName: "Jeffrey", lastName: "King", bindValue: "firstName" });
 
 		var frag = template(viewModel);
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.firstChild;
 		testHelpers.afterMutation(function() {
 			assert.equal(input.value, "jeffrey");
 
 			viewModel.bindValue = "lastName";
-			testHelpers.afterMutation(function() {
+			var undo = domMutate.onNodeAttributeChange(input, function() {
+				undo();
 				assert.equal(input.value, "king");
 
 				input.value = "KING";
@@ -529,12 +531,12 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(vm);
 
 		var ta = this.fixture;
-		domMutate.appendChild.call(ta,frag);
+		domMutateNode.appendChild.call(ta,frag);
 
 		QUnit.stop();
 
 		testHelpers.afterMutation(function(){
-			domMutate.removeChild.call(ta, ta.firstChild);
+			domMutateNode.removeChild.call(ta, ta.firstChild);
 			// still 1 binding, should be 0
 			testHelpers.afterMutation(function(){
 				var checkLifecycleBindings = function(){
@@ -601,7 +603,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			bar: false
 		});
 		var fragment = template(data);
-		domMutate.appendChild.call(this.fixture, fragment);
+		domMutateNode.appendChild.call(this.fixture, fragment);
 
 		var self = this;
 		function child (index) {
@@ -656,7 +658,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		}),
 		frag = stache('<input type="checkbox" el:checked:from="completed"/>')(data);
 
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.getElementsByTagName('input')[0];
 		equal(input.checked, false, 'checkbox value should be false for undefined');
@@ -668,7 +670,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		}),
 		frag = stache('<input type="checkbox" el:checked:bind="completed"/>')(data);
 
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.getElementsByTagName('input')[0];
 		equal(input.checked, true, 'checkbox value bound (via attr check)');
@@ -687,7 +689,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		}),
 		frag = stache('<input type="checkbox" checked:bind="completed"/>')(data);
 
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.getElementsByTagName('input')[0];
 		equal(input.checked, data.get('completed'), 'checkbox value bound (via attr check)');
@@ -1142,7 +1144,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		});
 		stop();
 		var frag = template(map);
-		domMutate.appendChild.call(this.fixture, frag);
+		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var nullInput = doc.getElementById("null-select");
 		var nullInputOptions = nullInput.getElementsByTagName('option');
