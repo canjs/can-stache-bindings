@@ -48,7 +48,7 @@
     "can-types": "^1.1.0",
     "can-util": "^3.9.0",
     "can-view-callbacks": "^3.2.0",
-    "can-view-live": "^3.2.0",
+    "can-view-live": "^4.0.0",
     "can-view-model": "^3.4.0",
     "can-view-scope": "^3.5.4"
   },
