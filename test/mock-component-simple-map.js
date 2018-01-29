@@ -4,7 +4,7 @@ var viewCallbacks = require('can-view-callbacks');
 var nodeLists = require('can-view-nodelist');
 var canSymbol = require('can-symbol');
 
-var domData = require('can-util/dom/data/data');
+var domData = require('can-dom-data-state');
 var domMutateNode = require('can-dom-mutate/node');
 var MockComponent;
 module.exports = MockComponent = {

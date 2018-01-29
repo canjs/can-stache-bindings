@@ -2,7 +2,7 @@ var globals = require('can-globals');
 var domEvents = require('can-dom-events');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
-var domData = require('can-util/dom/data/data');
+var domData = require('can-dom-data-state');
 var makeDocument = require('can-vdom/make-document/make-document');
 var helpers = {
 	makeQUnitModule: function(name, doc, enableMO){

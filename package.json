@@ -44,14 +44,15 @@
     "can-reflect-dependencies": "^1.0.0",
     "can-simple-map": "^4.0.0",
     "can-simple-observable": "^2.0.0",
-    "can-stache": "^4.0.0",
+    "can-stache": "^4.0.2",
     "can-stache-key": "^1.0.0",
     "can-symbol": "^1.0.0",
     "can-util": "^3.9.0",
     "can-view-callbacks": "^4.0.0",
     "can-view-live": "^4.0.0",
     "can-view-model": "^4.0.0",
-    "can-view-scope": "^4.0.0"
+    "can-view-scope": "^4.0.0",
+    "can-dom-data-state": "^1.0.0"
   },
   "devDependencies": {
     "can-define": "^2.0.0",

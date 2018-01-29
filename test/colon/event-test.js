@@ -11,7 +11,7 @@ var SimpleMap = require("can-simple-map");
 var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
 
-var domData = require('can-util/dom/data/data');
+var domData = require('can-dom-data-state');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
