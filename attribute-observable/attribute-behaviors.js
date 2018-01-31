@@ -417,7 +417,7 @@ var specialAttributes = {
 };
 
 var attr = {
-	findSpecialListener (attributeName) {
+	findSpecialListener: function(attributeName) {
 		return specialAttributes[attributeName] && specialAttributes[attributeName].addEventListener;
 	},
 
