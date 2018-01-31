@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "can-attribute-encoder": "^1.0.0",
+    "can-dom-data-state": "^1.0.0",
     "can-dom-events": "^1.1.1",
     "can-dom-mutate": "^1.0.1",
     "can-event-dom-radiochange": "^2.0.0",
@@ -47,12 +48,12 @@
     "can-stache": "^4.0.2",
     "can-stache-key": "^1.0.0",
     "can-symbol": "^1.0.0",
+    "can-types": "^1.1.6",
     "can-util": "^3.9.0",
     "can-view-callbacks": "^4.0.0",
     "can-view-live": "^4.0.0",
     "can-view-model": "^4.0.0",
-    "can-view-scope": "^4.0.0",
-    "can-dom-data-state": "^1.0.0"
+    "can-view-scope": "^4.0.0"
   },
   "devDependencies": {
     "can-define": "^2.0.0",
