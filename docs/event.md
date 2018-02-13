@@ -143,16 +143,16 @@ To listen on a [can-component Component’s] [can-component.prototype.ViewModel 
 ViewModels can publish events on themselves. The following `<player-edit>` component
 dispatches a `"close"` event on itself when its `close` method is called:
 
-```js
+```javascript
 Component.extend({
-	tag: "player-edit",
-	view: stache($('#player-edit-stache').html()),
-	ViewModel: DefineMap.extend({
-		player: Player,
-		close: function(){
-			this.dispatch("close");
-		}
-	})
+  tag: "player-edit",
+  view: stache($('#player-edit-stache').html()),
+  ViewModel: DefineMap.extend({
+    player: Player,
+    close: function(){
+      this.dispatch("close");
+    }
+  })
 });
 ```
 

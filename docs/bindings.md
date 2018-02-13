@@ -107,19 +107,19 @@ You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:c
 
 Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
 
-```js
+```javascript
 function component(bar) {
-	// changes to bar's properties are preserved
-	bar.quux = 'barfoo';
+  // changes to bar's properties are preserved
+  bar.quux = 'barfoo';
 
-	// but replacing bar is not
-	bar = {
-		quux: 'hello world'
-	};
+  // but replacing bar is not
+  bar = {
+    quux: 'hello world'
+  };
 }
 
-var foo = {
-	quux: 'foobar'
+const foo = {
+  quux: 'foobar'
 };
 component(foo);
 ```
