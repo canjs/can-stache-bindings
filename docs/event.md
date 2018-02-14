@@ -144,16 +144,16 @@ ViewModels can publish events on themselves. The following `<player-edit>` compo
 dispatches a `"close"` event on itself when its `close` method is called:
 
 ```js
-Component.extend({
+Component.extend( {
 	tag: "player-edit",
-	view: stache($('#player-edit-stache').html()),
-	ViewModel: DefineMap.extend({
+	view: stache( $( "#player-edit-stache" ).html() ),
+	ViewModel: DefineMap.extend( {
 		player: Player,
-		close: function(){
-			this.dispatch("close");
+		close: function() {
+			this.dispatch( "close" );
 		}
-	})
-});
+	} )
+} );
 ```
 
 The following demo uses this ability to create a close button that
