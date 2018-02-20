@@ -75,4 +75,10 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 		});
 		viewModel.attr('isShowing', false);
 	});
+
+	QUnit.test("raw bindings using :raw", function(assert){
+		var template = stache("<span foo:raw='bar'></span>");
+		var frag = template();
+		assert.equal(frag.firstChild.getAttribute("foo"), "bar", "bound raw");
+	});
 });

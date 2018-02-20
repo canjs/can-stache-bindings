@@ -238,7 +238,6 @@ var behaviors = {
 			semaphore = {},
 			teardown;
 
-
 			// Setup binding
 			var dataBinding = makeDataBinding({
 				name: attrData.attributeName,
@@ -487,6 +486,7 @@ var behaviors = {
 viewCallbacks.attr(/[\w\.:]+:to$/, behaviors.data);
 viewCallbacks.attr(/[\w\.:]+:from$/, behaviors.data);
 viewCallbacks.attr(/[\w\.:]+:bind$/, behaviors.data);
+viewCallbacks.attr(/[\w\.:]+:raw$/, behaviors.data);
 // value:to:on:input="bar" data bindings
 viewCallbacks.attr(/[\w\.:]+:to:on:[\w\.:]+/, behaviors.data);
 viewCallbacks.attr(/[\w\.:]+:from:on:[\w\.:]+/, behaviors.data);
@@ -775,6 +775,11 @@ var bindingRules = {
 		childToParent: true,
 		parentToChild: true,
 		syncChildWithParent: true,
+	},
+	raw: {
+		childToParent: false,
+		parentToChild: true,
+		syncChildWithParent: false
 	}
 };
 var bindingNames = [];
@@ -861,7 +866,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 			childName: result.tokens[specialIndex-1],
 			childEvent: childEventName,
 			bindingAttributeName: attributeName,
-			parentName: attributeValue,
+			parentName: result.special.raw ? ('"' + attributeValue + '"') : attributeValue,
 			initializeValues: initializeValues,
 		}, bindingRules[dataBindingName]);
 		if(attributeValue.trim().charAt(0) === "~") {
