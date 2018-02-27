@@ -138,6 +138,39 @@ test("basics", 5, function(){
 
 });
 
+QUnit.test("scope child-to-parent propagates undefined value", function() {
+	var viewModel = new SimpleMap({ toParent: "toParent" });
+	MockComponent.extend({
+		tag: "basic-colon",
+		viewModel: viewModel
+	});
+
+	var template = stache("<basic-colon toParent:to='valueB' />");
+	var parent = new SimpleMap({ valueB: "B" });
+	template(parent);
+
+	QUnit.deepEqual(
+		parent.get(),
+		{ valueB: "toParent" },
+		"initial scope values correct"
+	);
+
+	QUnit.deepEqual(
+		viewModel.get(),
+		{ toParent: "toParent" },
+		"initial VM values correct"
+	);
+
+	// Change vm
+	viewModel.set({ toParent: undefined });
+
+	QUnit.deepEqual(
+		parent.get(),
+		{ valueB: undefined },
+		"vm set undefined correctly"
+	);
+});
+
 test("getBindingInfo", function(){
 	var info = stacheBindings.getBindingInfo({name: "foo-ed:from", value: "bar"});
 	deepEqual(info, {

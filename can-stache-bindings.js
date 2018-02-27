@@ -759,7 +759,11 @@ var getObservableFrom = {
 			} else {
 				var observation = new Observation(function() {});
 
-				observation[canSymbol.for(setValueSymbol)] = function(newVal) {
+				observation[canSymbol.for(getValueSymbol)] = function getValue(newVal) {
+					return scope.get(cleanVMName(scopeProp));
+				};
+
+				observation[canSymbol.for(setValueSymbol)] = function setValue(newVal) {
 					scope.set(cleanVMName(scopeProp), newVal);
 				};
 
