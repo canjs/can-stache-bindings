@@ -29,10 +29,10 @@ var canReflectDeps = require("can-reflect-dependencies");
 var encoder = require("can-attribute-encoder");
 var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
-var AttributeObservable = require("./attribute-observable/attribute-observable");
+var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 
-var canEvent = require("./can-event");
+var canEvent = require("can-attribute-observable/event");
 var noop = function() {};
 
 var onMatchStr = "on:",
