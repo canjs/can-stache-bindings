@@ -1,5 +1,5 @@
 @function can-stache-bindings.raw toChild:raw
-@parent can-stache-bindings.syntaxes 4
+@parent can-stache-bindings.syntaxes
 
 @description One-way bind a string value to the [can-component.prototype.ViewModel ViewModel] or element.
 
