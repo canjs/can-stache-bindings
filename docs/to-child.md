@@ -1,5 +1,5 @@
 @function can-stache-bindings.toChild toChild:from
-@parent can-stache-bindings.syntaxes 1
+@parent can-stache-bindings.syntaxes
 
 @description One-way bind a value in the parent scope to the [can-component.prototype.ViewModel ViewModel] or element.
 
