@@ -3349,7 +3349,7 @@ test("set string on the viewModel", function(){
 	template();
 });
 
-test("warn about using attributes to set values on the viewModel", function(){
+testHelpers.dev.devOnlyTest("warn about using attributes to set values on the viewModel", function(){
 	var teardown = testHelpers.dev.willWarn("file.stache:1: foo=\"bar\" is deprecated. Use foo:from=\"'bar'\" instead.");
 	var ViewModel = DefaultMap.extend({
 		foo: {
