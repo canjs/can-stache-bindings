@@ -485,5 +485,5 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		domEvents.dispatch(frag.firstChild, "click");
 
 	    QUnit.ok(true, "no errors");
-	})
+	});
 });
