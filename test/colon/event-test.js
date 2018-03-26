@@ -8,6 +8,8 @@ var MockComponent = require("../mock-component-simple-map");
 
 var SimpleMap = require("can-simple-map");
 
+var DefineList = require("can-define/list/list");
+
 var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
 
@@ -451,4 +453,37 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 		canViewModel(frag.firstChild).makeMyEvent();
 	});
+
+	QUnit.test("event handlers should run in mutateQueue (#444)", function(){
+		var list = new DefineList([
+	        {name: 'A'},
+	        {name: 'B'},
+	        {name: 'C'}
+	    ]);
+	    var data = new SimpleMap({
+	        list: list,
+	        item : list[1],
+			clearStuff: function(){
+				this.set("item", null);
+			 	this.get("list").splice(1, 1);
+			}
+	    });
+
+	    var template = stache(
+
+	        "<div on:click='clearStuff()'>"+
+	        // The space after }} is important here
+	            "{{#each list}} "+
+	            "{{^is(., ../item)}}"+
+	            "<div>{{name}}</div>"+
+	            "{{/is}}"+
+	            "{{/each}}"+
+	        "</div>");
+
+	    var frag = template(data);
+
+		domEvents.dispatch(frag.firstChild, "click");
+
+	    QUnit.ok(true, "no errors");
+	})
 });

@@ -428,7 +428,7 @@ var behaviors = {
 			//!steal-remove-end
 
 			queues.batch.start();
-			queues.notifyQueue.enqueue(updateFn, null, null, {
+			queues.mutateQueue.enqueue(updateFn, null, null, {
 				//!steal-remove-start
 				reasonLog: [el, ev, attributeName+"="+attrVal]
 				//!steal-remove-end
