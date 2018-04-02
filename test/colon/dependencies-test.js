@@ -230,12 +230,19 @@ devOnlyTest("view model parent to child binding", function(assert) {
 
 	// SettableObservable <- ScopeKeyData
 	var scopeKeyData = Array.from(settableObservableDeps.mutate.valueDependencies)[0];
+	var scopeKeyDataObservationDeps = canReflectDeps.getDependencyDataOf(scopeKeyData.observation)
+		.whatChangesMe;
 	var scopeKeyDataDeps = canReflectDeps.getDependencyDataOf(scopeKeyData)
 		.whatChangesMe;
 
 	assert.ok(
-		scopeKeyDataDeps.derive.keyDependencies.get(map).has("scopeProp"),
-		"The ScopeKeyData is bound to map.scopeProp"
+		scopeKeyDataObservationDeps.derive.keyDependencies.get(map).has("scopeProp"),
+		"The ScopeKeyData's internal observation is bound to map.scopeProp"
+	);
+
+	assert.ok(
+		scopeKeyDataDeps.derive.valueDependencies.has(scopeKeyData.observation),
+		"The ScopeKeyData is bound to its internal observation"
 	);
 });
 
