@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "can-attribute-encoder": "^1.0.0",
-    "can-attribute-observable": "^0.1.0",
+    "can-attribute-observable": "^0.2.0",
     "can-dom-data-state": "^1.0.0",
     "can-dom-events": "^1.1.1",
     "can-dom-mutate": "^1.0.1",
@@ -48,7 +48,7 @@
     "can-symbol": "^1.0.0",
     "can-util": "^3.9.0",
     "can-view-callbacks": "^4.0.0",
-    "can-view-live": "^4.0.0",
+    "can-view-live": "^4.0.5",
     "can-view-model": "^4.0.0",
     "can-view-scope": "^4.0.0"
   },
