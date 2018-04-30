@@ -37,7 +37,7 @@
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```html
-  <my-component vm:someProp:from="key"/>
+  <my-component vm:childProp:from="key"/>
   ```
 
   > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
