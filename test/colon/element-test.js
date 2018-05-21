@@ -17,7 +17,6 @@ var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
-var canEach = require('can-util/js/each/each');
 var DefineMap = require("can-define/map/map");
 
 testHelpers.makeTests("can-stache-bindings - colon - element", function(name, doc, enableMO, testIfRealDocument){
@@ -464,7 +463,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				}
 			}
 		});
-		
+
 		var frag = template(viewModel);
 		domMutateNode.appendChild.call(this.fixture, frag);
 
@@ -905,7 +904,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(inputs[0].value, 'green', "alternate value set");
 
 
-		canEach(ta.getElementsByTagName('option'), function(opt) {
+		canReflect.each(ta.getElementsByTagName('option'), function(opt) {
 			if (opt.value === 'red') {
 				opt.selected = 'selected';
 			}
@@ -915,7 +914,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domEvents.dispatch(inputs[0], "change");
 		equal(map.get("color"), "red", "updated from input");
 
-		canEach(ta.getElementsByTagName('option'), function(opt) {
+		canReflect.each(ta.getElementsByTagName('option'), function(opt) {
 			if (opt.value === 'green') {
 				opt.selected = 'selected';
 			}

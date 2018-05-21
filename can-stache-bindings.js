@@ -17,9 +17,7 @@ var observeReader = require('can-stache-key');
 var ObservationRecorder = require('can-observation-recorder');
 var SimpleObservable = require('can-simple-observable');
 
-var assign = require('can-util/js/assign/assign');
-var makeArray  = require('can-util/js/make-array/make-array');
-var each  = require('can-util/js/each/each');
+var assign = require('can-assign');
 var dev = require('can-log/dev/dev');
 var domMutate = require('can-dom-mutate');
 var domData = require('can-dom-data-state');
@@ -125,7 +123,7 @@ var behaviors = {
 		// For each attribute, we start the binding process,
 		// and save what's returned to be used when the `viewModel` is created,
 		// the element is removed, or the attribute changes values.
-		each(makeArray(el.attributes), function(node) {
+		canReflect.each(el.attributes || [], function(node) {
 			var dataBinding = makeDataBinding(node, el, {
 				templateType: tagData.templateType,
 				scope: tagData.scope,
@@ -787,7 +785,7 @@ var special = {
 	vm: true,
 	on: true
 };
-each(bindingRules, function(value, key){
+canReflect.each(bindingRules, function(value, key){
 	bindingNames.push(key);
 	special[key] = true;
 });
