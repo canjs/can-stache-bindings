@@ -1,10 +1,6 @@
 {
   "name": "can-stache-bindings",
-<<<<<<< HEAD
-  "version": "4.1.2",
-=======
   "version": "4.1.4",
->>>>>>> faeac36aea3aa4de03967b9973e6e5c6d14be691
   "description": "Default binding syntaxes for can-stache",
   "homepage": "https://canjs.com/doc/can-stache-bindings.html",
   "author": {
