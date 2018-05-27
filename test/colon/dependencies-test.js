@@ -209,20 +209,25 @@ devOnlyTest("view model parent to child binding", function(assert) {
 	ta.appendChild(template(map));
 
 	var vm = canViewModel(ta.getElementsByTagName("div")[0]);
+
 	var vmDeps = canReflectDeps.getDependencyDataOf(vm, "viewModelProp")
 		.whatChangesMe;
 
+	// Check something mutates the VM prop
 	assert.ok(
 		vmDeps.mutate.valueDependencies.size,
 		"The viewmodel property should have value dependencies"
 	);
 
-	// viewModel.viewModelProp <- SettableObservable
+	// get the settable observable that change vmProp
+	// viewModel.viewModelProp <- SettableObservable <- ScopeKeyData <- observation <- scopeProp
 	var settableObservable = Array.from(vmDeps.mutate.valueDependencies)[0];
+	// What changes that settable observabe
 	var settableObservableDeps = canReflectDeps.getDependencyDataOf(
 		settableObservable
 	).whatChangesMe;
 
+	// The settable observable is changed by something
 	assert.ok(
 		settableObservableDeps.mutate.valueDependencies.size,
 		"The settable observable should have value dependencies"
@@ -234,8 +239,17 @@ devOnlyTest("view model parent to child binding", function(assert) {
 		.whatChangesMe;
 
 	assert.ok(
-		scopeKeyDataDeps.derive.keyDependencies.get(map).has("scopeProp"),
-		"The ScopeKeyData is bound to map.scopeProp"
+		scopeKeyDataDeps.derive.valueDependencies.size,
+		"The scope key data derives from the internal observation"
+	);
+
+	var observation = Array.from(scopeKeyDataDeps.derive.valueDependencies)[0];
+	var observationDeps = canReflectDeps.getDependencyDataOf(observation)
+		.whatChangesMe;
+	// What does the
+	assert.ok(
+		observationDeps.derive.keyDependencies.get(map).has("scopeProp"),
+		"The observationDeps is bound to map.scopeProp"
 	);
 });
 
