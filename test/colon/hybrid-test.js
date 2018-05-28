@@ -58,12 +58,22 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 
 	QUnit.test("on:input:value:to does not initialize values (#289)", function() {
 		try {
-			stache("<input on:input:value:to='*editing.licensePlate'/>")();
+			stache("<input on:input:value:to='scope.vars.editing.licensePlate'/>")();
 			ok(true, "renderer was made without error");
 		}
 		catch(e) {
 			ok(false, e.message);
 		}
+	});
+
+	QUnit.test("on:input:value:bind should initialize values (#457)", function() {
+
+		var frag = stache("<input on:input:value:bind='foo'/>")({
+			foo: "bar"
+		});
+		var input = frag.firstChild;
+
+		QUnit.equal(input.value, "bar", "initialized to the parent value");
 	});
 
 });

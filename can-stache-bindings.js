@@ -856,7 +856,7 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 
 	if(dataBindingName) {
 		var childEventName = getEventName(result);
-		var initializeValues = childEventName ? false : true;
+		var initializeValues = childEventName && dataBindingName !== "bind" ? false : true;
 		bindingInfo = assign({
 			parent: scopeBindingStr,
 			child: getChildBindingStr(result.tokens, favorViewModel),
