@@ -311,7 +311,7 @@ var behaviors = {
 					attributeDisposal();
 					attributeDisposal = undefined;
 				}
-			}
+			};
 			if(attrData.nodeList) {
 				ViewNodeList.register([],tearItAllDown, attrData.nodeList, false);
 			}
