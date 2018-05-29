@@ -295,9 +295,6 @@ var behaviors = {
 
 
 			var tearItAllDown = function(){
-				if (el.ownerDocument.contains(el)) {
-					return;
-				}
 				if(teardown) {
 					teardown();
 					teardown = undefined;

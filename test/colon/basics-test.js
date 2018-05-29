@@ -380,6 +380,8 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		var frag = template(map),
 			input = frag.firstChild.getElementsByTagName("input")[0];
 
+		this.fixture.appendChild(frag);
+
 		QUnit.equal(input.value, "VALUE", "value set initially");
 		map.set("value","");
 
