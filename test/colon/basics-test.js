@@ -9,6 +9,7 @@ var SimpleMap = require("can-simple-map");
 var MockComponent = require("../mock-component-simple-map");
 
 var canTestHelpers = require('can-test-helpers');
+var queues = require("can-queues");
 
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
 
@@ -370,6 +371,40 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		template(map);
 		QUnit.equal(teardown(), 1, 'warning shown');
 
+	});
+
+	QUnit.test("parent stache is able to teardown child bindings", function(){
+		/*var map = new SimpleMap({value: "VALUE"});
+
+		var template = stache("<div>{{#if value}}<span><input value:bind='value'/></span>{{/if}}</div>");
+
+		var frag = template(map),
+			input = frag.firstChild.getElementsByTagName("input")[0];
+
+		QUnit.equal(input.value, "VALUE", "value set initially");
+
+		map.set("value","");
+
+		QUnit.equal(input.value, "VALUE", "value should not have been updated");*/
+
+		map = new SimpleMap({value: "VALUE"});
+		var viewModel = new SimpleMap({
+			childValue: "childValue"
+		});
+
+		MockComponent.extend({
+			tag: "teardown-test",
+			viewModel: viewModel
+		});
+		template = stache("<div>{{#if value}}<span><teardown-test childValue:bind='value'/></span>{{/if}}</div>");
+
+		template(map);
+
+		QUnit.equal(viewModel.get("childValue"), "VALUE", "value set initially");
+
+		map.set("value","");
+
+		QUnit.equal(viewModel.get("childValue"), "VALUE", "value should not have been updated");
 	});
 
 });
