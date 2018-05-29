@@ -372,4 +372,18 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 	});
 
+	QUnit.test("parent stache is able to teardown child bindings (#278)", function(){
+		var map = new SimpleMap({value: "VALUE"});
+
+		var template = stache("<div>{{#if value}}<span><input value:bind='value'/></span>{{/if}}</div>");
+
+		var frag = template(map),
+			input = frag.firstChild.getElementsByTagName("input")[0];
+
+		QUnit.equal(input.value, "VALUE", "value set initially");
+		map.set("value","");
+
+		QUnit.equal(input.value, "VALUE", "value should not have been updated");
+	});
+
 });

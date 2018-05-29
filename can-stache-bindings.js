@@ -29,6 +29,7 @@ var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
 var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
+var ViewNodeList = require("can-view-nodelist");
 
 var canEvent = require("can-attribute-observable/event");
 var noop = function() {};
@@ -234,7 +235,9 @@ var behaviors = {
 				return viewModel || (viewModel = canViewModel(el));
 			}),
 			semaphore = {},
-			teardown;
+			teardown,
+			attributeDisposal,
+			removedDisposal;
 
 			// Setup binding
 			var dataBinding = makeDataBinding({
@@ -289,14 +292,17 @@ var behaviors = {
 					}
 				}
 			};
-			// Listen for changes
-			teardown = dataBinding.onTeardown;
-			var attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
-			var removedDisposal = domMutate.onNodeRemoval(el, function () {
+
+
+			var tearItAllDown = function(){
 				if (el.ownerDocument.contains(el)) {
 					return;
 				}
-				teardown();
+				if(teardown) {
+					teardown();
+					teardown = undefined;
+				}
+
 				if (removedDisposal) {
 					removedDisposal();
 					removedDisposal = undefined;
@@ -305,7 +311,17 @@ var behaviors = {
 					attributeDisposal();
 					attributeDisposal = undefined;
 				}
-			});
+			};
+			if(attrData.nodeList) {
+				ViewNodeList.register([],tearItAllDown, attrData.nodeList, false);
+			}
+
+
+			// Listen for changes
+			teardown = dataBinding.onTeardown;
+
+			attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
+			removedDisposal = domMutate.onNodeRemoval(el, tearItAllDown);
 	},
 	// ### bindings.behaviors.event
 	// The following section contains code for implementing the can-EVENT attribute.
@@ -645,6 +661,9 @@ var bind = {
 	childToParent: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, syncChild, bindingInfo) {
 		// Updates the parent if
 		function updateParent(newVal) {
+			if(!bindingInfo.active) {
+				return;
+			}
 			if (!bindingsSemaphore[attrName]) {
 				if (parentObservable && parentObservable[getValueSymbol]) {
 					var hasDependencies = canReflect.valueHasDependencies(parentObservable);
@@ -713,6 +732,9 @@ var bind = {
 	parentToChild: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, bindingInfo) {
 		// setup listening on parent and forwarding to viewModel
 		var updateChild = function updateChild(newValue) {
+			if(!bindingInfo.active) {
+				return;
+			}
 			// Save the viewModel property name so it is not updated multiple times.
 			// We listen for when the batch has ended, and all observation updates have ended.
 			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
@@ -905,6 +927,8 @@ var makeDataBinding = function(node, el, bindingData) {
 	if(!bindingInfo) {
 		return;
 	}
+	// hack in the active check (#278)
+	bindingInfo.active = true;
 
 	// assign some bindingData props to the bindingInfo
 	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
@@ -973,6 +997,7 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	// This tears down the binding.
 	var onTeardown = function() {
+		bindingInfo.active = false;
 		unbindUpdate(parentObservable, updateChild);
 		unbindUpdate(childObservable, updateParent);
 		unbindUpdate(childObservable, noop);
