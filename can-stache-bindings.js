@@ -318,7 +318,11 @@ var behaviors = {
 			teardown = dataBinding.onTeardown;
 
 			attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
-			removedDisposal = domMutate.onNodeRemoval(el, tearItAllDown);
+			removedDisposal = domMutate.onNodeRemoval(el, function() {
+				if (el.ownerDocument.contains(el) === false) {
+					tearItAllDown();
+				}
+			});
 	},
 	// ### bindings.behaviors.event
 	// The following section contains code for implementing the can-EVENT attribute.
