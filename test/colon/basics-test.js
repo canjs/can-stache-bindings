@@ -3,6 +3,7 @@ var testHelpers = require('../helpers');
 
 var stacheBindings = require('can-stache-bindings');
 
+var domEvents = require('can-dom-events');
 var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
@@ -386,6 +387,32 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		map.set("value","");
 
 		QUnit.equal(input.value, "VALUE", "value should not have been updated");
+	});
+
+	QUnit.test("bindings still work for moved elements (#460)", function(assert) {
+		var done = assert.async();
+		var map = new SimpleMap({value: "first"});
+		var template = stache("<input value:bind='value'/>");
+		var frag = template(map);
+		var input = frag.firstChild;
+
+		this.fixture.appendChild(frag);
+
+		// Move the input to inside the div
+		var div = doc.createElement("div");
+		this.fixture.appendChild(div);
+		div.appendChild(input);
+
+		testHelpers.afterMutation(function() {
+			map.set("value", "second");
+			QUnit.equal(input.value, "second", "value should have been updated");
+
+			input.value = "third";
+			domEvents.dispatch(input, "change");
+			QUnit.equal(map.get("value"), "third", "map should have been updated");
+
+			done();
+		});
 	});
 
 });
