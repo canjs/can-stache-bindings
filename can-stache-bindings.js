@@ -506,7 +506,7 @@ viewCallbacks.attr(/on:[\w\.:]+/, behaviors.event);
 // on different types of objects.
 var getObservableFrom = {
 	// ### getObservableFrom.viewModelOrAttribute
-	viewModelOrAttribute: function(el, scope, vmNameOrProp, bindingData, mustBeSettable, stickyCompute, event) {
+	viewModelOrAttribute: function(el, scope, vmNameOrProp, bindingData, mustBeGettable, stickyCompute, event) {
 		var viewModel = el[canSymbol.for('can.viewModel')];
 
 		// if we have a viewModel, use it; otherwise, setup attribute binding
@@ -518,16 +518,17 @@ var getObservableFrom = {
 	},
 	// ### getObservableFrom.scope
 	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
-	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
+	scope: function(el, scope, scopeProp, bindingData, mustBeGettable, stickyCompute) {
 		if(!scopeProp) {
 			return new SimpleObservable();
 		} else {
-			if(mustBeSettable) {
+			// Check if we need to spend time building a scope-key-data
+			// If we have a '(', it likely means a call expression.
+			if(mustBeGettable || scopeProp.indexOf("(") >= 0 ) {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
 				return parentExpression.value(scope);
 			} else {
 				var observation = {};
-
 				canReflect.assignSymbols(observation, {
 					"can.getValue": function getValue() {},
 
@@ -583,7 +584,7 @@ var getObservableFrom = {
 	// ### getObservableFrom.viewModel
 	// Returns a compute that's two-way bound to the `viewModel` returned by
 	// `options.getViewModel()`.
-	viewModel: function(el, scope, vmName, bindingData, mustBeSettable, stickyCompute, childEvent) {
+	viewModel: function(el, scope, vmName, bindingData, mustBeGettable, stickyCompute, childEvent) {
 		var setName = cleanVMName(vmName, scope);
 		var isBoundToContext = vmName === "." || vmName === "this";
 		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
@@ -637,7 +638,7 @@ var getObservableFrom = {
 	},
 	// ### getObservableFrom.attribute
 	// Returns a compute that is two-way bound to an attribute or property on the element.
-	attribute: function(el, scope, prop, bindingData, mustBeSettable, stickyCompute, event, bindingInfo) {
+	attribute: function(el, scope, prop, bindingData, mustBeGettable, stickyCompute, event, bindingInfo) {
 		return new AttributeObservable(el, prop, bindingData, event);
 	}
 };

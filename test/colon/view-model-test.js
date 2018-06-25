@@ -445,8 +445,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 				return new SimpleMap({viewModelProp: "Mercury"});
 			}
 		});
-
-		stache.registerConverter("upper-case", {
+		
+		stache.addConverter("upper-case", {
 			get: function( fooCompute ) {
 				return (""+canReflect.getValue(fooCompute)).toUpperCase();
 			},
