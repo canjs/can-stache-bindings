@@ -10,6 +10,7 @@
 // - getBindingInfo - A helper that returns the details of a data binding given an attribute.
 // - makeDataBinding - A helper method for setting up a data binding.
 // - initializeValues - A helper that initializes a data binding.
+var Bind = require('can-bind');
 var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
@@ -32,7 +33,6 @@ var makeCompute = require("can-view-scope/make-compute-like");
 var ViewNodeList = require("can-view-nodelist");
 
 var canEvent = require("can-attribute-observable/event");
-var noop = function() {};
 
 var onMatchStr = "on:",
 	vmMatchStr = "vm:",
@@ -44,10 +44,7 @@ var onMatchStr = "on:",
 	viewModelBindingStr = "viewModel",
 	attributeBindingStr = "attribute",
 	scopeBindingStr = "scope",
-	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
-	getValueSymbol = canSymbol.for("can.getValue"),
-	onValueSymbol = canSymbol.for("can.onValue"),
-	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord");
+	viewModelOrAttributeBindingStr = "viewModelOrAttribute";
 
 var throwOnlyOneTypeOfBindingError = function(){
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
@@ -57,10 +54,10 @@ var throwOnlyOneTypeOfBindingError = function(){
 // to set a property ON the viewModel _conflicting_ with bindings trying to
 // set THE viewModel ITSELF.
 // If there is a conflict, an error is thrown.
-var checkBindingState = function(bindingState, dataBinding) {
-	var isSettingOnViewModel = dataBinding.bindingInfo.parentToChild && dataBinding.bindingInfo.child === viewModelBindingStr;
+var checkBindingState = function(bindingState, bindingInfo) {
+	var isSettingOnViewModel = bindingInfo.parentToChild && bindingInfo.child === viewModelBindingStr;
 	if(isSettingOnViewModel) {
-		var bindingName = dataBinding.bindingInfo.childName;
+		var bindingName = bindingInfo.childName;
 		var isSettingViewModel = isSettingOnViewModel && ( bindingName === 'this' || bindingName === '.' );
 
 		if( isSettingViewModel ) {
@@ -102,8 +99,7 @@ var behaviors = {
 	// wants all the bindings active so cleanup can be done during a component being removed.
 	viewModel: function(el, tagData, makeViewModel, initialViewModelData, staticDataBindingsOnly) {
 
-		var bindingsSemaphore = {},
-			viewModel,
+		var viewModel,
 			// Stores callbacks for when the viewModel is created.
 			onCompleteBindings = [],
 			// Stores what needs to be called when the element is removed
@@ -128,7 +124,6 @@ var behaviors = {
 			var dataBinding = makeDataBinding(node, el, {
 				templateType: tagData.templateType,
 				scope: tagData.scope,
-				semaphore: bindingsSemaphore,
 				getViewModel: function() {
 					return viewModel;
 				},
@@ -141,27 +136,32 @@ var behaviors = {
 			});
 
 			if(dataBinding) {
-				bindingsState = checkBindingState(bindingsState, dataBinding);
+				var bindingInfo = dataBinding.bindingInfo;
+				bindingsState = checkBindingState(bindingsState, bindingInfo);
 				hasDataBinding = true;
 
-
 				// For bindings that change the viewModel,
-				if(dataBinding.onCompleteBinding) {
-					// save the initial value on the viewModel.
-					if(dataBinding.bindingInfo.parentToChild && dataBinding.value !== undefined) {
+				// save the initial value on the viewModel.
+				if(bindingInfo.parentToChild) {
+					var parentValue = bindingInfo.stickyParentToChild ? makeCompute(dataBinding.parent) : dataBinding.canBinding.parentValue;
+
+					if(parentValue !== undefined) {
 
 						if(bindingsState.isSettingViewModel) {
 							// the initial data is the context
-							bindingsState.initialViewModelData = dataBinding.value;
+							// TODO: this is covered by can-component’s tests but not can-stache-bindings’ tests
+							bindingsState.initialViewModelData = parentValue;
 						} else {
-							bindingsState.initialViewModelData[cleanVMName(dataBinding.bindingInfo.childName, tagData.scope)] = dataBinding.value;
+							bindingsState.initialViewModelData[cleanVMName(bindingInfo.childName, tagData.scope)] = parentValue;
 						}
 
 					}
-					// Save what needs to happen after the `viewModel` is created.
-					onCompleteBindings.push(dataBinding.onCompleteBinding);
 				}
-				onTeardowns[node.name] = dataBinding.onTeardown;
+
+				// Save what needs to happen after the `viewModel` is created.
+				onCompleteBindings.push(dataBinding.canBinding.start.bind(dataBinding.canBinding));
+
+				onTeardowns[node.name] = dataBinding.canBinding.stop.bind(dataBinding.canBinding);
 			}
 		});
 		if(staticDataBindingsOnly && !hasDataBinding) {
@@ -192,7 +192,6 @@ var behaviors = {
 					var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
 						templateType: tagData.templateType,
 						scope: tagData.scope,
-						semaphore: {},
 						getViewModel: function() {
 							return viewModel;
 						},
@@ -203,11 +202,9 @@ var behaviors = {
 					});
 					if(dataBinding) {
 						// The viewModel is created, so call callback immediately.
-						if(dataBinding.onCompleteBinding) {
-							dataBinding.onCompleteBinding();
-						}
+						dataBinding.canBinding.start();
 						bindingInfos[attrName] = dataBinding.bindingInfo;
-						onTeardowns[attrName] = dataBinding.onTeardown;
+						onTeardowns[attrName] = dataBinding.canBinding.stop.bind(dataBinding.canBinding);
 					}
 				}
 			});
@@ -234,7 +231,6 @@ var behaviors = {
 			getViewModel = ObservationRecorder.ignore(function() {
 				return viewModel || (viewModel = canViewModel(el));
 			}),
-			semaphore = {},
 			teardown,
 			attributeDisposal,
 			removedDisposal;
@@ -247,7 +243,6 @@ var behaviors = {
 			}, el, {
 				templateType: attrData.templateType,
 				scope: attrData.scope,
-				semaphore: semaphore,
 				getViewModel: getViewModel,
 				syncChildWithParent: false
 			});
@@ -258,9 +253,7 @@ var behaviors = {
 			}
 			//!steal-remove-end
 
-			if(dataBinding.onCompleteBinding) {
-				dataBinding.onCompleteBinding();
-			}
+			dataBinding.canBinding.start();
 
 			var attributeListener = function (ev) {
 				var attrName = ev.attributeName,
@@ -275,7 +268,6 @@ var behaviors = {
 						var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
 							templateType: attrData.templateType,
 							scope: attrData.scope,
-							semaphore: semaphore,
 							getViewModel: getViewModel,
 							// always update the viewModel accordingly.
 							initializeValues: true,
@@ -284,10 +276,8 @@ var behaviors = {
 						});
 						if(dataBinding) {
 							// The viewModel is created, so call callback immediately.
-							if(dataBinding.onCompleteBinding) {
-								dataBinding.onCompleteBinding();
-							}
-							teardown = dataBinding.onTeardown;
+							dataBinding.canBinding.start();
+							teardown = dataBinding.canBinding.stop.bind(dataBinding.canBinding);
 						}
 					}
 				}
@@ -315,7 +305,7 @@ var behaviors = {
 
 
 			// Listen for changes
-			teardown = dataBinding.onTeardown;
+			teardown = dataBinding.canBinding.stop.bind(dataBinding.canBinding);
 
 			attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
 			removedDisposal = domMutate.onNodeRemoval(el, function() {
@@ -652,124 +642,6 @@ var getObservableFrom = {
 	}
 };
 
-// ## bind
-// An object with helpers that perform bindings in a certain direction.
-// These use the semaphore to prevent cycles.
-var bind = {
-	// ## bind.childToParent
-	// Listens to the child and updates the parent when it changes.
-	// - `syncChild` - Makes sure the child is equal to the parent after the parent is set.
-	childToParent: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, syncChild, bindingInfo) {
-		// Updates the parent if
-		function updateParent(newVal) {
-			if(!bindingInfo.active) {
-				return;
-			}
-			if (!bindingsSemaphore[attrName]) {
-				if (parentObservable && parentObservable[getValueSymbol]) {
-					var hasDependencies = canReflect.valueHasDependencies(parentObservable);
-
-					if (!hasDependencies || (canReflect.getValue(parentObservable) !== newVal) ) {
-						canReflect.setValue(parentObservable, newVal);
-					}
-					// only sync if parent
-					if( syncChild && hasDependencies) {
-						// If, after setting the parent, it's value is not the same as the child,
-						// update the child with the value of the parent.
-						// This is used by `can-value`.
-						if(canReflect.getValue(parentObservable) !== canReflect.getValue(childObservable)) {
-							bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
-							queues.batch.start();
-							canReflect.setValue(childObservable, canReflect.getValue(parentObservable));
-
-							queues.mutateQueue.enqueue(function decrementChildToParentSemaphore() {
-								--bindingsSemaphore[attrName];
-							},null,[],{});
-							queues.batch.stop();
-						}
-					}
-				}
-				// The parentObservable can sometimes be just an observable if the observable
-				// is on a plain JS object. This updates the observable to match whatever the
-				// new value is.
-				else if(canReflect.isMapLike(parentObservable)) {
-					// !steal-dev-start
-					var attrValue = el.getAttribute(attrName);
-					dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
-					// !steal-dev-end
-					canReflect.eachKey(parentObservable, function(prop) {
-						canReflect.deleteKeyValue(parentObservable, prop);
-					});
-					canReflect.setValue(
-						parentObservable,
-						(newVal && newVal.serialize) ? newVal.serialize() : newVal,
-						true
-					);
-				}
-			}
-		}
-		//!steal-remove-start
-		Object.defineProperty(updateParent, "name", {
-			value: "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">",
-		});
-		//!steal-remove-end
-
-		if(childObservable && childObservable[getValueSymbol]) {
-			canReflect.onValue(childObservable, updateParent, "domUI");
-
-			//!steal-remove-start
-			canReflectDeps.addMutatedBy(parentObservable, childObservable);
-			updateParent[getChangesSymbol] = function getChangesDependencyRecord() {
-				return {
-					valueDependencies: new Set([ parentObservable ])
-				};
-			};
-			//!steal-remove-end
-		}
-
-		return updateParent;
-	},
-	// parent -> child binding
-	parentToChild: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, bindingInfo) {
-		// setup listening on parent and forwarding to viewModel
-		var updateChild = function updateChild(newValue) {
-			if(!bindingInfo.active) {
-				return;
-			}
-			// Save the viewModel property name so it is not updated multiple times.
-			// We listen for when the batch has ended, and all observation updates have ended.
-			bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
-			queues.batch.start();
-			canReflect.setValue(childObservable, newValue);
-
-			// only after computes have been updated, reduce the update counter
-			queues.mutateQueue.enqueue(function decrementParentToChildSemaphore() {
-				--bindingsSemaphore[attrName];
-			},null,[],{});
-			queues.batch.stop();
-		};
-
-		//!steal-remove-start
-		Object.defineProperty(updateChild, "name", {
-			value: "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
-		});
-		//!steal-remove-end
-
-		if(parentObservable && parentObservable[getValueSymbol]) {
-			canReflect.onValue(parentObservable, updateChild, "domUI");
-			//!steal-remove-start
-			canReflectDeps.addMutatedBy(childObservable, parentObservable);
-			updateChild[getChangesSymbol] = function getChangesDependencyRecord() {
-				return {
-					valueDependencies: new Set([ childObservable])
-				};
-			};
-			//!steal-remove-end
-		}
-
-		return updateChild;
-	}
-};
 var startsWith = String.prototype.startsWith || function(text){
 	return this.indexOf(text) === 0;
 };
@@ -913,7 +785,6 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 // - `bindingData` - an object with:
 //   - `templateType` - the type of template.
 //   - `scope` - the `Scope`,
-//   - `semaphore` - an object that keeps track of changes in different properties to prevent cycles,
 //   - `getViewModel`  - a function that returns the `viewModel` when called.  This function can be passed around (not called) even if the
 //      `viewModel` doesn't exist yet.
 //   - `attributeViewModelBindings` - properties already specified as being a viewModel<->attribute (as opposed to viewModel<->scope) binding.
@@ -927,14 +798,6 @@ var makeDataBinding = function(node, el, bindingData) {
 		bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
 	if(!bindingInfo) {
 		return;
-	}
-	// hack in the active check (#278)
-	bindingInfo.active = true;
-
-	// assign some bindingData props to the bindingInfo
-	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
-	if( bindingData.initializeValues) {
-		bindingInfo.initializeValues = true;
 	}
 
 	// Get computes for the parent and child binding
@@ -957,108 +820,43 @@ var makeDataBinding = function(node, el, bindingData) {
 		bindingInfo.stickyParentToChild && parentObservable,
 		bindingInfo.childEvent,
 		bindingInfo
-	),
-	// these are the functions bound to one compute that update the other.
-	updateParent,
-	updateChild;
+	);
 
-	if(bindingData.nodeList) {
-		if(parentObservable) {
-			canReflect.setPriority(parentObservable, bindingData.nodeList.nesting+1);
-		}
-
-		if(childObservable) {
-			canReflect.setPriority(childObservable, bindingData.nodeList.nesting+1);
-		}
+	// Check for child:from="~parent" (it’s not supported)
+	var childToParent = !!bindingInfo.childToParent;
+	var parentToChild = !!bindingInfo.parentToChild;
+	if (bindingInfo.stickyParentToChild && childToParent && parentToChild) {
+		dev.warn("Two-way binding computes is not supported.");
 	}
 
-	// Only bind to the parent if it will update the child.
-	if(bindingInfo.parentToChild) {
-		updateChild = bind.parentToChild(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName, bindingInfo);
-	}
+	// Create the binding
+	var canBinding = new Bind({
+		child: childObservable,
+		childToParent: childToParent,
+		cycles: 0,
+		onInitDoNotUpdateChild: bindingData.alreadyUpdatedChild,
+		onInitSetUndefinedParentIfChildIsDefined: true,
+		parent: parentObservable,
+		parentToChild: parentToChild,
+		priority: bindingData.nodeList ? bindingData.nodeList.nesting + 1 : undefined,
+		queue: "domUI",
+		sticky: bindingInfo.syncChildWithParent ? "childSticksToParent" : undefined,
+		updateChildName: "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
+		updateParentName: "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">"
+	});
 
-	// This completes the binding.  We can't call it right away because
-	// the `viewModel` might not have been created yet.
-	var completeBinding = function() {
+	// Immediately bind to the parent
+	// TODO: it doesn’t appear that there are any tests that cover this behavior
+	canBinding.startParent();
 
-		if(bindingInfo.childToParent) {
-			// setup listening on parent and forwarding to viewModel
-			updateParent = bind.childToParent(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName,
-				bindingInfo.syncChildWithParent, bindingInfo);
-		}
-		// the child needs to be bound even if
-		else if(bindingInfo.stickyParentToChild && childObservable[onValueSymbol])  {
-			canReflect.onValue(childObservable, noop,"mutate");
-		}
-
-		if(bindingInfo.initializeValues) {
-			initializeValues(bindingInfo, childObservable, parentObservable, updateChild, updateParent);
-		}
+	return {
+		bindingInfo: bindingInfo,
+		canBinding: canBinding,
+		parent: parentObservable
 	};
-
-	// This tears down the binding.
-	var onTeardown = function() {
-		bindingInfo.active = false;
-		unbindUpdate(parentObservable, updateChild);
-		unbindUpdate(childObservable, updateParent);
-		unbindUpdate(childObservable, noop);
-	};
-
-	// If this binding depends on the viewModel, which might not have been created,
-	// return the function to complete the binding as `onCompleteBinding`.
-	if(bindingInfo.child === viewModelBindingStr) {
-		return {
-			value: bindingInfo.stickyParentToChild ? makeCompute(parentObservable) :
-				canReflect.getValue(parentObservable),
-				onCompleteBinding: completeBinding,
-				bindingInfo: bindingInfo,
-				onTeardown: onTeardown
-		};
-	} else {
-		completeBinding();
-		return {
-			bindingInfo: bindingInfo,
-			onTeardown: onTeardown
-		};
-	}
 };
 
-// ## initializeValues
-// Updates the parent or child value depending on the direction of the binding
-// or if the child or parent is `undefined`.
-var initializeValues = function(bindingInfo, childObservable, parentObservable, updateChild, updateParent) {
-	var doUpdateParent = false;
-
-	if(bindingInfo.parentToChild && !bindingInfo.childToParent) {
-		// updateChild
-	}
-	else if(!bindingInfo.parentToChild && bindingInfo.childToParent) {
-		doUpdateParent = true;
-	}
-	// Two way
-	// Update child or parent depending on who has a value.
-	// If both have a value, update the child.
-	else if(canReflect.getValue(childObservable) === undefined) {
-		// updateChild
-	} else if(canReflect.getValue(parentObservable) === undefined) {
-		doUpdateParent = true;
-	}
-
-	if(doUpdateParent) {
-		updateParent( canReflect.getValue(childObservable) );
-	} else {
-		if(!bindingInfo.alreadyUpdatedChild) {
-			updateChild( canReflect.getValue(parentObservable) );
-		}
-	}
-};
-
-var unbindUpdate = function(observable, updater) {
-	if(observable && observable[getValueSymbol] && typeof updater === "function") {
-		canReflect.offValue(observable, updater,"domUI");
-	}
-},
-cleanVMName = function(name, scope) {
+var cleanVMName = function(name, scope) {
 	//!steal-remove-start
 	if (name.indexOf("@") >= 0) {
 		var filename = scope.peek('scope.filename');
