@@ -445,7 +445,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 				return new SimpleMap({viewModelProp: "Mercury"});
 			}
 		});
-		
+
 		stache.addConverter("upper-case", {
 			get: function( fooCompute ) {
 				return (""+canReflect.getValue(fooCompute)).toUpperCase();
@@ -453,7 +453,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			set: function( newVal, fooCompute ) {
 				canReflect.setValue(fooCompute, (""+newVal).toUpperCase() );
 			}
-		})
+		});
 
 		var template = stache("<view-model-able vm:viewModelProp:to='upper-case(scopeProp)'/>");
 
