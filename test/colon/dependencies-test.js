@@ -6,7 +6,9 @@ var canViewModel = require("can-view-model");
 var canReflectDeps = require("can-reflect-dependencies");
 
 var stache = require("can-stache");
-require("can-stache-bindings");
+var stacheBindings = require("can-stache-bindings");
+
+stache.addBindings(stacheBindings);
 
 QUnit.module("bindings dependencies", {
 	beforeEach: function() {
