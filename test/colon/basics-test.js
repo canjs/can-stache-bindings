@@ -11,6 +11,8 @@ var MockComponent = require("../mock-component-simple-map");
 
 var canTestHelpers = require('can-test-helpers');
 
+stache.addBindings(stacheBindings);
+
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
 
 	test("basics", 5, function(){

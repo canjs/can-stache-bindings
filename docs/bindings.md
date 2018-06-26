@@ -21,6 +21,19 @@ bindings on element attributes, component [can-component::ViewModel ViewModels],
 
 __Note:__ DOM attribute names are case-insensitive, but [can-component::ViewModel ViewModel] or [can-view-scope scope] properties can be `camelCase` and [can-stache stache] will encode them so they work correctly in the DOM.
 
+## Installing can-stache-bindings
+
+To install can-stache-bindings so they can be used in your templates import the package and register it with [can-stache.addBindings] like so:
+
+```js
+import stacheBindings from 'can-stache-bindings';
+import stache from 'can-stache';
+
+stache.addBindings(stacheBindings);
+```
+
+## Binding types
+
 The following are the bindings that should be used with [can-stache]:
 
 #### [can-stache-bindings.event event]
