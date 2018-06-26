@@ -823,12 +823,15 @@ var makeDataBinding = function(node, el, bindingData) {
 		bindingInfo
 	);
 
-	// Check for child:from="~parent" (it’s not supported)
+	// Check for child:bind="~parent" (it’s not supported because it’s unclear
+	// what the “right” behavior should be)
 	var childToParent = !!bindingInfo.childToParent;
 	var parentToChild = !!bindingInfo.parentToChild;
+	//!steal-remove-start
 	if (bindingInfo.stickyParentToChild && childToParent && parentToChild) {
 		dev.warn("Two-way binding computes is not supported.");
 	}
+	//!steal-remove-end
 
 	// Create the binding
 	var canBinding = new Bind({
