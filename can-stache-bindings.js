@@ -1,3 +1,4 @@
+"use strict";
 // # can-stache-bindings.js
 //
 // This module provides CanJS's default data and event bindings.
