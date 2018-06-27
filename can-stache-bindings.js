@@ -49,7 +49,7 @@ var onMatchStr = "on:",
 	onValueSymbol = canSymbol.for("can.onValue"),
 	getChangesSymbol = canSymbol.for("can.getChangesDependencyRecord");
 
-var throwOnlyOneTypeOfBindingError = function(){
+var throwOnlyOneTypeOfBindingError = function() {
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
 };
 
@@ -59,22 +59,28 @@ var throwOnlyOneTypeOfBindingError = function(){
 // If there is a conflict, an error is thrown.
 var checkBindingState = function(bindingState, dataBinding) {
 	var isSettingOnViewModel = dataBinding.bindingInfo.parentToChild && dataBinding.bindingInfo.child === viewModelBindingStr;
-	if(isSettingOnViewModel) {
+	if (isSettingOnViewModel) {
 		var bindingName = dataBinding.bindingInfo.childName;
-		var isSettingViewModel = isSettingOnViewModel && ( bindingName === 'this' || bindingName === '.' );
+		var isSettingViewModel = isSettingOnViewModel && (bindingName === 'this' || bindingName === '.');
 
-		if( isSettingViewModel ) {
-			if(bindingState.isSettingViewModel || bindingState.isSettingOnViewModel) {
+		if (isSettingViewModel) {
+			if (bindingState.isSettingViewModel || bindingState.isSettingOnViewModel) {
 				throwOnlyOneTypeOfBindingError();
 			} else {
-				return {isSettingViewModel: true, initialViewModelData: undefined};
+				return {
+					isSettingViewModel: true,
+					initialViewModelData: undefined
+				};
 			}
 		} else {
 			// just setting on viewModel
-			if(bindingState.isSettingViewModel) {
+			if (bindingState.isSettingViewModel) {
 				throwOnlyOneTypeOfBindingError();
 			} else {
-				return {isSettingOnViewModel: true, initialViewModelData: bindingState.initialViewModelData};
+				return {
+					isSettingOnViewModel: true,
+					initialViewModelData: bindingState.initialViewModelData
+				};
 			}
 		}
 	} else {
@@ -140,17 +146,17 @@ var behaviors = {
 				favorViewModel: true
 			});
 
-			if(dataBinding) {
+			if (dataBinding) {
 				bindingsState = checkBindingState(bindingsState, dataBinding);
 				hasDataBinding = true;
 
 
 				// For bindings that change the viewModel,
-				if(dataBinding.onCompleteBinding) {
+				if (dataBinding.onCompleteBinding) {
 					// save the initial value on the viewModel.
-					if(dataBinding.bindingInfo.parentToChild && dataBinding.value !== undefined) {
+					if (dataBinding.bindingInfo.parentToChild && dataBinding.value !== undefined) {
 
-						if(bindingsState.isSettingViewModel) {
+						if (bindingsState.isSettingViewModel) {
 							// the initial data is the context
 							bindingsState.initialViewModelData = dataBinding.value;
 						} else {
@@ -164,32 +170,35 @@ var behaviors = {
 				onTeardowns[node.name] = dataBinding.onTeardown;
 			}
 		});
-		if(staticDataBindingsOnly && !hasDataBinding) {
+		if (staticDataBindingsOnly && !hasDataBinding) {
 			return;
 		}
 		// Create the `viewModel` and call what needs to happen after `viewModel` is created.
 		viewModel = makeViewModel(bindingsState.initialViewModelData, hasDataBinding);
 
-		for(var i = 0, len = onCompleteBindings.length; i < len; i++) {
+		for (var i = 0, len = onCompleteBindings.length; i < len; i++) {
 			onCompleteBindings[i]();
 		}
 
 		// Listen to attribute changes and re-initialize
 		// the bindings.
 		var attributeDisposal;
-		if(!bindingsState.isSettingViewModel) {
-			attributeDisposal = domMutate.onNodeAttributeChange(el, function (ev) {
+		if (!bindingsState.isSettingViewModel) {
+			attributeDisposal = domMutate.onNodeAttributeChange(el, function(ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
 
-				if( onTeardowns[attrName] ) {
+				if (onTeardowns[attrName]) {
 					onTeardowns[attrName]();
 				}
 				// Parent attribute bindings we always re-setup.
 				var parentBindingWasAttribute = bindingInfos[attrName] && bindingInfos[attrName].parent === attributeBindingStr;
 
-				if(value !== null || parentBindingWasAttribute ) {
-					var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
+				if (value !== null || parentBindingWasAttribute) {
+					var dataBinding = makeDataBinding({
+						name: attrName,
+						value: value
+					}, el, {
 						templateType: tagData.templateType,
 						scope: tagData.scope,
 						semaphore: {},
@@ -201,9 +210,9 @@ var behaviors = {
 						initializeValues: true,
 						nodeList: tagData.parentNodeList
 					});
-					if(dataBinding) {
+					if (dataBinding) {
 						// The viewModel is created, so call callback immediately.
-						if(dataBinding.onCompleteBinding) {
+						if (dataBinding.onCompleteBinding) {
 							dataBinding.onCompleteBinding();
 						}
 						bindingInfos[attrName] = dataBinding.bindingInfo;
@@ -218,7 +227,7 @@ var behaviors = {
 				attributeDisposal();
 				attributeDisposal = undefined;
 			}
-			for(var attrName in onTeardowns) {
+			for (var attrName in onTeardowns) {
 				onTeardowns[attrName]();
 			}
 		};
@@ -227,7 +236,7 @@ var behaviors = {
 	// This is called when an individual data binding attribute is placed on an element.
 	// For example `{^value}="name"`.
 	data: function(el, attrData) {
-		if(domData.get.call(el, "preventDataBindings")) {
+		if (domData.get.call(el, "preventDataBindings")) {
 			return;
 		}
 		var viewModel,
@@ -239,90 +248,95 @@ var behaviors = {
 			attributeDisposal,
 			removedDisposal;
 
-			// Setup binding
-			var dataBinding = makeDataBinding({
-				name: attrData.attributeName,
-				value: el.getAttribute(attrData.attributeName),
-				nodeList: attrData.nodeList
-			}, el, {
-				templateType: attrData.templateType,
-				scope: attrData.scope,
-				semaphore: semaphore,
-				getViewModel: getViewModel,
-				syncChildWithParent: false
-			});
+		// Setup binding
+		var dataBinding = makeDataBinding({
+			name: attrData.attributeName,
+			value: el.getAttribute(attrData.attributeName),
+			nodeList: attrData.nodeList
+		}, el, {
+			templateType: attrData.templateType,
+			scope: attrData.scope,
+			semaphore: semaphore,
+			getViewModel: getViewModel,
+			syncChildWithParent: false
+		});
 
-			//!steal-remove-start
-			if(dataBinding.bindingInfo.child === "viewModel" && !domData.get(el, "viewModel")) {
+		//!steal-remove-start
+		if (process.env.NODE_ENV !== 'production') {
+			if (dataBinding.bindingInfo.child === "viewModel" && !domData.get(el, "viewModel")) {
 				dev.warn('This element does not have a viewModel. (Attempting to bind `' + dataBinding.bindingInfo.bindingAttributeName + '="' + dataBinding.bindingInfo.parentName + '"`)');
 			}
-			//!steal-remove-end
+		}
+		//!steal-remove-end
 
-			if(dataBinding.onCompleteBinding) {
-				dataBinding.onCompleteBinding();
-			}
+		if (dataBinding.onCompleteBinding) {
+			dataBinding.onCompleteBinding();
+		}
 
-			var attributeListener = function (ev) {
-				var attrName = ev.attributeName,
-					value = el.getAttribute(attrName);
+		var attributeListener = function(ev) {
+			var attrName = ev.attributeName,
+				value = el.getAttribute(attrName);
 
-				if( attrName === attrData.attributeName ) {
-					if( teardown ) {
-						teardown();
-					}
-
-					if(value !== null  ) {
-						var dataBinding = makeDataBinding({name: attrName, value: value}, el, {
-							templateType: attrData.templateType,
-							scope: attrData.scope,
-							semaphore: semaphore,
-							getViewModel: getViewModel,
-							// always update the viewModel accordingly.
-							initializeValues: true,
-							nodeList: attrData.nodeList,
-							syncChildWithParent: false
-						});
-						if(dataBinding) {
-							// The viewModel is created, so call callback immediately.
-							if(dataBinding.onCompleteBinding) {
-								dataBinding.onCompleteBinding();
-							}
-							teardown = dataBinding.onTeardown;
-						}
-					}
-				}
-			};
-
-
-			var tearItAllDown = function(){
-				if(teardown) {
+			if (attrName === attrData.attributeName) {
+				if (teardown) {
 					teardown();
-					teardown = undefined;
 				}
 
-				if (removedDisposal) {
-					removedDisposal();
-					removedDisposal = undefined;
+				if (value !== null) {
+					var dataBinding = makeDataBinding({
+						name: attrName,
+						value: value
+					}, el, {
+						templateType: attrData.templateType,
+						scope: attrData.scope,
+						semaphore: semaphore,
+						getViewModel: getViewModel,
+						// always update the viewModel accordingly.
+						initializeValues: true,
+						nodeList: attrData.nodeList,
+						syncChildWithParent: false
+					});
+					if (dataBinding) {
+						// The viewModel is created, so call callback immediately.
+						if (dataBinding.onCompleteBinding) {
+							dataBinding.onCompleteBinding();
+						}
+						teardown = dataBinding.onTeardown;
+					}
 				}
-				if (attributeDisposal) {
-					attributeDisposal();
-					attributeDisposal = undefined;
-				}
-			};
-			if(attrData.nodeList) {
-				ViewNodeList.register([],tearItAllDown, attrData.nodeList, false);
+			}
+		};
+
+
+		var tearItAllDown = function() {
+			if (teardown) {
+				teardown();
+				teardown = undefined;
 			}
 
+			if (removedDisposal) {
+				removedDisposal();
+				removedDisposal = undefined;
+			}
+			if (attributeDisposal) {
+				attributeDisposal();
+				attributeDisposal = undefined;
+			}
+		};
+		if (attrData.nodeList) {
+			ViewNodeList.register([], tearItAllDown, attrData.nodeList, false);
+		}
 
-			// Listen for changes
-			teardown = dataBinding.onTeardown;
 
-			attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
-			removedDisposal = domMutate.onNodeRemoval(el, function() {
-				if (el.ownerDocument.contains(el) === false) {
-					tearItAllDown();
-				}
-			});
+		// Listen for changes
+		teardown = dataBinding.onTeardown;
+
+		attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
+		removedDisposal = domMutate.onNodeRemoval(el, function() {
+			if (el.ownerDocument.contains(el) === false) {
+				tearItAllDown();
+			}
+		});
 	},
 	// ### bindings.behaviors.event
 	// The following section contains code for implementing the can-EVENT attribute.
@@ -333,21 +347,21 @@ var behaviors = {
 
 		// Get the `event` name and if we are listening to the element or viewModel.
 		// The attribute name is the name of the event.
-		var attributeName = encoder.decode( data.attributeName ),
+		var attributeName = encoder.decode(data.attributeName),
 			// the name of the event we are binding
 			event,
 			// if we are binding on the element or the VM
 			bindingContext;
 
 		// check for `on:event:value:to` type things and call data bindings
-		if(attributeName.indexOf(toMatchStr+":") !== -1 ||
-			attributeName.indexOf(fromMatchStr+":") !== -1 ||
-			attributeName.indexOf(bindMatchStr+":") !== -1
+		if (attributeName.indexOf(toMatchStr + ":") !== -1 ||
+			attributeName.indexOf(fromMatchStr + ":") !== -1 ||
+			attributeName.indexOf(bindMatchStr + ":") !== -1
 		) {
 			return this.data(el, data);
 		}
 
-		if(startsWith.call(attributeName, onMatchStr)) {
+		if (startsWith.call(attributeName, onMatchStr)) {
 			event = attributeName.substr(onMatchStr.length);
 			var viewModel = el[canSymbol.for('can.viewModel')];
 
@@ -380,34 +394,38 @@ var behaviors = {
 				//   -> bindingContext = byParent.get('obj')
 				//   -> event = 'prop'
 				var byIndex = event.indexOf(byMatchStr);
-				if( byIndex >= 0 ) {
+				if (byIndex >= 0) {
 					bindingContext = byParent.get(event.substr(byIndex + byMatchStr.length));
 					event = event.substr(0, byIndex);
 				}
 			}
 		} else {
-			throw new Error("can-stache-bindings - unsupported event bindings "+attributeName);
+			throw new Error("can-stache-bindings - unsupported event bindings " + attributeName);
 		}
 
 		// This is the method that the event will initially trigger. It will look up the method by the string name
 		// passed in the attribute and call it.
-		var handler = function (ev) {
-			var attrVal = el.getAttribute( encoder.encode(attributeName) );
-			if (!attrVal) { return; }
+		var handler = function(ev) {
+			var attrVal = el.getAttribute(encoder.encode(attributeName));
+			if (!attrVal) {
+				return;
+			}
 
 			var viewModel = canViewModel(el);
 
 			// expression.parse will read the attribute
 			// value and parse it identically to how mustache helpers
 			// get parsed.
-			var expr = expression.parse(attrVal,{
+			var expr = expression.parse(attrVal, {
 				lookupRule: function() {
 					return expression.Lookup;
-				}, methodRule: "call"});
+				},
+				methodRule: "call"
+			});
 
 
-			if(!(expr instanceof expression.Call)) {
-				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in "+data.attributeName+"="+JSON.stringify(attrVal));
+			if (!(expr instanceof expression.Call)) {
+				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in " + data.attributeName + "=" + JSON.stringify(attrVal));
 			}
 
 			// create "special" values that can be looked up using
@@ -421,7 +439,9 @@ var behaviors = {
 
 			// make a scope with these things just under
 			var localScope = data.scope
-				.add(specialValues, { special: true });
+				.add(specialValues, {
+					special: true
+				});
 
 			var updateFn = function() {
 				var value = expr.value(localScope, {
@@ -437,17 +457,33 @@ var behaviors = {
 					value;
 			};
 			//!steal-remove-start
-			Object.defineProperty(updateFn, "name", {
-				value: attributeName + '="' + attrVal + '"'
-			});
+			if (process.env.NODE_ENV !== 'production') {
+				Object.defineProperty(updateFn, "name", {
+					value: attributeName + '="' + attrVal + '"'
+				});
+			}
 			//!steal-remove-end
 
 			queues.batch.start();
-			queues.mutateQueue.enqueue(updateFn, null, null, {
-				//!steal-remove-start
-				reasonLog: [el, ev, attributeName+"="+attrVal]
-				//!steal-remove-end
-			});
+			var mutateQueueArgs = [];
+			mutateQueueArgs = [
+				updateFn,
+				null,
+				null, 
+				{}
+			];
+			//!steal-remove-start
+			if (process.env.NODE_ENV !== 'production') {
+				mutateQueueArgs = [
+					updateFn,
+					null,
+					null, {
+						reasonLog: [el, ev, attributeName+"="+attrVal]
+					}
+				];
+			}
+			//!steal-remove-end
+			queues.mutateQueue.enqueue.apply(queues.mutateQueue, mutateQueueArgs);
 			queues.batch.stop();
 
 		};
@@ -464,7 +500,7 @@ var behaviors = {
 				unbindEvent();
 			}
 		};
-		var removalHandler = function () {
+		var removalHandler = function() {
 			if (!el.ownerDocument.contains(el)) {
 				unbindEvent();
 			}
@@ -529,11 +565,13 @@ var getObservableFrom = {
 	// ### getObservableFrom.scope
 	// Returns a compute from the scope.  This handles expressions like `someMethod(.,1)`.
 	scope: function(el, scope, scopeProp, bindingData, mustBeSettable, stickyCompute) {
-		if(!scopeProp) {
+		if (!scopeProp) {
 			return new SimpleObservable();
 		} else {
-			if(mustBeSettable) {
-				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
+			if (mustBeSettable) {
+				var parentExpression = expression.parse(scopeProp, {
+					baseMethodType: "Call"
+				});
 				return parentExpression.value(scope);
 			} else {
 				var observation = {};
@@ -564,18 +602,20 @@ var getObservableFrom = {
 
 					"can.getName": function getName() {
 						//!steal-remove-start
-						var result = "ObservableFromScope<>";
-						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
+						if (process.env.NODE_ENV !== 'production') {
+							var result = "ObservableFromScope<>";
+							var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
 
-						if (data.parent && data.key) {
-							result = "ObservableFromScope<" +
-								canReflect.getName(data.parent) +
-								"." +
-								data.key +
-								">";
+							if (data.parent && data.key) {
+								result = "ObservableFromScope<" +
+									canReflect.getName(data.parent) +
+									"." +
+									data.key +
+									">";
+							}
+
+							return result;
 						}
-
-						return result;
 						//!steal-remove-end
 					},
 				});
@@ -603,18 +643,20 @@ var getObservableFrom = {
 			return observeReader.read(viewModel, keysToRead, {}).value;
 		}
 		//!steal-remove-start
-		Object.defineProperty(getViewModelProperty, "name", {
-			value: "viewModel."+vmName
-		});
+		if (process.env.NODE_ENV !== 'production') {
+			Object.defineProperty(getViewModelProperty, "name", {
+				value: "viewModel." + vmName
+			});
+		}
 		//!steal-remove-end
 
 		var observation = new SettableObservable(
 			getViewModelProperty,
 
-			function setViewModelProperty(newVal){
+			function setViewModelProperty(newVal) {
 				var viewModel = bindingData.getViewModel();
 
-				if(stickyCompute) {
+				if (stickyCompute) {
 					// TODO: Review what this is used for.
 					var oldValue = canReflect.getKeyValue(viewModel, setName);
 					if (canReflect.isObservableLike(oldValue)) {
@@ -627,7 +669,7 @@ var getObservableFrom = {
 						);
 					}
 				} else {
-					if(isBoundToContext) {
+					if (isBoundToContext) {
 						canReflect.setValue(viewModel, newVal);
 					} else {
 						canReflect.setKeyValue(viewModel, setName, newVal);
@@ -637,9 +679,11 @@ var getObservableFrom = {
 		);
 
 		//!steal-remove-start
-		var viewModel = bindingData.getViewModel();
-		if (viewModel && setName) {
-			canReflectDeps.addMutatedBy(viewModel, setName, observation);
+		if (process.env.NODE_ENV !== 'production') {
+			var viewModel = bindingData.getViewModel();
+			if (viewModel && setName) {
+				canReflectDeps.addMutatedBy(viewModel, setName, observation);
+			}
 		}
 		//!steal-remove-end
 
@@ -662,29 +706,29 @@ var bind = {
 	childToParent: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, syncChild, bindingInfo) {
 		// Updates the parent if
 		function updateParent(newVal) {
-			if(!bindingInfo.active) {
+			if (!bindingInfo.active) {
 				return;
 			}
 			if (!bindingsSemaphore[attrName]) {
 				if (parentObservable && parentObservable[getValueSymbol]) {
 					var hasDependencies = canReflect.valueHasDependencies(parentObservable);
 
-					if (!hasDependencies || (canReflect.getValue(parentObservable) !== newVal) ) {
+					if (!hasDependencies || (canReflect.getValue(parentObservable) !== newVal)) {
 						canReflect.setValue(parentObservable, newVal);
 					}
 					// only sync if parent
-					if( syncChild && hasDependencies) {
+					if (syncChild && hasDependencies) {
 						// If, after setting the parent, it's value is not the same as the child,
 						// update the child with the value of the parent.
 						// This is used by `can-value`.
-						if(canReflect.getValue(parentObservable) !== canReflect.getValue(childObservable)) {
+						if (canReflect.getValue(parentObservable) !== canReflect.getValue(childObservable)) {
 							bindingsSemaphore[attrName] = (bindingsSemaphore[attrName] || 0) + 1;
 							queues.batch.start();
 							canReflect.setValue(childObservable, canReflect.getValue(parentObservable));
 
 							queues.mutateQueue.enqueue(function decrementChildToParentSemaphore() {
 								--bindingsSemaphore[attrName];
-							},null,[],{});
+							}, null, [], {});
 							queues.batch.stop();
 						}
 					}
@@ -692,7 +736,7 @@ var bind = {
 				// The parentObservable can sometimes be just an observable if the observable
 				// is on a plain JS object. This updates the observable to match whatever the
 				// new value is.
-				else if(canReflect.isMapLike(parentObservable)) {
+				else if (canReflect.isMapLike(parentObservable)) {
 					// !steal-dev-start
 					var attrValue = el.getAttribute(attrName);
 					dev.warn("can-stache-bindings: Merging " + attrName + " into " + attrValue + " because its parent is non-observable");
@@ -709,21 +753,25 @@ var bind = {
 			}
 		}
 		//!steal-remove-start
-		Object.defineProperty(updateParent, "name", {
-			value: "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">",
-		});
+		if (process.env.NODE_ENV !== 'production') {
+			Object.defineProperty(updateParent, "name", {
+				value: "update " + bindingInfo.parent + "." + bindingInfo.parentName + " of <" + el.nodeName.toLowerCase() + ">",
+			});
+		}
 		//!steal-remove-end
 
-		if(childObservable && childObservable[getValueSymbol]) {
+		if (childObservable && childObservable[getValueSymbol]) {
 			canReflect.onValue(childObservable, updateParent, "domUI");
 
 			//!steal-remove-start
-			canReflectDeps.addMutatedBy(parentObservable, childObservable);
-			updateParent[getChangesSymbol] = function getChangesDependencyRecord() {
-				return {
-					valueDependencies: new Set([ parentObservable ])
+			if (process.env.NODE_ENV !== 'production') {
+				canReflectDeps.addMutatedBy(parentObservable, childObservable);
+				updateParent[getChangesSymbol] = function getChangesDependencyRecord() {
+					return {
+						valueDependencies: new Set([parentObservable])
+					};
 				};
-			};
+			}
 			//!steal-remove-end
 		}
 
@@ -733,7 +781,7 @@ var bind = {
 	parentToChild: function(el, parentObservable, childObservable, bindingsSemaphore, attrName, bindingInfo) {
 		// setup listening on parent and forwarding to viewModel
 		var updateChild = function updateChild(newValue) {
-			if(!bindingInfo.active) {
+			if (!bindingInfo.active) {
 				return;
 			}
 			// Save the viewModel property name so it is not updated multiple times.
@@ -745,39 +793,43 @@ var bind = {
 			// only after computes have been updated, reduce the update counter
 			queues.mutateQueue.enqueue(function decrementParentToChildSemaphore() {
 				--bindingsSemaphore[attrName];
-			},null,[],{});
+			}, null, [], {});
 			queues.batch.stop();
 		};
 
 		//!steal-remove-start
-		Object.defineProperty(updateChild, "name", {
-			value: "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
-		});
+		if (process.env.NODE_ENV !== 'production') {
+			Object.defineProperty(updateChild, "name", {
+				value: "update " + bindingInfo.child + "." + bindingInfo.childName + " of <" + el.nodeName.toLowerCase() + ">",
+			});
+		}
 		//!steal-remove-end
 
-		if(parentObservable && parentObservable[getValueSymbol]) {
+		if (parentObservable && parentObservable[getValueSymbol]) {
 			canReflect.onValue(parentObservable, updateChild, "domUI");
 			//!steal-remove-start
-			canReflectDeps.addMutatedBy(childObservable, parentObservable);
-			updateChild[getChangesSymbol] = function getChangesDependencyRecord() {
-				return {
-					valueDependencies: new Set([ childObservable])
+			if (process.env.NODE_ENV !== 'production') {
+				canReflectDeps.addMutatedBy(childObservable, parentObservable);
+				updateChild[getChangesSymbol] = function getChangesDependencyRecord() {
+					return {
+						valueDependencies: new Set([childObservable])
+					};
 				};
-			};
+			}
 			//!steal-remove-end
 		}
 
 		return updateChild;
 	}
 };
-var startsWith = String.prototype.startsWith || function(text){
+var startsWith = String.prototype.startsWith || function(text) {
 	return this.indexOf(text) === 0;
 };
 
 // Gets an event name in the after part.
 function getEventName(result) {
-	if(result.special.on !== undefined) {
-		return result.tokens[result.special.on+1];
+	if (result.special.on !== undefined) {
+		return result.tokens[result.special.on + 1];
 	}
 }
 
@@ -808,7 +860,7 @@ var special = {
 	vm: true,
 	on: true
 };
-canReflect.each(bindingRules, function(value, key){
+canReflect.each(bindingRules, function(value, key) {
 	bindingNames.push(key);
 	special[key] = true;
 });
@@ -821,8 +873,8 @@ function tokenize(source) {
 		tokens: [],
 		special: {}
 	};
-	splitByColon.forEach(function(token){
-		if(special[token]) {
+	splitByColon.forEach(function(token) {
+		if (special[token]) {
 			result.special[token] = result.tokens.push(token) - 1;
 		} else {
 			result.tokens.push(token);
@@ -839,7 +891,7 @@ var getChildBindingStr = function(tokens, favorViewModel) {
 	} else if (tokens.indexOf('el') >= 0) {
 		return attributeBindingStr;
 	} else {
-		return favorViewModel ?  viewModelBindingStr: viewModelOrAttributeBindingStr;
+		return favorViewModel ? viewModelBindingStr : viewModelOrAttributeBindingStr;
 	}
 };
 
@@ -858,7 +910,7 @@ var getChildBindingStr = function(tokens, favorViewModel) {
 // If undefined is return, there is no binding.
 var getBindingInfo = function(node, attributeViewModelBindings, templateType, tagName, favorViewModel) {
 	var bindingInfo,
-		attributeName = encoder.decode( node.name ),
+		attributeName = encoder.decode(node.name),
 		attributeValue = node.value || "";
 
 	// START: check new binding syntaxes ======
@@ -869,28 +921,28 @@ var getBindingInfo = function(node, attributeViewModelBindings, templateType, ta
 
 
 	// check if there's a match of a binding name with at least a value before it
-	bindingNames.forEach(function(name){
-		if(result.special[name] !== undefined && result.special[name] > 0) {
+	bindingNames.forEach(function(name) {
+		if (result.special[name] !== undefined && result.special[name] > 0) {
 			dataBindingName = name;
 			specialIndex = result.special[name];
 			return false;
 		}
 	});
 
-	if(dataBindingName) {
+	if (dataBindingName) {
 		var childEventName = getEventName(result);
 		var initializeValues = childEventName && dataBindingName !== "bind" ? false : true;
 		bindingInfo = assign({
 			parent: scopeBindingStr,
 			child: getChildBindingStr(result.tokens, favorViewModel),
 			// the child is going to be the token before the special location
-			childName: result.tokens[specialIndex-1],
+			childName: result.tokens[specialIndex - 1],
 			childEvent: childEventName,
 			bindingAttributeName: attributeName,
 			parentName: result.special.raw ? ('"' + attributeValue + '"') : attributeValue,
 			initializeValues: initializeValues,
 		}, bindingRules[dataBindingName]);
-		if(attributeValue.trim().charAt(0) === "~") {
+		if (attributeValue.trim().charAt(0) === "~") {
 			bindingInfo.stickyParentToChild = true;
 		}
 		return bindingInfo;
@@ -925,7 +977,7 @@ var makeDataBinding = function(node, el, bindingData) {
 	// Get information about the binding.
 	var bindingInfo = getBindingInfo(node, bindingData.attributeViewModelBindings,
 		bindingData.templateType, el.nodeName.toLowerCase(), bindingData.favorViewModel);
-	if(!bindingInfo) {
+	if (!bindingInfo) {
 		return;
 	}
 	// hack in the active check (#278)
@@ -933,47 +985,47 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	// assign some bindingData props to the bindingInfo
 	bindingInfo.alreadyUpdatedChild = bindingData.alreadyUpdatedChild;
-	if( bindingData.initializeValues) {
+	if (bindingData.initializeValues) {
 		bindingInfo.initializeValues = true;
 	}
 
 	// Get computes for the parent and child binding
 	var parentObservable = getObservableFrom[bindingInfo.parent](
-		el,
-		bindingData.scope,
-		bindingInfo.parentName,
-		bindingData,
-		bindingInfo.parentToChild,
-		undefined,
-		undefined,
-		bindingInfo
-	),
-	childObservable = getObservableFrom[bindingInfo.child](
-		el,
-		bindingData.scope,
-		bindingInfo.childName,
-		bindingData,
-		bindingInfo.childToParent,
-		bindingInfo.stickyParentToChild && parentObservable,
-		bindingInfo.childEvent,
-		bindingInfo
-	),
-	// these are the functions bound to one compute that update the other.
-	updateParent,
-	updateChild;
+			el,
+			bindingData.scope,
+			bindingInfo.parentName,
+			bindingData,
+			bindingInfo.parentToChild,
+			undefined,
+			undefined,
+			bindingInfo
+		),
+		childObservable = getObservableFrom[bindingInfo.child](
+			el,
+			bindingData.scope,
+			bindingInfo.childName,
+			bindingData,
+			bindingInfo.childToParent,
+			bindingInfo.stickyParentToChild && parentObservable,
+			bindingInfo.childEvent,
+			bindingInfo
+		),
+		// these are the functions bound to one compute that update the other.
+		updateParent,
+		updateChild;
 
-	if(bindingData.nodeList) {
-		if(parentObservable) {
-			canReflect.setPriority(parentObservable, bindingData.nodeList.nesting+1);
+	if (bindingData.nodeList) {
+		if (parentObservable) {
+			canReflect.setPriority(parentObservable, bindingData.nodeList.nesting + 1);
 		}
 
-		if(childObservable) {
-			canReflect.setPriority(childObservable, bindingData.nodeList.nesting+1);
+		if (childObservable) {
+			canReflect.setPriority(childObservable, bindingData.nodeList.nesting + 1);
 		}
 	}
 
 	// Only bind to the parent if it will update the child.
-	if(bindingInfo.parentToChild) {
+	if (bindingInfo.parentToChild) {
 		updateChild = bind.parentToChild(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName, bindingInfo);
 	}
 
@@ -981,17 +1033,17 @@ var makeDataBinding = function(node, el, bindingData) {
 	// the `viewModel` might not have been created yet.
 	var completeBinding = function() {
 
-		if(bindingInfo.childToParent) {
+		if (bindingInfo.childToParent) {
 			// setup listening on parent and forwarding to viewModel
 			updateParent = bind.childToParent(el, parentObservable, childObservable, bindingData.semaphore, bindingInfo.bindingAttributeName,
 				bindingInfo.syncChildWithParent, bindingInfo);
 		}
 		// the child needs to be bound even if
-		else if(bindingInfo.stickyParentToChild && childObservable[onValueSymbol])  {
-			canReflect.onValue(childObservable, noop,"mutate");
+		else if (bindingInfo.stickyParentToChild && childObservable[onValueSymbol]) {
+			canReflect.onValue(childObservable, noop, "mutate");
 		}
 
-		if(bindingInfo.initializeValues) {
+		if (bindingInfo.initializeValues) {
 			initializeValues(bindingInfo, childObservable, parentObservable, updateChild, updateParent);
 		}
 	};
@@ -1006,13 +1058,12 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	// If this binding depends on the viewModel, which might not have been created,
 	// return the function to complete the binding as `onCompleteBinding`.
-	if(bindingInfo.child === viewModelBindingStr) {
+	if (bindingInfo.child === viewModelBindingStr) {
 		return {
-			value: bindingInfo.stickyParentToChild ? makeCompute(parentObservable) :
-				canReflect.getValue(parentObservable),
-				onCompleteBinding: completeBinding,
-				bindingInfo: bindingInfo,
-				onTeardown: onTeardown
+			value: bindingInfo.stickyParentToChild ? makeCompute(parentObservable) : canReflect.getValue(parentObservable),
+			onCompleteBinding: completeBinding,
+			bindingInfo: bindingInfo,
+			onTeardown: onTeardown
 		};
 	} else {
 		completeBinding();
@@ -1029,49 +1080,50 @@ var makeDataBinding = function(node, el, bindingData) {
 var initializeValues = function(bindingInfo, childObservable, parentObservable, updateChild, updateParent) {
 	var doUpdateParent = false;
 
-	if(bindingInfo.parentToChild && !bindingInfo.childToParent) {
+	if (bindingInfo.parentToChild && !bindingInfo.childToParent) {
 		// updateChild
-	}
-	else if(!bindingInfo.parentToChild && bindingInfo.childToParent) {
+	} else if (!bindingInfo.parentToChild && bindingInfo.childToParent) {
 		doUpdateParent = true;
 	}
 	// Two way
 	// Update child or parent depending on who has a value.
 	// If both have a value, update the child.
-	else if(canReflect.getValue(childObservable) === undefined) {
+	else if (canReflect.getValue(childObservable) === undefined) {
 		// updateChild
-	} else if(canReflect.getValue(parentObservable) === undefined) {
+	} else if (canReflect.getValue(parentObservable) === undefined) {
 		doUpdateParent = true;
 	}
 
-	if(doUpdateParent) {
-		updateParent( canReflect.getValue(childObservable) );
+	if (doUpdateParent) {
+		updateParent(canReflect.getValue(childObservable));
 	} else {
-		if(!bindingInfo.alreadyUpdatedChild) {
-			updateChild( canReflect.getValue(parentObservable) );
+		if (!bindingInfo.alreadyUpdatedChild) {
+			updateChild(canReflect.getValue(parentObservable));
 		}
 	}
 };
 
 var unbindUpdate = function(observable, updater) {
-	if(observable && observable[getValueSymbol] && typeof updater === "function") {
-		canReflect.offValue(observable, updater,"domUI");
-	}
-},
-cleanVMName = function(name, scope) {
-	//!steal-remove-start
-	if (name.indexOf("@") >= 0) {
-		var filename = scope.peek('scope.filename');
-		var lineNumber = scope.peek('scope.lineNumber');
+		if (observable && observable[getValueSymbol] && typeof updater === "function") {
+			canReflect.offValue(observable, updater, "domUI");
+		}
+	},
+	cleanVMName = function(name, scope) {
+		//!steal-remove-start
+		if (process.env.NODE_ENV !== 'production') {
+			if (name.indexOf("@") >= 0) {
+				var filename = scope.peek('scope.filename');
+				var lineNumber = scope.peek('scope.lineNumber');
 
-		dev.warn(
-			(filename ? filename + ':' : '') +
-			(lineNumber ? lineNumber + ': ' : '') +
-			'functions are no longer called by default so @ is unnecessary in \'' + name + '\'.');
-	}
-	//!steal-remove-end
-	return name.replace(/@/g, "");
-};
+				dev.warn(
+					(filename ? filename + ':' : '') +
+					(lineNumber ? lineNumber + ': ' : '') +
+					'functions are no longer called by default so @ is unnecessary in \'' + name + '\'.');
+			}
+		}
+		//!steal-remove-end
+		return name.replace(/@/g, "");
+	};
 
 module.exports = {
 	behaviors: behaviors,
