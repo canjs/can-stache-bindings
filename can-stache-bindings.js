@@ -34,6 +34,9 @@ var ViewNodeList = require("can-view-nodelist");
 var canEvent = require("can-attribute-observable/event");
 var noop = function() {};
 
+// Contains all of the stache bindings that will be exported.
+var bindings = new Map();
+
 var onMatchStr = "on:",
 	vmMatchStr = "vm:",
 	elMatchStr = "el:",
@@ -469,7 +472,7 @@ var behaviors = {
 			mutateQueueArgs = [
 				updateFn,
 				null,
-				null, 
+				null,
 				{}
 			];
 			//!steal-remove-start
@@ -534,18 +537,18 @@ var behaviors = {
 // value:to="bar" data bindings
 // these are separate so that they only capture at the end
 // to avoid (toggle)="bar" which is encoded as :lp:toggle:rp:="bar"
-viewCallbacks.attr(/[\w\.:]+:to$/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:from$/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:bind$/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:raw$/, behaviors.data);
+bindings.set(/[\w\.:]+:to$/, behaviors.data);
+bindings.set(/[\w\.:]+:from$/, behaviors.data);
+bindings.set(/[\w\.:]+:bind$/, behaviors.data);
+bindings.set(/[\w\.:]+:raw$/, behaviors.data);
 // value:to:on:input="bar" data bindings
-viewCallbacks.attr(/[\w\.:]+:to:on:[\w\.:]+/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:from:on:[\w\.:]+/, behaviors.data);
-viewCallbacks.attr(/[\w\.:]+:bind:on:[\w\.:]+/, behaviors.data);
+bindings.set(/[\w\.:]+:to:on:[\w\.:]+/, behaviors.data);
+bindings.set(/[\w\.:]+:from:on:[\w\.:]+/, behaviors.data);
+bindings.set(/[\w\.:]+:bind:on:[\w\.:]+/, behaviors.data);
 
 
 // `(EVENT)` event bindings.
-viewCallbacks.attr(/on:[\w\.:]+/, behaviors.event);
+bindings.set(/on:[\w\.:]+/, behaviors.event);
 
 // ## getObservableFrom
 // An object of helper functions that make a getter/setter observable
@@ -1125,7 +1128,13 @@ var unbindUpdate = function(observable, updater) {
 		return name.replace(/@/g, "");
 	};
 
-module.exports = {
+var canStacheBindings = {
 	behaviors: behaviors,
-	getBindingInfo: getBindingInfo
+	getBindingInfo: getBindingInfo,
+	bindings: bindings
 };
+
+canStacheBindings[canSymbol.for("can.callbackMap")] = bindings;
+viewCallbacks.attrs(canStacheBindings);
+
+module.exports = canStacheBindings;
