@@ -1134,7 +1134,7 @@ var canStacheBindings = {
 	bindings: bindings
 };
 
-canStacheBindings[canSymbol.for("can.stacheBindings")] = bindings;
+canStacheBindings[canSymbol.for("can.callbackMap")] = bindings;
 viewCallbacks.attrs(canStacheBindings);
 
 module.exports = canStacheBindings;
