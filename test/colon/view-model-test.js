@@ -438,6 +438,40 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		equal( viewModel.get("viewModelProp"), "Earth", "no binding from parent to child" );
 	});
 
+	test('one-way - child to parent - viewModel - with converters', function(){
+		MockComponent.extend({
+			tag: "view-model-able",
+			viewModel: function(){
+				return new SimpleMap({viewModelProp: "Mercury"});
+			}
+		});
+
+		stache.addConverter("upper-case", {
+			get: function( fooCompute ) {
+				return (""+canReflect.getValue(fooCompute)).toUpperCase();
+			},
+			set: function( newVal, fooCompute ) {
+				canReflect.setValue(fooCompute, (""+newVal).toUpperCase() );
+			}
+		});
+
+		var template = stache("<view-model-able vm:viewModelProp:to='upper-case(scopeProp)'/>");
+
+		var map = new SimpleMap({scopeProp: "Venus"});
+
+		var frag = template(map);
+		var viewModel = canViewModel(frag.firstChild);
+
+		equal( viewModel.get("viewModelProp"), "Mercury", "initial value kept" );
+		equal( map.get("scopeProp"), "MERCURY", "initial value set on parent, but upper cased" );
+
+		viewModel.set("viewModelProp", "Earth");
+		equal(map.get("scopeProp"), "EARTH", "binding from child to parent updated");
+
+		map.set("scopeProp", "Mars");
+		equal( viewModel.get("viewModelProp"), "Earth", "no binding from parent to child" );
+	});
+
 	test('one-way - parent to child - viewModel', function(){
 
 
@@ -597,15 +631,15 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			tag: "test-elem",
 			viewModel: SimpleMap
 		});
-	
+
 		var template = stache("<test-elem foo=\"bar\"/>");
-	
+
 		var frag = template(new SimpleMap({
 			bar: true
 		}));
-	
+
 		var vm = canViewModel(frag.firstChild);
-	
+
 		equal(vm.get('foo'), undefined);
 	});
 
