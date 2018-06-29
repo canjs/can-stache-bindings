@@ -878,8 +878,7 @@ var makeDataBinding = function(node, el, bindingData) {
 	}
 	//!steal-remove-end
 
-	// Create the binding
-	var canBinding = new Bind({
+	var bindingOptions = {
 		child: childObservable,
 		childToParent: childToParent,
 		cycles: 0,
@@ -889,10 +888,18 @@ var makeDataBinding = function(node, el, bindingData) {
 		parentToChild: parentToChild,
 		priority: bindingData.nodeList ? bindingData.nodeList.nesting + 1 : undefined,
 		queue: "domUI",
-		sticky: bindingInfo.syncChildWithParent ? "childSticksToParent" : undefined,
-		updateChildName: "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">",
-		updateParentName: "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">"
-	});
+		sticky: bindingInfo.syncChildWithParent ? "childSticksToParent" : undefined
+	};
+
+	//!steal-remove-start
+	if (process.env.NODE_ENV !== 'production') {
+		bindingOptions.updateChildName = "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">";
+		bindingOptions.updateParentName = "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">";
+	}
+	//!steal-remove-end
+
+	// Create the binding
+	var canBinding = new Bind(bindingOptions);
 
 	// Immediately bind to the parent
 	// TODO: it doesn’t appear that there are any tests that cover this behavior
