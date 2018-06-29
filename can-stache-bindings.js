@@ -871,8 +871,10 @@ var makeDataBinding = function(node, el, bindingData) {
 	var childToParent = !!bindingInfo.childToParent;
 	var parentToChild = !!bindingInfo.parentToChild;
 	//!steal-remove-start
-	if (bindingInfo.stickyParentToChild && childToParent && parentToChild) {
-		dev.warn("Two-way binding computes is not supported.");
+	if (process.env.NODE_ENV !== 'production') {
+		if (bindingInfo.stickyParentToChild && childToParent && parentToChild) {
+			dev.warn("Two-way binding computes is not supported.");
+		}
 	}
 	//!steal-remove-end
 
@@ -905,14 +907,16 @@ var makeDataBinding = function(node, el, bindingData) {
 
 var cleanVMName = function(name, scope) {
 	//!steal-remove-start
-	if (name.indexOf("@") >= 0) {
-		var filename = scope.peek('scope.filename');
-		var lineNumber = scope.peek('scope.lineNumber');
+	if (process.env.NODE_ENV !== 'production') {
+		if (name.indexOf("@") >= 0) {
+			var filename = scope.peek('scope.filename');
+			var lineNumber = scope.peek('scope.lineNumber');
 
-		dev.warn(
-			(filename ? filename + ':' : '') +
-			(lineNumber ? lineNumber + ': ' : '') +
-			'functions are no longer called by default so @ is unnecessary in \'' + name + '\'.');
+			dev.warn(
+				(filename ? filename + ':' : '') +
+				(lineNumber ? lineNumber + ': ' : '') +
+				'functions are no longer called by default so @ is unnecessary in \'' + name + '\'.');
+		}
 	}
 	//!steal-remove-end
 	return name.replace(/@/g, "");
