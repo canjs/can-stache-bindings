@@ -16,14 +16,14 @@ If the element does **not** have a [can-component::ViewModel ViewModel], listens
 @param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
 
 @param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
-is fired. The following key values are also supported:
+is fired. The following [can-stache/keys/scope] key values are also supported:
 
- - `%element` - The element the event happened upon.
- - `%event` - The event object.
- - `%viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
- - `%context` - The current context.
- - `%scope` - The current [can-view-scope].
- - `%arguments` - The arguments passed when the event was dispatched/triggered.
+ - `scope.element` - The element the event happened upon.
+ - `scope.event` - The event object.
+ - `scope.viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
+ - `scope.context` - The current context.
+ - `scope.scope` - The current [can-view-scope].
+ - `scope.arguments` - The arguments passed when the event was dispatched/triggered.
 
 @signature `on:el:DOM_EVENT='CALL_EXPRESSION'`
 
