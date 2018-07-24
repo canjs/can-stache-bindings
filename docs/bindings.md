@@ -4,13 +4,13 @@
 @group can-stache-bindings.syntaxes Syntaxes
 @package ../package.json
 
-Provides template event, one-way bindings, and two-way bindings.
+Provides template events, one-way bindings, and two-way bindings.
 
 @body
 
 ## Use
 
-The `can-stache-bindings` plugin provides useful [can-view-callbacks.attr custom attributes] for template declarative event, one-way bindings, and two-way
+The `can-stache-bindings` plugin provides useful [can-view-callbacks.attr custom attributes] for template declarative events, one-way bindings, and two-way
 bindings on element attributes, component [can-component::ViewModel ViewModels], and the [can-view-scope scope]. Bindings look like:
 
 
@@ -19,7 +19,7 @@ bindings on element attributes, component [can-component::ViewModel ViewModels],
 - `prop:to="key"` for one-way binding to a parent.
 - `prop:bind="key"` for two-way binding.
 
-__Note:__ DOM attribute names are case-insensitive, but [can-component::ViewModel ViewModel] or [can-view-scope scope] properties can be `camelCase` and [can-stache stache] will encode them so they work correctly in the DOM.
+> __Note:__ DOM attribute names are case-insensitive, but [can-component::ViewModel ViewModel] or [can-view-scope scope] properties can be `camelCase` and [can-stache stache] will encode them so they work correctly in the DOM.
 
 The following are the bindings that should be used with [can-stache]:
 
@@ -60,7 +60,7 @@ element with `value` in the [can-view-scope scope]:
 
 You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:from="value"` or the element using `el:child-attr:from="value"`.
 
-> __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+> __Note:__ If the value being passed to the component is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.toParent one-way to parent]
 
@@ -73,16 +73,16 @@ in `<my-component>`’s [can-component::ViewModel ViewModel]:
 
 > This can be read as "send `childProp` _to_ `value`".
 
-If the element does not have a [can-component::ViewModel ViewModel], updates `value`
+If the element does not have a [can-component::ViewModel ViewModel], it updates `value`
 in the [can-view-scope scope] with the `child-attr` attribute or property of the element.
 
 ```html
 <div child-attr:to="value"/>
 ```
 
-You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:to="value"` or the element using `el:child-attr:to="value"`.
+You can also explicitly use the [can-component::ViewModel ViewModel] with `vm:childProp:to="value"` or the element with `el:child-attr:to="value"`.
 
-> __Note:__ If value being passed to the component is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+> __Note:__ If the value being passed to the component is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.twoWay two-way]
 
@@ -99,11 +99,11 @@ in the [can-view-scope scope] and vice versa:
 <div child-attr:bind="value"/>
 ```
 
-You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:bind="value"` or the element using `el:child-attr:bind="value"`.
+You can also explicitly use the [can-component::ViewModel ViewModel] with `vm:childProp:bind="value"` or the element with `el:child-attr:bind="value"`.
 
 ## One Way Binding With Objects
 
-`childProp:from="key"` ([can-stache-bindings.toChild one-way to child]) or `child-prop:to="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component or vice versa, respectively.
+`childProp:from="key"` ([can-stache-bindings.toChild one-way to child]) or `child-prop:to="key"` ([can-stache-bindings.toParent one-way to parent]) is used to pass values from the current scope to a component, or from a component to the current scope, respectively.
 
 Generally, this binding only observes changes in one direction, but when [can-stache.key] is an object (POJO, DefineMap, etc), it is passed as a reference, behaving in much the same way as the following snippet.
 

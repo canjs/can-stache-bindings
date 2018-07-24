@@ -28,7 +28,7 @@
 @signature `child-prop:bind="key"`
 
   Two-way binds the element’s `child-prop` property or attribute to
-  [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated `key` will be updated
+  [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated, `key` will be updated
   and vice-versa.
 
   ```html
@@ -42,7 +42,7 @@
 @signature `vm:childProp:bind="key"`
 
   Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
-  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
+  [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated, `key` will be updated
   and vice-versa.
 
   ```html
@@ -62,7 +62,7 @@ Parameters are the same as [can-stache-bindings.twoWay#childProp_bind__key_ chil
 @signature `el:child-prop:bind="key"`
 
   Two-way binds the element’s `child-prop` property or attribute to
-  [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated `key` will be updated
+  [can-stache.key] in the parent [can-view-scope scope].  If `child-prop` is updated, `key` will be updated
   and vice-versa.
 
   ```html
@@ -82,6 +82,8 @@ The following two-way binds the `<edit-plate>` element’s `plateName` to the `e
 value in the scope.  This allows `plateName` to update if `editing.licensePlate` changes and
 `editing.licensePlate` to update if `plateName` changes.
 
+Click on one of the list items below and watch as its text appears in the input box. You can then edit the text and it will update in the list.
+
 @demo demos/can-stache-bindings/two-way.html
 
 This demo can be expressed a bit easier with the references scope:
@@ -91,10 +93,8 @@ This demo can be expressed a bit easier with the references scope:
 ## Initialization
 
 When a binding is being initialized, the behavior of what the viewModel and scope properties
-are set to depends on their initial values.
+are set to depends on their initial values:
 
-If the viewModel value is `not undefined` and the scope is `undefined`, scope will be set to the viewModel value.
-
-If the viewModel value is `undefined` and the scope is `not undefined`, viewModel will be set to the scope value.
-
-If both the viewModel and scope are `not undefined`, viewModel will be set to the scope value.
+- If the viewModel value is `not undefined` and the scope is `undefined`, scope will be set to the viewModel value.
+- If the viewModel value is `undefined` and the scope is `not undefined`, viewModel will be set to the scope value.
+- If both the viewModel and scope are `not undefined`, viewModel will be set to the scope value.
