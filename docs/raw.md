@@ -22,7 +22,7 @@
 
 `childProp:raw="value"` is used to set a value on a child ViewModel to a string value. Use this to avoid having to wrap raw values in quotes.
 
-The two uses below are equivalent.
+The two uses below are equivalent:
 
 ```html
 <player-scores scores:from="'37'"/>
