@@ -107,6 +107,7 @@ The following uses `on:click='../items.splice(scope.index,1)'` to remove an
 item from `items` when that item is clicked on.
 
 @demo demos/can-stache-bindings/event-args.html
+@codepen
 
 ### Special Event Types
 
@@ -158,6 +159,7 @@ The following demo uses this ability to create a close button that
 hides the player editor:
 
 @demo demos/can-component/paginate_next_event.html
+@codepen
 
 ## Changing a property when an event occurs
 

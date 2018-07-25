@@ -73,3 +73,4 @@ You can use [can-stache.expressions#Callexpressions call expressions] like:
 ```
 
 @demo demos/can-stache-bindings/to-child.html
+@codepen

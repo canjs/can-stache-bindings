@@ -85,10 +85,12 @@ value in the scope.  This allows `plateName` to update if `editing.licensePlate`
 Click on one of the list items below and watch as its text appears in the input box. You can then edit the text and it will update in the list.
 
 @demo demos/can-stache-bindings/two-way.html
+@codepen
 
 This demo can be expressed a bit easier with the references scope:
 
 @demo demos/can-stache-bindings/reference.html
+@codepen
 
 ## Initialization
 

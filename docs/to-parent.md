@@ -94,6 +94,7 @@ The following example connects the __selected__ driver in `<drivers-list>` with 
 Click on one of the list items below and watch as its text appears in the input box. You can then edit the text and it will update in the list.
 
 @demo demos/can-stache-bindings/to-parent.html
+@codepen
 
 ## Exporting DOM properties
 
@@ -123,3 +124,4 @@ And pass the method like:
 Check it out in this demo by clicking on the list items:
 
 @demo demos/can-stache-bindings/to-parent-function.html
+@codepen
