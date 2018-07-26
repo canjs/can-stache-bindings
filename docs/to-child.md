@@ -11,7 +11,7 @@
   <my-component someProp:from="value"/>
   ```
 
-  > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+  > __Note:__ If [can-stache.key] is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
   @param {String} childProp The name of the property to set in the
   component’s viewmodel.
@@ -26,7 +26,7 @@
   <input value:from="name"/>
   ```
 
-  This signature works, but the following should be used instead:
+  The above signature works, but the following should be used instead:
 
   ```html
   <input value="{{name}}"/>
@@ -40,7 +40,7 @@
   <my-component vm:childProp:from="key"/>
   ```
 
-  > __Note:__ If [can-stache.key] is an object, changes to the objects properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+  > __Note:__ If [can-stache.key] is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ childProp:from="key"]
 
@@ -52,7 +52,7 @@ Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ chi
   <input el:value:from="name"/>
   ```
 
-  This signature works, but the following should be used instead:
+  The above signature works, but the following should be used instead:
 
   ```html
   <input value="{{name}}"/>
@@ -73,3 +73,4 @@ You can use [can-stache.expressions#Callexpressions call expressions] like:
 ```
 
 @demo demos/can-stache-bindings/to-child.html
+@codepen

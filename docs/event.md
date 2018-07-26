@@ -45,11 +45,11 @@ Listens to an event on the element’s [can-component::ViewModel ViewModel] and 
 
 Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
 
-@signature `on:VIEW_MODEL_OR_DOM_EVENT:value:to='SCOPE_VALUE'`
+@signature `on:VIEW_MODEL_OR_DOM_EVENT:KEY:to='SCOPE_VALUE'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the SCOPE_VALUE when that event occurs.
+If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element’s value to the SCOPE_VALUE when that event occurs.
+If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
 
 ```html
 <my-component on:show:value:to="myScopeProp"/>
@@ -89,8 +89,6 @@ is fired. Same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EX
 
 @body
 
-## Use
-
 ## DOM events
 
 `on:el:` will listen for events on the DOM, `on:` can also be used to listen for DOM events if the element does not have a [can-component::ViewModel ViewModel].
@@ -109,13 +107,14 @@ The following uses `on:click='../items.splice(scope.index,1)'` to remove an
 item from `items` when that item is clicked on.
 
 @demo demos/can-stache-bindings/event-args.html
+@codepen
 
 ### Special Event Types
 
 [can-stache-bindings] supports creating special event types
 (events that aren’t natively triggered by the DOM), which are
 bound by adding attributes like `on:SPECIAL='KEY'`. This is
-similar to [$.special](http://benalman.com/news/2010/03/jquery-special-events/).
+similar to [$.special](http://benalman.com/news/2010/03/jquery-special-events/) in jQuery.
 
 ### on:enter
 
@@ -160,6 +159,7 @@ The following demo uses this ability to create a close button that
 hides the player editor:
 
 @demo demos/can-component/paginate_next_event.html
+@codepen
 
 ## Changing a property when an event occurs
 
