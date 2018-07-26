@@ -26,12 +26,6 @@
   <input value:from="name"/>
   ```
 
-  The above signature works, but the following should be used instead:
-
-  ```html
-  <input value="{{name}}"/>
-  ```
-
 @signature `vm:childProp:from="key"`
 
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
@@ -50,12 +44,6 @@ Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ chi
 
   ```html
   <input el:value:from="name"/>
-  ```
-
-  The above signature works, but the following should be used instead:
-
-  ```html
-  <input value="{{name}}"/>
   ```
 
 Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ child-prop:from="key"]
