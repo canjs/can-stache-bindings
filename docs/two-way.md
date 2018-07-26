@@ -97,6 +97,6 @@ This demo can be expressed a bit easier with the references scope:
 When a binding is being initialized, the behavior of what the viewModel and scope properties
 are set to depends on their initial values:
 
-- If the viewModel value is `not undefined` and the scope is `undefined`, scope will be set to the viewModel value.
+- If the viewModel value is `defined` and the scope is `undefined`, scope will be set to the viewModel value.
 - If the viewModel value is `undefined` and the scope is `not undefined`, viewModel will be set to the scope value.
 - If both the viewModel and scope are `not undefined`, viewModel will be set to the scope value.
