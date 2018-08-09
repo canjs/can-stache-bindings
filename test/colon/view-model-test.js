@@ -20,6 +20,8 @@ var canReflect = require('can-reflect');
 var queues = require("can-queues");
 
 var canTestHelpers = require('can-test-helpers');
+var stacheBindings = require('can-stache-bindings');
+var Scope = require("can-view-scope");
 
 testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, doc, enableMO){
 
@@ -740,6 +742,30 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var frag = template({});
 		equal( frag.lastChild.nodeValue, "5");
 		equal(teardown(), 2, "warnings displayed for read and write");
+
+	});
+
+	QUnit.test("bindings.viewModel makeViewModel gets passed the binding state", function(){
+
+		var element = document.createElement("bindings-viewmodel");
+		element.setAttribute("age:from","years");
+
+		stacheBindings.behaviors.viewModel(element, {
+			scope: new Scope({years: 22})
+		}, function(data, hasDataBinding, bindingState){
+			QUnit.equal(bindingState.isSettingOnViewModel,true, "isSettingOnViewModel called with correct value");
+			QUnit.ok(!bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
+		}, {});
+
+		var element2 = document.createElement("bindings-viewmodel");
+		element2.setAttribute("this:from","user");
+
+		stacheBindings.behaviors.viewModel(element2, {
+			scope: new Scope({user: {name: "me"}})
+		}, function(data, hasDataBinding, bindingState){
+			QUnit.ok(!bindingState.isSettingOnViewModel, "isSettingOnViewModel called with correct value");
+			QUnit.ok(bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
+		}, {});
 
 	});
 });
