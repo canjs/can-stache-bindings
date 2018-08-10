@@ -178,7 +178,7 @@ var behaviors = {
 			return;
 		}
 		// Create the `viewModel` and call what needs to happen after `viewModel` is created.
-		viewModel = makeViewModel(bindingsState.initialViewModelData, hasDataBinding);
+		viewModel = makeViewModel(bindingsState.initialViewModelData, hasDataBinding, bindingsState);
 
 		for (var i = 0, len = onCompleteBindings.length; i < len; i++) {
 			onCompleteBindings[i]();
