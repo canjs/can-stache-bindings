@@ -325,7 +325,7 @@ var behaviors = {
 
 		attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
 		removedDisposal = domMutate.onNodeRemoval(el, function() {
-			if (el.ownerDocument.contains(el) === false) {
+			if (el.ownerDocument.documentElement.contains(el) === false) {
 				tearItAllDown();
 			}
 		});
@@ -493,7 +493,7 @@ var behaviors = {
 			}
 		};
 		var removalHandler = function() {
-			if (!el.ownerDocument.contains(el)) {
+			if (!el.ownerDocument.documentElement.contains(el)) {
 				unbindEvent();
 			}
 		};
