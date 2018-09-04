@@ -581,12 +581,14 @@ var getObservableFrom = {
 					// Register what the custom observation changes
 					"can.getWhatIChange": function getWhatIChange() {
 						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
+						var m = new Map();
+						var s = new Set();
+						s.add(data.key);
+						m.set(data.parent, s);
 
 						return {
 							mutate: {
-								keyDependencies: new Map([
-									[data.parent, new Set([data.key])]
-								])
+								keyDependencies: m
 							}
 						};
 					},
