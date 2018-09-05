@@ -4,6 +4,7 @@ var QUnit = require("steal-qunit");
 var SimpleMap = require("can-simple-map");
 var canViewModel = require("can-view-model");
 var canReflectDeps = require("can-reflect-dependencies");
+var canReflect = require("can-reflect");
 
 var stache = require("can-stache");
 require("can-stache-bindings");
@@ -40,7 +41,7 @@ devOnlyTest("parent to child dependencies", function(assert) {
 	);
 
 	// tests: input <-> attribute observation
-	var attributeObservation = Array.from(inputDeps.mutate.valueDependencies)[0];
+	var attributeObservation = canReflect.toArray(inputDeps.mutate.valueDependencies)[0];
 	var attributeObservationDeps = canReflectDeps.getDependencyDataOf(
 		attributeObservation
 	).whatChangesMe;
@@ -55,7 +56,7 @@ devOnlyTest("parent to child dependencies", function(assert) {
 	);
 
 	// tests: scopeKeyData <- attribute internal observation
-	var scopeKeyData = Array.from(
+	var scopeKeyData = canReflect.toArray(
 		attributeObservationDeps.mutate.valueDependencies
 	)[0];
 	var scopeKeyDataDeps = canReflectDeps.getDependencyDataOf(scopeKeyData)
@@ -82,7 +83,7 @@ devOnlyTest("parent to child - map", function(assert) {
 		"map.age should have mutation dependencies"
 	);
 
-	var scopeKeyData = Array.from(ageDeps.mutate.valueDependencies)[0];
+	var scopeKeyData = canReflect.toArray(ageDeps.mutate.valueDependencies)[0];
 	var scopeKeyDataDeps = canReflectDeps.getDependencyDataOf(scopeKeyData)
 		.whatIChange;
 
@@ -91,7 +92,7 @@ devOnlyTest("parent to child - map", function(assert) {
 		"the scopeKeyData should have [whatIChange] mutation dependencies"
 	);
 
-	var attributeObservable = Array.from(
+	var attributeObservable = canReflect.toArray(
 		scopeKeyDataDeps.mutate.valueDependencies
 	)[0];
 
@@ -123,7 +124,7 @@ devOnlyTest("child to parent dependencies", function(assert) {
 	);
 
 	// tests: input <-> attribute observation
-	var attributeObservation = Array.from(inputDeps.mutate.valueDependencies)[0];
+	var attributeObservation = canReflect.toArray(inputDeps.mutate.valueDependencies)[0];
 	var attributeObservationDeps = canReflectDeps.getDependencyDataOf(
 		attributeObservation
 	);
@@ -140,7 +141,7 @@ devOnlyTest("child to parent dependencies", function(assert) {
 	);
 
 	// attribute observation -> ScopeObservable
-	var scopeObservable = Array.from(
+	var scopeObservable = canReflect.toArray(
 		attributeObservationDeps.whatIChange.mutate.valueDependencies
 	)[0];
 
@@ -174,7 +175,7 @@ devOnlyTest("attribute cross binding dependencies", function(assert) {
 	);
 
 	// tests: input <-> attribute observation
-	var attributeObservation = Array.from(inputDeps.mutate.valueDependencies)[0];
+	var attributeObservation = canReflect.toArray(inputDeps.mutate.valueDependencies)[0];
 	var attributeObservationDeps = canReflectDeps.getDependencyDataOf(
 		attributeObservation
 	).whatChangesMe;
@@ -189,7 +190,7 @@ devOnlyTest("attribute cross binding dependencies", function(assert) {
 	);
 
 	// tests: scopeKeyData <-> attribute internal observation
-	var scopeKeyData = Array.from(
+	var scopeKeyData = canReflect.toArray(
 		attributeObservationDeps.mutate.valueDependencies
 	)[0];
 	var scopeKeyDataDeps = canReflectDeps.getDependencyDataOf(scopeKeyData)
@@ -221,7 +222,7 @@ devOnlyTest("view model parent to child binding", function(assert) {
 
 	// get the settable observable that change vmProp
 	// viewModel.viewModelProp <- SettableObservable <- ScopeKeyData <- observation <- scopeProp
-	var settableObservable = Array.from(vmDeps.mutate.valueDependencies)[0];
+	var settableObservable = canReflect.toArray(vmDeps.mutate.valueDependencies)[0];
 	// What changes that settable observabe
 	var settableObservableDeps = canReflectDeps.getDependencyDataOf(
 		settableObservable
@@ -234,7 +235,7 @@ devOnlyTest("view model parent to child binding", function(assert) {
 	);
 
 	// SettableObservable <- ScopeKeyData
-	var scopeKeyData = Array.from(settableObservableDeps.mutate.valueDependencies)[0];
+	var scopeKeyData = canReflect.toArray(settableObservableDeps.mutate.valueDependencies)[0];
 	var scopeKeyDataObservationDeps = canReflectDeps.getDependencyDataOf(scopeKeyData.observation)
 		.whatChangesMe;
 	var scopeKeyDataDeps = canReflectDeps.getDependencyDataOf(scopeKeyData)
@@ -268,7 +269,7 @@ devOnlyTest("view model child to parent binding", function(assert) {
 	);
 
 	// viewModel.viewModelProp <-> SettableObservable
-	var settableObservable = Array.from(vmDeps.mutate.valueDependencies)[0];
+	var settableObservable = canReflect.toArray(vmDeps.mutate.valueDependencies)[0];
 	var settableObservableDeps = canReflectDeps.getDependencyDataOf(
 		settableObservable
 	).whatIChange;
@@ -279,7 +280,7 @@ devOnlyTest("view model child to parent binding", function(assert) {
 	);
 
 	// SettableObservable -> ObservableFromScope
-	var scopeObs = Array.from(settableObservableDeps.mutate.valueDependencies)[0];
+	var scopeObs = canReflect.toArray(settableObservableDeps.mutate.valueDependencies)[0];
 	var scopeObsDeps = canReflectDeps.getDependencyDataOf(scopeObs).whatIChange;
 
 	assert.ok(
