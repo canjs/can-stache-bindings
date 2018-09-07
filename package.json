@@ -43,15 +43,15 @@
     "can-queues": "^1.0.0",
     "can-reflect": "^1.6.0",
     "can-reflect-dependencies": "^1.0.0",
-    "can-simple-map": "^4.0.0",
+    "can-simple-map": "^4.3.0",
     "can-simple-observable": "^2.0.0",
-    "can-stache": "^4.0.2",
+    "can-stache": "canjs/can-stache#528-for-loop",
     "can-stache-key": "^1.0.0",
     "can-symbol": "^1.0.0",
     "can-view-callbacks": "^4.2.0",
     "can-view-live": "^4.0.5",
     "can-view-model": "^4.0.0",
-    "can-view-scope": "^4.0.0"
+    "can-view-scope": "canjs/can-view-scope#181-variable-scopes"
   },
   "devDependencies": {
     "can-define": "^2.0.0",

@@ -1,3 +1,4 @@
+// These tests are for making sure dependency awareness is present.
 var steal = require("@steal");
 var QUnit = require("steal-qunit");
 
