@@ -325,7 +325,7 @@ var behaviors = {
 
 		attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
 		removedDisposal = domMutate.onNodeRemoval(el, function() {
-			if (el.ownerDocument.contains(el) === false) {
+			if (el.ownerDocument.documentElement.contains(el) === false) {
 				tearItAllDown();
 			}
 		});
@@ -493,7 +493,7 @@ var behaviors = {
 			}
 		};
 		var removalHandler = function() {
-			if (!el.ownerDocument.contains(el)) {
+			if (!el.ownerDocument.documentElement.contains(el)) {
 				unbindEvent();
 			}
 		};
@@ -581,12 +581,14 @@ var getObservableFrom = {
 					// Register what the custom observation changes
 					"can.getWhatIChange": function getWhatIChange() {
 						var data = scope.getDataForScopeSet(cleanVMName(scopeProp, scope));
+						var m = new Map();
+						var s = new Set();
+						s.add(data.key);
+						m.set(data.parent, s);
 
 						return {
 							mutate: {
-								keyDependencies: new Map([
-									[data.parent, new Set([data.key])]
-								])
+								keyDependencies: m
 							}
 						};
 					},

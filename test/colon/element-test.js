@@ -523,6 +523,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 	test("value:bind memory leak (#2270)", function() {
 
+
 		var template = stache('<div><input value:bind="foo"></div>');
 
 		var vm = new SimpleMap({foo: ''});
@@ -538,6 +539,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			domMutateNode.removeChild.call(ta, ta.firstChild);
 			// still 1 binding, should be 0
 			testHelpers.afterMutation(function(){
+				var checkCount = 0;
 				var checkLifecycleBindings = function(){
 					var meta = vm[canSymbol.for("can.meta")];
 
@@ -545,6 +547,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 						QUnit.ok(true, "no bindings");
 						start();
 					} else {
+						checkCount++;
+						if (checkCount > 5) {
+							QUnit.ok(false, "lifecycle bindings still existed after timeout");
+							return start();
+						}
 						setTimeout(checkLifecycleBindings, 1000);
 					}
 				};
