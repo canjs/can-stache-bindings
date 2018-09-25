@@ -637,8 +637,9 @@ var getObservableFrom = {
 		}
 		//!steal-remove-start
 		if (process.env.NODE_ENV !== 'production') {
+
 			Object.defineProperty(getViewModelProperty, "name", {
-				value: "viewModel." + vmName
+				value: "<"+el.tagName.toLowerCase()+">." + vmName
 			});
 		}
 		//!steal-remove-end
@@ -896,8 +897,28 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	//!steal-remove-start
 	if (process.env.NODE_ENV !== 'production') {
-		bindingOptions.updateChildName = "update "+bindingInfo.child+"."+bindingInfo.childName+" of <"+el.nodeName.toLowerCase()+">";
-		bindingOptions.updateParentName = "update "+bindingInfo.parent+"."+bindingInfo.parentName+" of <"+el.nodeName.toLowerCase()+">";
+		var nodeHTML = node.name+"="+JSON.stringify(node.value);
+		var tag = "<"+el.nodeName.toLowerCase()+">";
+
+		var makeUpdateName = function(child, childName) {
+
+			if(child === "viewModel") {
+				return tag+"."+childName;
+			}
+			else if(child === "scope") {
+				return "{{"+childName+"}}";
+			}
+			else {
+				return ""+child+"."+childName;
+			}
+		};
+		bindingOptions.updateChildName = nodeHTML+" updates "+
+			makeUpdateName(bindingInfo.child, bindingInfo.childName)+
+			" from "+makeUpdateName(bindingInfo.parent, bindingInfo.parentName);
+
+		bindingOptions.updateParentName = nodeHTML+" updates "+
+			makeUpdateName(bindingInfo.parent, bindingInfo.parentName)+
+			" from "+makeUpdateName(bindingInfo.child, bindingInfo.childName);
 	}
 	//!steal-remove-end
 
