@@ -897,8 +897,9 @@ var makeDataBinding = function(node, el, bindingData) {
 
 	//!steal-remove-start
 	if (process.env.NODE_ENV !== 'production') {
-		var nodeHTML = node.name+"="+JSON.stringify(node.value);
-		var tag = "<"+el.nodeName.toLowerCase()+">";
+		var nodeHTML = encoder.decode(node.name)+"="+JSON.stringify(node.value);
+		var tagStart = "<"+el.nodeName.toLowerCase(),
+			tag = tagStart+">";
 
 		var makeUpdateName = function(child, childName) {
 
@@ -912,11 +913,11 @@ var makeDataBinding = function(node, el, bindingData) {
 				return ""+child+"."+childName;
 			}
 		};
-		bindingOptions.updateChildName = nodeHTML+" updates "+
+		bindingOptions.updateChildName = tagStart+" "+nodeHTML+"> updates "+
 			makeUpdateName(bindingInfo.child, bindingInfo.childName)+
 			" from "+makeUpdateName(bindingInfo.parent, bindingInfo.parentName);
 
-		bindingOptions.updateParentName = nodeHTML+" updates "+
+		bindingOptions.updateParentName = tagStart+" "+nodeHTML+"> updates "+
 			makeUpdateName(bindingInfo.parent, bindingInfo.parentName)+
 			" from "+makeUpdateName(bindingInfo.child, bindingInfo.childName);
 	}
