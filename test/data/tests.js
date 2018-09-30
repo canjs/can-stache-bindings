@@ -7,6 +7,7 @@ var stache = require('can-stache');
 var SimpleMap = require("can-simple-map");
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
+var globals = require('can-globals');
 
 testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, testIfRealDocument){
 	QUnit.test('event bindings should be removed when the bound element is', function (assert) {
@@ -80,5 +81,27 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 		var template = stache("<span foo:raw='bar'></span>");
 		var frag = template();
 		assert.equal(frag.firstChild.getAttribute("foo"), "bar", "bound raw");
+	});
+
+	testIfRealDocument("Bindings are removed when the node's documentElement is", function(assert) {
+		var done = assert.async();
+
+		var realDoc = globals.getKeyValue('document');
+		var d = doc.implementation.createHTMLDocument("Test");
+		globals.setKeyValue('document', d);
+
+		var template = stache("<div on:click='doStuff()' bar:raw='foo'>Test</div>");
+		d.body.appendChild(template({ doStuff: function() {} }));
+		var el = d.body.firstChild;
+
+		var removalDisposal = domMutate.onNodeRemoval(el, function() {
+			removalDisposal();
+			globals.setKeyValue('document', realDoc);
+
+			assert.ok(true, 'Tore down bindings correctly');
+			done();
+		});
+
+		d.removeChild(d.documentElement);
 	});
 });
