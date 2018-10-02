@@ -486,4 +486,23 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 	    QUnit.ok(true, "no errors");
 	});
+
+	QUnit.test("support simple setters", function () {
+		var template = stache("<input on:click='this.prop = value'/>");
+
+		var map = new SimpleMap({
+			prop: null,
+			value: 'Value'
+		});
+
+		var frag = template(map);
+
+		var input = frag.childNodes.item(0);
+
+		domEvents.dispatch(input, {
+			type: "click"
+		});
+
+		QUnit.equal(map.get("prop"), 'Value');
+	});
 });
