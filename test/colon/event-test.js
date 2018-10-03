@@ -549,7 +549,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map = new SimpleMap({
 			prop: null,
 			returnEight: function(){
-				return 8
+				return 8;
 			}
 		});
 

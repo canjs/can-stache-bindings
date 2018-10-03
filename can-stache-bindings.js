@@ -147,7 +147,7 @@ var runEventCallback = function (el, ev, data, scope, expr, attributeName, attrV
 	//!steal-remove-end
 	queues.mutateQueue.enqueue.apply(queues.mutateQueue, mutateQueueArgs);
 	queues.batch.stop();
-}
+};
 
 // ## Behaviors
 var behaviors = {
