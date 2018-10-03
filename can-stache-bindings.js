@@ -89,6 +89,66 @@ var checkBindingState = function(bindingState, bindingInfo) {
 	}
 };
 
+var makeScopeFromEvent = function(element, event, viewModel, args, data){
+	var specialValues = {
+		element: element,
+		event: event,
+		viewModel: viewModel,
+		arguments: args
+	};
+
+	// make a scope with these things just under
+	return data.scope.add(specialValues, { special: true });
+};
+
+var runEventCallback = function (el, ev, data, scope, expr, attributeName, attrVal) {
+	// create "special" values that can be looked up using
+	// {{scope.element}}, etc
+
+	var updateFn = function() {
+		var value = expr.value(scope, {
+			doNotWrapInObservation: true
+		});
+
+		value = canReflect.isValueLike(value) ?
+			canReflect.getValue(value) :
+			value;
+
+		return typeof value === 'function' ?
+			value(el) :
+			value;
+	};
+	//!steal-remove-start
+	if (process.env.NODE_ENV !== 'production') {
+		Object.defineProperty(updateFn, "name", {
+			value: attributeName + '="' + attrVal + '"'
+		});
+	}
+	//!steal-remove-end
+
+	queues.batch.start();
+	var mutateQueueArgs = [];
+	mutateQueueArgs = [
+		updateFn,
+		null,
+		null,
+		{}
+	];
+	//!steal-remove-start
+	if (process.env.NODE_ENV !== 'production') {
+		mutateQueueArgs = [
+			updateFn,
+			null,
+			null, {
+				reasonLog: [el, ev, attributeName+"="+attrVal]
+			}
+		];
+	}
+	//!steal-remove-end
+	queues.mutateQueue.enqueue.apply(queues.mutateQueue, mutateQueueArgs);
+	queues.batch.stop();
+};
+
 // ## Behaviors
 var behaviors = {
 	// ### bindings.behaviors.viewModel
@@ -417,69 +477,19 @@ var behaviors = {
 				methodRule: "call"
 			});
 
+			var runScope = makeScopeFromEvent(el, ev, viewModel, arguments, data);
 
-			if (!(expr instanceof expression.Call)) {
+			if (expr instanceof expression.Hashes) {
+				var hashExprs = expr.hashExprs;
+				var key = Object.keys(hashExprs)[0];
+				var value = expr.hashExprs[key].value(runScope);
+				var isObservableValue = canReflect.isObservableLike(value) && canReflect.isValueLike(value);
+				runScope.set(key, isObservableValue ? canReflect.getValue(value) : value);
+			} else if (expr instanceof expression.Call) {
+				runEventCallback(el, ev, data, runScope, expr, attributeName, attrVal);
+			} else {
 				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in " + data.attributeName + "=" + JSON.stringify(attrVal));
 			}
-
-			// create "special" values that can be looked up using
-			// {{scope.element}}, etc
-			var specialValues = {
-				element: el,
-				event: ev,
-				viewModel: viewModel,
-				arguments: arguments
-			};
-
-			// make a scope with these things just under
-			var localScope = data.scope
-				.add(specialValues, {
-					special: true
-				});
-
-			var updateFn = function() {
-				var value = expr.value(localScope, {
-					doNotWrapInObservation: true
-				});
-
-				value = canReflect.isValueLike(value) ?
-					canReflect.getValue(value) :
-					value;
-
-				return typeof value === 'function' ?
-					value(el) :
-					value;
-			};
-			//!steal-remove-start
-			if (process.env.NODE_ENV !== 'production') {
-				Object.defineProperty(updateFn, "name", {
-					value: attributeName + '="' + attrVal + '"'
-				});
-			}
-			//!steal-remove-end
-
-			queues.batch.start();
-			var mutateQueueArgs = [];
-			mutateQueueArgs = [
-				updateFn,
-				null,
-				null,
-				{}
-			];
-			//!steal-remove-start
-			if (process.env.NODE_ENV !== 'production') {
-				mutateQueueArgs = [
-					updateFn,
-					null,
-					null, {
-						reasonLog: [el, ev, attributeName+"="+attrVal]
-					}
-				];
-			}
-			//!steal-remove-end
-			queues.mutateQueue.enqueue.apply(queues.mutateQueue, mutateQueueArgs);
-			queues.batch.stop();
-
 		};
 
 		var attributesDisposal,

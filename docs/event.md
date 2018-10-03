@@ -25,25 +25,56 @@ is fired. The following [can-stache/keys/scope] key values are also supported:
  - `scope.scope` - The current [can-view-scope].
  - `scope.arguments` - The arguments passed when the event was dispatched/triggered.
 
-@signature `on:el:DOM_EVENT='CALL_EXPRESSION'`
+@signature `on:VIEW_MODEL_OR_DOM_EVENT='KEY = VALUE'`
 
-Listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
+  Listen to an event and set a property value.  The following sets the `priority` property when
+  a button is clicked:
 
-```html
-<div on:el:click="doSomething()"/>
-```
+  ```html
+  <my-demo></my-demo>
+  <script type='module'>
+  import {Component} from "can";
+  Component.extend({
+    tag: "my-demo",
+    view: `
+      <p>Priority: {{this.priority}}</p>
+      <button on:click="this.priority = 0">Urgent</button>
+      <button on:click="this.priority = 1">Critical</button>
+      <button on:click="this.priority = 10">Fahgettaboudit</button>
+    `,
+    ViewModel: {
+      priority: {default: null}
+    }
+  });
+  </script>
+  ```
+  @codepen
 
-Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
+@param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
 
-@signature `on:vm:VIEW_MODEL_EVENT='CALL_EXPRESSION'`
+@param {String} key A key value to set. This can be any key accessible by the scope. For example:
 
-Listens to an event on the element’s [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+- Set values on the __viewModel__ - `on:click="this.priority = 0"`.
+- Set values on a __variable__ in the scope - `on:click="todo.priority = 0"`.
+- Set values on a [can-stache/keys/scope] value - `on:click="scope.element.value = 0"`
 
-```html
-<my-component on:vm:show="doSomething()"/>
-```
+@param {can-stache.expressions} VALUE An expression that evaluates to a value. For example:
 
-Parameters are the same as [can-stache-bindings.event#on_VIEW_MODEL_OR_DOM_EVENT__CALL_EXPRESSION_ on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION']
+- __primitives__ - `on:click="this.priority = 0"`
+- __variables__ - `on:click="this.priority = todo.priority"`
+- __functions__ - `on:click="this.priority = this.getPriority(todo)"`
+
+The following [can-stache/keys/scope] values can also be read:
+
+ - `scope.element` - The element the event happened upon.
+ - `scope.event` - The event object.
+ - `scope.viewModel` - If the element is a [can-component], the component’s [can-component::ViewModel ViewModel].
+ - `scope.context` - The current context.
+ - `scope.scope` - The current [can-view-scope].
+ - `scope.arguments` - The arguments passed when the event was dispatched/triggered.
+
+@param {can-stache.expressions} CALL_EXPRESSION A call expression like `method(key)` that is called when the `VIEW_MODEL_EVENT`
+is fired.
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT:KEY:to='SCOPE_VALUE'`
 

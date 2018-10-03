@@ -486,4 +486,82 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 	    QUnit.ok(true, "no errors");
 	});
+
+	QUnit.test("support simple setters", function () {
+		var template = stache("<input on:click='this.prop = value'/>");
+
+		var map = new SimpleMap({
+			prop: null,
+			value: 'Value'
+		});
+
+		var frag = template(map);
+
+		var input = frag.childNodes.item(0);
+
+		domEvents.dispatch(input, {
+			type: "click"
+		});
+
+		QUnit.equal(map.get("prop"), 'Value');
+
+
+		// Try with something on the element
+		template = stache("<input on:click='this.prop = scope.element.value'/>");
+
+		map = new SimpleMap({
+			prop: null,
+			value: 'Value'
+		});
+
+		frag = template(map);
+
+		input = frag.childNodes.item(0);
+		input.value = "ELEMENT-VALUE";
+
+		domEvents.dispatch(input, {
+			type: "click"
+		});
+
+		QUnit.equal(map.get("prop"), 'ELEMENT-VALUE');
+
+		// PRIMITIVES
+		template = stache("<input on:click='this.prop = 3'/>");
+
+		map = new SimpleMap({
+			prop: null,
+			value: 'Value'
+		});
+
+		frag = template(map);
+
+		input = frag.childNodes.item(0);
+
+		domEvents.dispatch(input, {
+			type: "click"
+		});
+
+		QUnit.equal(map.get("prop"), 3, "primitives");
+
+		// setting stuff on special?
+		template = stache("<input on:click='this.prop = this.returnEight()'/>");
+
+		map = new SimpleMap({
+			prop: null,
+			returnEight: function(){
+				return 8;
+			}
+		});
+
+		frag = template(map);
+		input = frag.childNodes.item(0);
+
+		domEvents.dispatch(input, {
+			type: "click"
+		});
+
+		QUnit.equal(map.get("prop"), 8, "can set to result of calling a function");
+
+
+	});
 });
