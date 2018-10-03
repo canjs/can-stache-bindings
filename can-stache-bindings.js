@@ -89,24 +89,24 @@ var checkBindingState = function(bindingState, bindingInfo) {
 	}
 };
 
-var runEventCallback = function (el, ev, viewModel, args, data, expr, attributeName, attrVal) {
-	// create "special" values that can be looked up using
-	// {{scope.element}}, etc
+var makeScopeFromEvent = function(element, event, viewModel, args, data){
 	var specialValues = {
-		element: el,
-		event: ev,
+		element: element,
+		event: event,
 		viewModel: viewModel,
 		arguments: args
 	};
 
 	// make a scope with these things just under
-	var localScope = data.scope
-		.add(specialValues, {
-			special: true
-		});
+	return data.scope.add(specialValues, { special: true });
+};
+
+var runEventCallback = function (el, ev, data, scope, expr, attributeName, attrVal) {
+	// create "special" values that can be looked up using
+	// {{scope.element}}, etc
 
 	var updateFn = function() {
-		var value = expr.value(localScope, {
+		var value = expr.value(scope, {
 			doNotWrapInObservation: true
 		});
 
@@ -477,15 +477,16 @@ var behaviors = {
 				methodRule: "call"
 			});
 
+			var runScope = makeScopeFromEvent(el, ev, viewModel, arguments, data);
+
 			if (expr instanceof expression.Hashes) {
 				var hashExprs = expr.hashExprs;
 				var key = Object.keys(hashExprs)[0];
-				var value = expr.hashExprs[key].value(data.scope);
-
-				data.scope.set(key, value.value);
-				return;
+				var value = expr.hashExprs[key].value(runScope);
+				var isObservableValue = canReflect.isObservableLike(value) && canReflect.isValueLike(value);
+				runScope.set(key, isObservableValue ? canReflect.getValue(value) : value);
 			} else if (expr instanceof expression.Call) {
-				runEventCallback(el, ev, viewModel, arguments, data, expr, attributeName, attrVal);
+				runEventCallback(el, ev, data, runScope, expr, attributeName, attrVal);
 			} else {
 				throw new Error("can-stache-bindings: Event bindings must be a call expression. Make sure you have a () in " + data.attributeName + "=" + JSON.stringify(attrVal));
 			}

@@ -21,7 +21,7 @@ bindings on element attributes, component [can-component::ViewModel ViewModels],
 
 > __Note:__ DOM attribute names are case-insensitive, but [can-component::ViewModel ViewModel] or [can-view-scope scope] properties can be `camelCase` and [can-stache stache] will encode them so they work correctly in the DOM.
 
-The following are the bindings that should be used with [can-stache]:
+The following are the bindings available within [can-stache]:
 
 #### [can-stache-bindings.event event]
 
@@ -33,13 +33,18 @@ Binds to `childEvent` on `<my-component>`'s [can-component::ViewModel ViewModel]
 ```
 
 If the element does not have a [can-component::ViewModel ViewModel], binds to `domEvent` on the element and calls
-`method` on the [can-view-scope scope] with the specified arguments.
+`method` on the [can-view-scope scope] with the specified arguments:
 
 ```html
 <div on:domEvent="method('primitive', key, hash1=key1)"/>
 ```
 
-You can also explicitly listen to events on the [can-component::ViewModel ViewModel] using `on:vm:childEvent` or on the element using `on:el:domEvent`.
+You can also set a value. The following sets the `todo.priority` property to `1` when the button is clicked:
+
+```html
+<button on:click="todo.priority = 1">Critical</button>
+```
+
 
 #### [can-stache-bindings.toChild one-way to child]
 
@@ -57,8 +62,6 @@ element with `value` in the [can-view-scope scope]:
 ```html
 <div child-attr:from="value"/>
 ```
-
-You can also explicitly use the [can-component::ViewModel ViewModel] using `vm:childProp:from="value"` or the element using `el:child-attr:from="value"`.
 
 > __Note:__ If the value being passed to the component is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
@@ -80,8 +83,6 @@ in the [can-view-scope scope] with the `child-attr` attribute or property of the
 <div child-attr:to="value"/>
 ```
 
-You can also explicitly use the [can-component::ViewModel ViewModel] with `vm:childProp:to="value"` or the element with `el:child-attr:to="value"`.
-
 > __Note:__ If the value being passed to the component is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 #### [can-stache-bindings.twoWay two-way]
@@ -98,8 +99,6 @@ in the [can-view-scope scope] and vice versa:
 ```html
 <div child-attr:bind="value"/>
 ```
-
-You can also explicitly use the [can-component::ViewModel ViewModel] with `vm:childProp:bind="value"` or the element with `el:child-attr:bind="value"`.
 
 ## One Way Binding With Objects
 
