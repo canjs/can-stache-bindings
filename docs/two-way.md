@@ -87,7 +87,7 @@ Click on one of the list items below and watch as its text appears in the input 
 @demo demos/can-stache-bindings/two-way.html
 @codepen
 
-This demo can be expressed a bit easier with the references scope:
+This demo can be expressed a bit easier with the references scope by using [can-stache.helpers.let let] helper:
 
 @demo demos/can-stache-bindings/reference.html
 @codepen
