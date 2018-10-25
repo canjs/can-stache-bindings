@@ -562,6 +562,33 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		QUnit.equal(map.get("prop"), 8, "can set to result of calling a function");
 
+		// As functions
 
+		MockComponent.extend({
+			tag: 'my-button',
+			template: stache("<button on:click=\"this.clicked()\">Click me</button>"),
+			viewModel: {
+				clicked: null
+			}
+		});
+
+		map = new SimpleMap({
+			clickCount: 0
+		});
+
+		template = stache("<my-button clicked:from=\"this.clickCount = 1\"></my-button>");
+
+		frag = template(map);
+		var button = frag.firstChild;
+		var myButton = button.firstChild;
+
+		QUnit.equal(typeof button.viewModel.get('clicked'), 'function', 'has function');
+
+		// Dispatch click on the my-button button
+		domEvents.dispatch(myButton, {
+			type: "click"
+		});
+
+		QUnit.equal(map.get("clickCount"), 1, "function got called");
 	});
 });
