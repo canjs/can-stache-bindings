@@ -506,18 +506,27 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var input = this.fixture.firstChild;
 		testHelpers.afterMutation(function() {
+			
 			assert.equal(input.value, "jeffrey");
 
-			viewModel.bindValue = "lastName";
-			var undo = domMutate.onNodeAttributeChange(input, function() {
-				undo();
-				assert.equal(input.value, "king");
 
-				input.value = "KING";
-				domEvents.dispatch(input, "change");
-				assert.equal(input.value, "king");
-				done();
+			var undo = domMutate.onNodeAttributeChange(input, function() {
+
+				undo();
+				assert.equal(input.value, "king", "should be king");
+
+				// set the value to "KING" after the current batch
+				setTimeout(function(){
+					input.value = "KING";
+					domEvents.dispatch(input, "change");
+					assert.equal(input.value, "king");
+					done();
+				},13);
+
+
 			}.bind(this));
+
+			viewModel.bindValue = "lastName";
 		}.bind(this));
 	});
 
