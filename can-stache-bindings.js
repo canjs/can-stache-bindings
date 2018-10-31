@@ -576,9 +576,20 @@ var getObservableFrom = {
 		} else {
 			// Check if we need to spend time building a scope-key-data
 			// If we have a '(', it likely means a call expression.
-			if (mustBeGettable || scopeProp.indexOf("(") >= 0 ) {
+			if (mustBeGettable || scopeProp.indexOf("(") >= 0 || scopeProp.indexOf("=") >= 0) {
 				var parentExpression = expression.parse(scopeProp,{baseMethodType: "Call"});
-				return parentExpression.value(scope);
+
+				if (parentExpression instanceof expression.Hashes) {
+					return new SimpleObservable(function () {
+						var hashExprs = parentExpression.hashExprs;
+						var key = Object.keys(hashExprs)[0];
+						var value = parentExpression.hashExprs[key].value(scope);
+						var isObservableValue = canReflect.isObservableLike(value) && canReflect.isValueLike(value);
+						scope.set(key, isObservableValue ? canReflect.getValue(value) : value);
+					});
+				} else {
+					return parentExpression.value(scope);
+				}
 			} else {
 				var observation = {};
 				canReflect.assignSymbols(observation, {

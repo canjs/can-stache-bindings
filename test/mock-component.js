@@ -24,6 +24,7 @@ module.exports = MockComponent = {
 
 			}, {});
 			el[canSymbol.for('can.viewModel')] = viewModel;
+			el.viewModel = viewModel;
 			domData.set.call(el, "preventDataBindings", true);
 
 			if(proto.template) {
