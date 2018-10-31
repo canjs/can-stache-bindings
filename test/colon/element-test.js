@@ -1215,7 +1215,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	testIfRealDocument("Bi-directional binding among sibling components, new syntax (#325)", function () {
 		var groupCollapsed = console.groupCollapsed;
 		if(groupCollapsed) {
-			console.groupCollapsed = function(){}; //no op
+			console.groupCollapsed = null; //no op
 		}
 
 
