@@ -506,7 +506,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var input = this.fixture.firstChild;
 		testHelpers.afterMutation(function() {
-			
+
 			assert.equal(input.value, "jeffrey");
 
 
@@ -1213,11 +1213,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 	});
 
 	testIfRealDocument("Bi-directional binding among sibling components, new syntax (#325)", function () {
+		var groupCollapsed = console.groupCollapsed;
+		if(groupCollapsed) {
+			console.groupCollapsed = function(){}; //no op
+		}
+
+
 		var demoContext = new DefineMap({
 			person: ''
 		});
 
-		var SourceComponentVM = DefineMap.extend({
+		var SourceComponentVM = DefineMap.extend("SourceComponentVM",{
 			defaultPerson: {
 				value: 'John'
 			},
@@ -1228,7 +1234,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			}
 		});
 
-		var ClearComponentVM = DefineMap.extend({
+		var ClearComponentVM = DefineMap.extend("ClearComponentVM",{
 			person: 'string',
 			clearPerson: function() {
 				this.set('person', '');
@@ -1276,5 +1282,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person set correctly");
 		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
 		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person set correctly");
+
+		if(groupCollapsed) {
+			console.groupCollapsed = groupCollapsed;
+		}
 	});
 });

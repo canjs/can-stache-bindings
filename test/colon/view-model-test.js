@@ -768,4 +768,37 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		}, {});
 
 	});
+
+	QUnit.test("double parent update", function() {
+		var parentVM = new SimpleMap({
+			parentValue: ""
+		});
+		MockComponent.extend({
+			tag: "parent-that-gets",
+			viewModel: parentVM,
+			template: stache('<child-that-updates child:to="this.parentValue"/>')
+		});
+
+		MockComponent.extend({
+			tag: "child-that-updates",
+			viewModel: new SimpleMap({
+				child: "CHILD1"
+			}),
+			template: stache('<gc-that-updates gc:to="this.child"/>')
+		});
+
+		MockComponent.extend({
+			tag: "gc-that-updates",
+			viewModel: new SimpleMap({
+				gc: "gc"
+			})
+		});
+
+		var template = stache("{{# if(this.show) }}<parent-that-gets/>{{/if}}");
+		var root = new SimpleMap({show: false});
+		template(root);
+		root.set("show", true);
+
+		QUnit.equal(parentVM.get("parentValue"), "gc");
+	});
 });

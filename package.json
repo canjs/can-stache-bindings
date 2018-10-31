@@ -33,7 +33,7 @@
     "can-assign": "^1.0.0",
     "can-attribute-encoder": "^1.0.0",
     "can-attribute-observable": "<2.0.0",
-    "can-bind": "<2.0.0",
+    "can-bind": "^1.1.0",
     "can-dom-data-state": "^1.0.0",
     "can-dom-events": "^1.1.1",
     "can-dom-mutate": "^1.3.0",
