@@ -387,7 +387,7 @@ var behaviors = {
 		removedDisposal = domMutate.onNodeRemoval(el, function() {
 			var doc = el.ownerDocument;
 			var ownerNode = doc.contains ? doc : doc.documentElement;
-			if (ownerNode.contains(el) === false) {
+			if (!ownerNode || ownerNode.contains(el) === false) {
 				tearItAllDown();
 			}
 		});
@@ -507,7 +507,7 @@ var behaviors = {
 		var removalHandler = function() {
 			var doc = el.ownerDocument;
 			var ownerNode = doc.contains ? doc : doc.documentElement;
-			if (!ownerNode.contains(el)) {
+			if (!ownerNode || !ownerNode.contains(el)) {
 				unbindEvent();
 			}
 		};
