@@ -9,6 +9,12 @@ var canReflect = require("can-reflect");
 var stache = require("can-stache");
 require("can-stache-bindings");
 
+var browserSupportsAutomaticallyNamedConstructors = (function() {
+	var C = function C() {};
+	var c = new C();
+	return c.constructor.name === "C";
+}());
+
 QUnit.module("bindings dependencies", {
 	beforeEach: function() {
 		this.fixture = document.getElementById("qunit-fixture");
@@ -96,11 +102,13 @@ devOnlyTest("parent to child - map", function(assert) {
 		scopeKeyDataDeps.mutate.valueDependencies
 	)[0];
 
-	assert.equal(
-		attributeObservable.constructor.name,
-		"AttributeObservable",
-		"scopeKeyData affects the AttributeObservable instance"
-	);
+	if (browserSupportsAutomaticallyNamedConstructors) {
+		assert.equal(
+			attributeObservable.constructor.name,
+			"AttributeObservable",
+			"scopeKeyData affects the AttributeObservable instance"
+		);
+	}
 });
 
 // input <-> attribute observation
