@@ -8,7 +8,7 @@ var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
 var MockComponent = require("../mock-component-simple-map");
-
+var encoder = require("can-attribute-encoder");
 var canTestHelpers = require('can-test-helpers');
 
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
@@ -359,6 +359,24 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 			initializeValues: false,
 			syncChildWithParent: false
 		}, "new vm binding");
+
+	});
+
+	QUnit.test("decode values with To (#504)", function(){
+		var name = encoder.encode("goToHome:to");
+		var info = stacheBindings.getBindingInfo({name: name, value: "bar"});
+		deepEqual(info, {
+			parent: "scope",
+			child: "viewModelOrAttribute",
+			childEvent: undefined,
+			parentToChild: false,
+			childToParent: true,
+			childName: "goToHome",
+			parentName: "bar",
+			bindingAttributeName: "goToHome:to",
+			initializeValues: true,
+			syncChildWithParent: false
+		}, "to parent binding");
 
 	});
 
