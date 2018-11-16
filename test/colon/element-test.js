@@ -1287,4 +1287,32 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			console.groupCollapsed = groupCollapsed;
 		}
 	});
+
+	testIfRealDocument("Bracket Expression with :to bindings", function () {
+		var demoContext = new DefineMap({
+			person: {
+				name: 'Matt'
+			}
+		});
+
+		var SourceComponentVM = DefineMap.extend("SourceComponentVM", {
+			name: {
+				value: 'Kevin'
+			}
+		});
+
+		MockComponent.extend({
+			tag: "source-component",
+			viewModel: SourceComponentVM,
+			template: stache('<span>{{name}}</span>')
+		});
+
+		var demoRenderer = stache(
+			'<source-component name:to="person[\'name\']" />'
+		);
+
+		demoRenderer(demoContext);
+
+		QUnit.equal(demoContext.person.name, 'Kevin', "source-component has correct name set");
+	});
 });

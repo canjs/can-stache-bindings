@@ -600,7 +600,9 @@ var getObservableFrom = {
 					},
 
 					"can.setValue": function setValue(newVal) {
-						scope.set(cleanVMName(scopeProp, scope), newVal);
+						var expr = expression.parse(cleanVMName(scopeProp, scope),{baseMethodType: "Call"});
+						var value = expr.value(scope);
+						canReflect.setValue(value, newVal);
 					},
 
 					// Register what the custom observation changes
