@@ -1297,7 +1297,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var SourceComponentVM = DefineMap.extend("SourceComponentVM", {
 			name: {
-				value: 'Kevin'
+				default: 'Kevin'
 			}
 		});
 
