@@ -914,7 +914,8 @@ var makeDataBinding = function(node, el, bindingData) {
 		childToParent: childToParent,
 		// allow cycles if one directional
 		cycles: childToParent === true && parentToChild === true ? 0 : 100,
-		onInitDoNotUpdateChild: bindingData.alreadyUpdatedChild,
+		onInitDoNotUpdateChild: bindingData.alreadyUpdatedChild || bindingInfo.initializeValues === false,
+		onInitDoNotUpdateParent: bindingInfo.initializeValues === false,
 		onInitSetUndefinedParentIfChildIsDefined: true,
 		parent: parentObservable,
 		parentToChild: parentToChild,

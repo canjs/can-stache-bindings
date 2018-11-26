@@ -591,4 +591,25 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		QUnit.equal(map.get("clickCount"), 1, "function got called");
 	});
+
+	QUnit.test("on:click:value:to on button (#484)", function(){
+		var template = stache("<button value='2' on:click:value:to='myProp'>Default Args</button>");
+
+		var map = new SimpleMap({
+			myProp: 1
+		});
+
+		var frag = template(map);
+		var button = frag.firstChild;
+
+		QUnit.equal(map.get('myProp'), 1, "initial value");
+
+		// Change the value of the button so the click:event will fire an update
+		// currently as the value doesn't change without this the update will not happen
+		button.value = 4;
+		
+		domEvents.dispatch(button, "click");
+
+		QUnit.equal(map.get('myProp'), 4, "set from value");
+	});	
 });
