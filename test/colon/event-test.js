@@ -18,7 +18,7 @@ var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
-testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO){
+testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO, testIfRealDocument){
 
 	QUnit.test("on:enter", function () {
 		var enterEvent = require('can-event-dom-enter');
@@ -592,7 +592,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		QUnit.equal(map.get("clickCount"), 1, "function got called");
 	});
 
-	QUnit.test("on:click:value:to on button (#484)", function(){
+	testIfRealDocument("on:click:value:to on button (#484)", function() {
 		var template = stache("<button value='2' on:click:value:to='myProp'>Default Args</button>");
 
 		var map = new SimpleMap({
@@ -604,12 +604,8 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		QUnit.equal(map.get('myProp'), 1, "initial value");
 
-		// Change the value of the button so the click:event will fire an update
-		// currently as the value doesn't change without this the update will not happen
-		button.value = 4;
-		
 		domEvents.dispatch(button, "click");
 
-		QUnit.equal(map.get('myProp'), 4, "set from value");
+		QUnit.equal(map.get('myProp'), 2, "set from value");
 	});	
 });
