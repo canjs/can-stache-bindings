@@ -18,7 +18,7 @@ var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
-testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO){
+testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO, testIfRealDocument){
 
 	QUnit.test("on:enter", function () {
 		var enterEvent = require('can-event-dom-enter');
@@ -591,4 +591,21 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		QUnit.equal(map.get("clickCount"), 1, "function got called");
 	});
+
+	testIfRealDocument("on:click:value:to on button (#484)", function() {
+		var template = stache("<button value='2' on:click:value:to='myProp'>Default Args</button>");
+
+		var map = new SimpleMap({
+			myProp: 1
+		});
+
+		var frag = template(map);
+		var button = frag.firstChild;
+
+		QUnit.equal(map.get('myProp'), 1, "initial value");
+
+		domEvents.dispatch(button, "click");
+
+		QUnit.equal(map.get('myProp'), 2, "set from value");
+	});	
 });
