@@ -190,7 +190,7 @@ var behaviors = {
 		// For each attribute, we start the binding process,
 		// and save what's returned to be used when the `viewModel` is created,
 		// the element is removed, or the attribute changes values.
-		canReflect.each(el.attributes || [], function(node) {
+		canReflect.eachListLike(el.attributes || [], function(node) {
 			var dataBinding = makeDataBinding(node, el, {
 				templateType: tagData.templateType,
 				scope: tagData.scope,
