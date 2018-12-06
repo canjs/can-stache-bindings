@@ -801,4 +801,24 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		QUnit.equal(parentVM.get("parentValue"), "gc");
 	});
+
+	QUnit.test("scope.event should be available", function() {
+		var vm = new SimpleMap({});
+		MockComponent.extend({
+			tag: "event-producer",
+			viewModel: vm,
+			template: stache('')
+		});
+
+		var template = stache("<event-producer on:event='this.doSomething(scope.event, scope.arguments, scope.args)'/>");
+
+		template({
+			doSomething: function(events, argums, args){
+				QUnit.equal(events.type , "event", "got an event");
+				QUnit.equal(argums.length, 2, "two arguments");
+				QUnit.equal(args.length, 3, "3 args");
+			}
+		});
+		vm.dispatch({type: "event"},[1,2]);
+	});
 });

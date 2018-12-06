@@ -33,7 +33,7 @@ var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 var ViewNodeList = require("can-view-nodelist");
 
-var canEvent = require("can-attribute-observable/event");
+var canEventQueue = require("can-event-queue");
 
 // Contains all of the stache bindings that will be exported.
 var bindings = new Map();
@@ -88,13 +88,17 @@ var checkBindingState = function(bindingState, bindingInfo) {
 		return bindingState;
 	}
 };
+var onKeyValueSymbol = canSymbol.for("can.onKeyValue");
+var makeScopeFromEvent = function(element, event, viewModel, args, data, bindingContext){
+	// TODO: Remove in 6.0.  In 4 and 5 arguments were wrong.
+	var shiftArgumentsForLegacyArguments = bindingContext[onKeyValueSymbol] !== undefined;
 
-var makeScopeFromEvent = function(element, event, viewModel, args, data){
 	var specialValues = {
 		element: element,
 		event: event,
 		viewModel: viewModel,
-		arguments: args
+		arguments: shiftArgumentsForLegacyArguments ? Array.prototype.slice.call(args, 1) : args,
+		args: args
 	};
 
 	// make a scope with these things just under
@@ -477,7 +481,7 @@ var behaviors = {
 				methodRule: "call"
 			});
 
-			var runScope = makeScopeFromEvent(el, ev, viewModel, arguments, data);
+			var runScope = makeScopeFromEvent(el, ev, viewModel, arguments, data, bindingContext);
 
 			if (expr instanceof expression.Hashes) {
 				var hashExprs = expr.hashExprs;
@@ -512,7 +516,7 @@ var behaviors = {
 			}
 		};
 		var unbindEvent = function() {
-			canEvent.off.call(bindingContext, event, handler);
+			canEventQueue.off.call(bindingContext, event, handler);
 			if (attributesDisposal) {
 				attributesDisposal();
 				attributesDisposal = undefined;
@@ -525,7 +529,8 @@ var behaviors = {
 
 		// Bind the handler defined above to the element we're currently processing and the event name provided in this
 		// attribute name (can-click="foo")
-		canEvent.on.call(bindingContext, event, handler);
+
+		canEventQueue.on.call(bindingContext, event, handler);
 		attributesDisposal = domMutate.onNodeAttributeChange(el, attributesHandler);
 		removalDisposal = domMutate.onNodeRemoval(el, removalHandler);
 	}
