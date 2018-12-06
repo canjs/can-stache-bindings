@@ -1,12 +1,262 @@
-@module can-stache-bindings
+@module {Object} can-stache-bindings
 @parent can-views
 @collection can-core
 @group can-stache-bindings.syntaxes Syntaxes
 @package ../package.json
+@outline 2
 
-Provides template events, one-way bindings, and two-way bindings.
+Listen to events and create one-way and two-way bindings.
+
+@type {Object}
+
+`can-stache-bindings` exports a binding object that can be added to [can-stache]
+via [can-stache.addBindings] as follows:
+
+  ```js
+  import {stache, stacheBindings} from "can";
+
+  stache.addBindings(stacheBindings);
+  ```
+
+  This is automatically done by [can-component]. So these bindings are
+  typically available automatically in [can-stache].
 
 @body
+
+## Purpose
+
+Bindings allow communication between html elements
+and observables like [can-component.prototype.ViewModel ViewModels] and
+[can-rest-model models].
+
+Communication happens primarily by:
+
+- Listening to events and calling methods (`<button on:click="this.doSomething()">`)
+- Passing values (`<input value:from="this.name">`)
+
+`can-stache-bindings` are designed to be:
+
+- Powerful - Many different types of binding behaviors are possible:
+  - Pass data down and keep updating: `<input value:from="this.name"/>`
+  - Pass data up and keep updating: `<input value:to="this.name"/>`
+  - Pass data up and update on a specified event: `<input on:input:value:to="this.name"/>`
+  - Update both directions: `<input value:bind="this.name"/>`
+  - Listen to events and call a method: `<input on:change="this.doSomething()"/>`
+  - Listen to events and set a value: `<input on:change="this.name = scope.element.value"/>`
+- Declarative - Instead of magic tags like `(click)` or `{(key)}`, it uses descriptive terms like `on:`, `:from`, `:to`, and `:bind` so beginners have an idea of what is happening.
+
+
+`can-stache-bindings` is separate from `stache` as other view-binding syntaxes
+have been supported in the past.
+
+## Use
+
+Bindings communicate between two entities, typically a __parent__
+entity and a __child__ entity.  The __parent__
+
+U
+
+
+parent and child
+
+siblings
+
+### Call a function when an event happens on an element
+
+Use [can-stache-bindings.event] to listen to when an event is dispatched on
+an element.  The following calls the `ViewModel`'s `sayHi` method when the
+button is clicked:
+
+```html
+<say-hi></say-hi>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "my-counter",
+	view: `
+		<button on:click="this.sayHi()">Say Hi</button>
+	`,
+	ViewModel: {
+		sayHi(){
+			alert("Hi!");
+		}
+	}
+});
+</script>
+```
+
+The event, element, and arguments the event handler would be called with are available
+via [can-stache/keys/scope].  The following prevents the form from being submitted
+by passing `scope.event`:
+
+```html
+<my-demo></my-demo>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+    tag: "my-demo",
+    view: `
+		<form on:submit="this.reportData(scope.element, scope.event)">
+			<input name="name" placeholder="name"/>
+			<input name="age" placeholder="age"/>
+			<button>Submit</button>
+		</form>
+		<h2>Data</h2>
+		<ul>
+			{{# for(data of this.submissions) }}
+				<li>{{data}}</li>
+			{{/for}}
+		</ul>
+	`,
+    ViewModel: {
+		submissions: {default: () => []},
+		reportData(form, submitEvent){
+			submitEvent.preventDefault();
+			var data = JSON.stringify({
+				name: form.name.value,
+				age: form.age.value
+			});
+			this.submissions.push( data );
+		}
+	}
+});
+</script>
+```
+@codepen
+
+### Call a function when an event happens on a ViewModel
+
+Use [can-stache-bindings.event] to listen to when an event is dispatched on
+a [can-component]'s [can-component.prototype.ViewModel].  
+
+```html
+<my-demo></my-demo>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "random-number-generator",
+	ViewModel: {
+		connectedCallback(){
+			const interval = setInterval( () => {
+				this.dispatch({type: "number", value: Math.random()})
+			}, 1000);
+
+			return ()=> {
+				clearInterval(interval);
+			};
+		}
+	}
+})
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<random-number-generator on:number="this.addNumber(scope.event.value)"/>
+		<h2>Numbers</h2>
+		<ul>
+			{{# for(number of this.numbers) }}
+				<li>{{number}}</li>
+			{{/for}}
+		</ul>
+	`,
+	ViewModel: {
+		numbers: { default: ()=>[] },
+		addNumber(number){
+			this.numbers.push(number);
+		}
+	}
+});
+</script>
+```
+@codepen
+
+
+
+### Initialize an element with a value and keep the element up to date with the value
+
+Use [can-stache-bindings.toChild] to initialize an element's property or attribute with the
+value from [can-stache stache's] [can-view-scope scope].  
+
+```html
+<my-demo></my-demo>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "my-counter",
+	view: `
+		Count: <span>{{this.count}}</span>
+		<button on:click="this.increment()">+1</button>
+	`,
+	ViewModel: {
+		count: {default: 0},
+		increment() {
+			this.count++;
+		}
+	}
+});
+</script>
+```
+
+#### Pass a function
+
+### Initialize a component's ViewModel with a value and keep the ViewModel up to date with the value
+
+### Pass values between siblings
+
+
+
+The following shows some of the various ways the `<my-demo>.viewModel`'s `name`
+property value can be passed and updated:
+
+```html
+<my-demo></my-demo>
+<script type="module">
+import {Component, fixture} from "can";
+
+Component.extend({
+	tag: "random-name",
+	view: `
+		<button on:click="this.pickRandomName()">Pick Random Name</button>
+	`,
+	ViewModel: {
+		name: "string",
+		names: "any",
+		pickRandomName(){
+			this.name = fixture.rand(this.names,1)[0];
+		}
+	}
+});
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<p>The current value of name: {{this.name}}.</p>
+		<p>Update name when "change" fires: <input value:to="this.name"/></p>
+		<p>Update name as you type: <input on:input:value:to="this.name"/></p>
+		<p>Update name as you type, but also update as name changes by
+			other means: <input on:input:value:bind="this.name"/>
+		<p><button on:click="this.name = 'Bohdi'">Set name to Bohdi</button></p>
+		<p><random-name
+			names:from="this.nameChoices"
+			on:name="this.name = scope.viewModel.name"/></p>
+	`,
+	ViewModel: {
+		name: {type: "string", default: "Justin"},
+		nameChoices: {
+			default: ()=> [
+				"Ramiya","Justin","Payal","Kathrine","Barry","Maya"
+			]
+		}
+	}
+});
+
+</script>
+```
+@codepen
 
 ## Use
 
