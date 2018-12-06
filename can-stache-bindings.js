@@ -32,7 +32,6 @@ var SettableObservable = require("can-simple-observable/setter/setter");
 var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 var ViewNodeList = require("can-view-nodelist");
-var isDomEventTarget = require("can-dom-events/helpers/util").isDomEventTarget;
 
 var canEventQueue = require("can-event-queue");
 
