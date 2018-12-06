@@ -97,7 +97,7 @@ var makeScopeFromEvent = function(element, event, viewModel, args, data, binding
 		element: element,
 		event: event,
 		viewModel: viewModel,
-		arguments: shiftArgumentsForLegacyArguments ? Array.from(args).slice(1) : args,
+		arguments: shiftArgumentsForLegacyArguments ? Array.prototype.slice.call(args, 1) : args,
 		args: args
 	};
 
