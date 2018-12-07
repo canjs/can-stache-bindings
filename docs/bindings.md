@@ -177,8 +177,8 @@ by passing `scope.event`:
 import {Component} from "can";
 
 Component.extend({
-    tag: "my-demo",
-    view: `
+	tag: "my-demo",
+	view: `
 		<form on:submit="this.reportData(scope.element, scope.event)">
 			<input name="name" placeholder="name"/>
 			<input name="age" placeholder="age"/>
@@ -191,7 +191,7 @@ Component.extend({
 			{{/for}}
 		</ul>
 	`,
-    ViewModel: {
+	ViewModel: {
 		submissions: {default: () => []},
 		reportData(form, submitEvent){
 			submitEvent.preventDefault();
@@ -206,6 +206,173 @@ Component.extend({
 </script>
 ```
 @codepen
+
+### Call a function when a custom event happens on an element
+
+Custom events can be a great way to simplify complex DOM interactions.
+[can-stache-bindings.event] listens to:
+
+- Custom events dispatched by the browser (`element.dispatchEvent(event)`)
+- Custom events registered by [can-dom-events].
+
+<details>
+<summary>
+See an example of dispatching custom events.
+</summary>
+
+The following example shows a `<in-view>` component that dispatches a `inview` [custom event](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events) on elements when
+they scroll into view. `<my-demo>` listens to those events and loads data with `<div on:inview="this.getData(item)">`.
+
+```html
+<my-demo></my-demo>
+<style>
+in-view { display: block; height: 90vh;
+		  border: solid 1px black; overflow: auto; }
+</style>
+<script type="module">
+import {Component} from "can";
+
+var isVisibleSymbol = Symbol("isVisible");
+
+Component.extend({
+	tag: "in-view",
+	view: `<content/>`,
+	ViewModel: {
+		connectedCallback(el) {
+			function dispatchEvents(){
+				// Get all visible elmenets
+				var visible = Array.from(el.childNodes).filter( (child) => {
+					return child.offsetTop > el.scrollTop
+						&& child.offsetTop <= el.scrollTop + el.clientHeight
+				});
+				// dispatch event on elements that have not
+				// been dispatched
+				visible.forEach(function(child){
+					if(!child[isVisibleSymbol]) {
+						child[isVisibleSymbol] = true;
+						child.dispatchEvent(new Event('inview'));
+					}
+				});
+			}
+			// Dispatch on visible elements right away
+			dispatchEvents();
+			// On scroll, dispatch
+			this.listenTo(el,"scroll", dispatchEvents);
+		}
+	}
+});
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<in-view>
+			{{# for(item of this.items) }}
+				<div on:inview="this.getData(item)">
+					{{item.data}}
+				</div>
+			{{/ for }}
+		</in-view>
+	`,
+	ViewModel: {
+		items: {
+			default() {
+				var items = [];
+				for(var i = 0; i < 400; i++) {
+					items.push({data: "unloaded"});
+				}
+				return items;
+			}
+		},
+		getData(item) {
+			item.data = "loading..."
+			setTimeout(function(){
+				item.data = "loaded";
+			},Math.random() * 1000);
+		}
+	}
+});
+</script>
+```
+@codepen
+
+</details>
+
+
+
+
+<details>
+<summary>
+See an example of using custom events.
+</summary>
+
+CanJS has a special event registry - [can-dom-events]. You can add custom events to to this registry and
+listen to those events with [can-stache-bindings.event].
+
+CanJS already has several custom events:
+- [can-dom-mutate/events/events domMutateEvents] - Listen to when an element is inserted or removed.
+- [can-event-dom-enter] - Listen to when the _Enter_ key is pressed.
+
+The following adds the enter and inserted event into the global registry and uses them:
+
+```html
+<my-demo></my-demo>
+<script src="//cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+<style>
+.light {position: relative; left: 20px; width: 100px; height: 100px;}
+.red {background-color: red;}
+.green {background-color: green;}
+.yellow {background-color: yellow;}
+</style>
+<script type="module">
+import {Component, domEvents, enterEvent, domMutateDomEvents} from "can/everything";
+
+domEvents.addEvent(enterEvent);
+domEvents.addEvent(domMutateDomEvents.inserted);
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<div class="container" tabindex="0"
+			on:enter="this.nextState()">
+			Click me and hit enter.
+			{{# switch(this.state) }}
+					{{# case("red") }}
+							<div class="light red"
+								on:inserted="this.shake(scope.element)">Red Light</div>
+					{{/ case }}
+					{{# case("yellow") }}
+							<div class="light yellow"
+								on:inserted="this.shake(scope.element)">Yellow Light</div>
+					{{/ case }}
+					{{# case("green") }}
+							<div class="light green"
+								on:inserted="this.shake(scope.element)">Green Light</div>
+					{{/case}}
+			{{/switch}}
+		</div>
+	`,
+	ViewModel: {
+		state: {default: "red"},
+		nextState(){
+			var states = {red: "yellow", yellow: "green", green: "red"};
+			this.state = states[this.state];
+		},
+		shake(element){
+			anime({
+				targets: element,
+				translateX: [ 10,-10,0 ],
+				easing: 'linear'
+			});
+		}
+	}
+});
+</script>
+```
+@codepen
+@highlight 19,24
+
+</details>
+
 
 ### Call a function when an event happens on a ViewModel
 
@@ -306,7 +473,7 @@ Component.extend({
 
 ### Call a function when an event happens on a value in the scope (animation)
 
-Use [can-stache-bindings.event] to listen to an event and call a method.  This can often be useful for running animations.
+Use `on:event:by:value` to listen to an event and call a method.  This can often be useful for running animations.
 
 The following listens to when a todo's `complete` event is fired and calls `this.shake`. `this.shake` uses [anime](http://animejs.com/) to animate the `<div>`:
 
@@ -317,42 +484,158 @@ The following listens to when a todo's `complete` event is fired and calls `this
 import {Component} from "can";
 
 Component.extend({
-    tag: "my-demo",
-    view: `
-        {{# for(todo of this.todos) }}
-            <div on:complete:by:todo="this.shake(scope.element)">
-                <input type="checkbox" checked:bind="todo.complete"/>
-                {{todo.name}}
-            </div>
-        {{/ for }}
-    `,
-    ViewModel: {
-        todos: {
-            default: ()=> [
-                {name: "animate", complete: false},
-                {name: "celebrate", complete: true}
-            ]
-        },
-        shake(element){
-            anime({
-                targets: element,
-                translateX: [ 10,-10,0 ],
-                easing: 'linear'
-            });
-        }
-    }
+	tag: "my-demo",
+	view: `
+		{{# for(todo of this.todos) }}
+			<div on:complete:by:todo="this.shake(scope.element)">
+				<input type="checkbox" checked:bind="todo.complete"/>
+				{{todo.name}}
+			</div>
+		{{/ for }}
+	`,
+	ViewModel: {
+		todos: {
+			default: ()=> [
+				{name: "animate", complete: false},
+				{name: "celebrate", complete: true}
+			]
+		},
+		shake(element){
+			anime({
+				targets: element,
+				translateX: [ 10,-10,0 ],
+				easing: 'linear'
+			});
+		}
+	}
 });
 </script>
 ```
 @codepen
+@highlight 10
 
 
 ### Update an element's value from the scope
 
-__Initialize an element with a value and keep the element up to date with the value__
+Use [can-stache-bindings.toChild] to:
 
-Use [can-stache-bindings.toChild] to initialize an element's property or attribute with the
-value from [can-stache stache's] [can-view-scope scope].  
+- initialize an element's property or attribute with the
+  value from [can-stache stache's] [can-view-scope scope], and
+- update the element's property or attribute with the scope value changes.
+
+The following shows updating the _BIG RED BUTTON_'s `disabled` from
+`this.enabled` in the scope. The [can-stache.helpers.not] helper
+is used to inverse the value of `this.enabled`. Notice that as `this.enabled`
+changes, `disabled` updates.
+
+
+```html
+<my-demo></my-demo>
+<style>
+.big-red {
+	background-color: red; color: white;
+	display: block; width: 100%; height: 50vh;
+	cursor: pointer;
+}
+.big-red:disabled {
+	background-color: #800000;
+	color: black; cursor: auto;
+}
+</style>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<button on:click="this.enabled = true">Enable</button>
+		<button on:click="this.enabled = false">Disable</button>
+
+		<button
+			disabled:from="not(this.enabled)"
+			on:click="this.boom()"
+			class="big-red">BIG RED BUTTON</button>
+	`,
+	ViewModel: {
+		enabled: {default: false},
+		boom() {
+			alert("Red Alert!");
+		}
+	}
+});
+</script>
+```
+@highlight 23
+@codepen
+
+
+
+### Update a component ViewModel's value from the scope
+
+Use [can-stache-bindings.toChild] to:
+
+- initialize a [can-component Component]'s [can-component.prototype.ViewModel] property value from [can-stache stache's] [can-view-scope scope], and
+- update the ViewModel property with the scope value changes.
+
+The following
+
+```html
+<my-demo></my-demo>
+<style>
+percentage-slider {
+	border: solid 1px black;
+	width: 100px; height: 20px;
+	display: inline-block;
+}
+.percent { background-color: red; height: 20px; }
+</style>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "percentage-slider",
+	view: `
+		<div class="percent" style="width: {{this.percent}}%"></div>
+	`,
+	ViewModel: {
+		percent: "number"
+	}
+});
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		Percent Complete: <br/>
+		<percentage-slider percent:from="this.value"/>
+		<br/>
+		<button on:click="this.increase(-5)">-5</button>
+		<button on:click="this.increase(5)">+5</button>
+	`,
+	ViewModel: {
+		value: {default: 50, type: "number"},
+		increase(amount){
+			var newValue = this.value + amount;
+			if(newValue >= 0 && newValue <= 100) {
+				this.value += amount;
+			}
+		}
+	}
+});
+</script>
+```
+@highlight 27
+@codepen
+
+[can-stache-bindings.toChild] can be used to pass the results of functions like `percent:from="this.method()"`.
+
+
+### Pass a value from an element to the scope
+
+Use [can-stache-bindings.toParent] to pass a value from an element to a value
+on the scope.
+
+The following updates `name` on the ViewModel when the `<input>`'s _change_ event fires:
+
 
 ```html
 <my-demo></my-demo>
@@ -360,30 +643,82 @@ value from [can-stache stache's] [can-view-scope scope].
 import {Component} from "can";
 
 Component.extend({
-	tag: "my-counter",
+	tag: "my-demo",
 	view: `
-		Count: <span>{{this.count}}</span>
-		<button on:click="this.increment()">+1</button>
+		<p>Name: {{this.name}}</p>
+		<p>Update name when "change" fires: <input value:to="this.name"/></p>
 	`,
 	ViewModel: {
-		count: {default: 0},
-		increment() {
-			this.count++;
-		}
+		name: "string"
 	}
 });
 </script>
 ```
+@highlight 9
+@codepen
+
+
+The element value will be read immediately and used to set the scope value.  The following
+shows that the default `name` will be overwritten to the empty string:
+
+```html
+<my-demo></my-demo>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<p>Name: {{this.name}}</p>
+		<p>Update name when "change" fires: <input value:to="this.name"/></p>
+	`,
+	ViewModel: {
+		name: {default: "Justin"}
+	}
+});
+</script>
+```
+@highlight 12
+@codepen
+
+Use `on:event:elementPropery:to` to customize which event to listen to.  The following
+switches to the `input` event:
+
+```html
+<my-demo></my-demo>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "my-demo",
+	view: `
+		<p>Name: {{this.name}}</p>
+		<p>Update name as you type: <input on:input:value:to="this.name"/></p>
+	`,
+	ViewModel: {
+		name: {default: "Justin"}
+	}
+});
+</script>
+```
+@highlight 9
+@codepen
+
+> NOTE: Using `on:event:elementPropery:to` prevents initialization of the value until an event happens.
+> You'll notice the `name` is left as `"Justin"` until you start typing.
+
+
+### Pass a value from a component to the scope
+
+Use [can-stache-bindings.toParent] to pass a value from a component to a value
+on the scope.
 
 
 
-### Update a component ViewModel's value from the scope
 
-__Initialize a component's ViewModel with a value and keep the ViewModel up to date with the value__
+### TWO WAY
 
-### Pass a value from an element to the scope
 
-### pass a value from
 
 
 ### Pass values between siblings
