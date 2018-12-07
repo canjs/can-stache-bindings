@@ -33,7 +33,7 @@ var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 var ViewNodeList = require("can-view-nodelist");
 
-var canEventQueue = require("can-event-queue");
+var canEventQueue = require("can-event-queue/map/map");
 
 // Contains all of the stache bindings that will be exported.
 var bindings = new Map();
