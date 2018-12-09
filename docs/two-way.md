@@ -73,25 +73,6 @@ Parameters are the same as [can-stache-bindings.twoWay#child_prop_bind__key_ chi
 
 @body
 
-## Use
-
-`childProp:bind="key"` is used to two-way bind a value in a [can-component.prototype.ViewModel ViewModel] to
-a value in the  [can-view-scope scope].  If one value changes, the other value is updated.
-
-The following two-way binds the `<edit-plate>` element’s `plateName` to the `editing.licensePlate`
-value in the scope.  This allows `plateName` to update if `editing.licensePlate` changes and
-`editing.licensePlate` to update if `plateName` changes.
-
-Click on one of the list items below and watch as its text appears in the input box. You can then edit the text and it will update in the list.
-
-@demo demos/can-stache-bindings/two-way.html
-@codepen
-
-This demo can be expressed a bit easier with the references scope:
-
-@demo demos/can-stache-bindings/reference.html
-@codepen
-
 ## Initialization
 
 When a binding is being initialized, the behavior of what the viewModel and scope properties
@@ -100,3 +81,7 @@ are set to depends on their initial values:
 - If the viewModel value is `defined` and the scope is `undefined`, scope will be set to the viewModel value.
 - If the viewModel value is `undefined` and the scope is `not undefined`, viewModel will be set to the scope value.
 - If both the viewModel and scope are `not undefined`, viewModel will be set to the scope value.
+
+## Use
+
+See [can-stache-bindings#Keepaparentandchildinsync Keep a parent and child in sync].

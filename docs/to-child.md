@@ -52,13 +52,7 @@ Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ ch
 
 ## Use
 
-`childProp:from="key"` is used to pass values from the scope to a component.
-You can use [can-stache.expressions#Callexpressions call expressions] like:
+The [can-stache-bindings] page has many examples of [can-stache-bindings.toChild]. Specifically:
 
-```html
-<player-scores scores:from="game.scoresForPlayer('Alison')"/>
-<player-scores scores:from="game.scoresForPlayer('Jeff')"/>
-```
-
-@demo demos/can-stache-bindings/to-child.html
-@codepen
+- [can-stache-bindings#Updateanelement_svaluefromthescope Update a component ViewModel's value from the scope]
+- [can-stache-bindings#UpdateacomponentViewModel_svaluefromthescope Pass a value from an element to the scope]
