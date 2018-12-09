@@ -1,4 +1,4 @@
-@function can-stache-bindings.toParent toParent:to
+@function can-stache-bindings.toParent key:to
 @parent can-stache-bindings.syntaxes
 
 @description One-way bind a value from the [can-component.prototype.view-model viewModel] or element to the parent scope.
@@ -75,53 +75,7 @@ If the element does **not** have a [can-component::ViewModel ViewModel], listens
 
 ## Use
 
-Depending on whether the element has a [can-component.prototype.ViewModel ViewModel], `:to` bindings change
-between exporting __ViewModel properties__ or __DOM properties__.
+The [can-stache-bindings] page has many examples of [can-stache-bindings.toParent]. Specifically:
 
-## Exporting ViewModel properties
-
-`childProp:to="key"` can be used to export single values or the complete view model from a
-child component into the parent scope. Typically, the values are exported to the references scope.
-
-The following example connects the __selected__ driver in `<drivers-list>` with an editable __plateName__ in
-`<edit-plate>`:
-
-```html
-<drivers-list selected:to="scope.vars.editing"/>
-<edit-plate plateName:bind="scope.vars.editing.licensePlate"/>
-```
-
-Click on one of the list items below and watch as its text appears in the input box. You can then edit the text and it will update in the list.
-
-@demo demos/can-stache-bindings/to-parent.html
-@codepen
-
-## Exporting DOM properties
-
-`child-prop:to="key"` can be used to export an attribute value into the scope.  For example:
-
-```html
-<input value:to="name"/>
-```
-
-Updates `name` in the scope when the `<input>` element’s `value` changes.
-
-## Exporting Functions
-
-You can export a function to the [can-stache/keys/scope/scope.vars parent references scope]
-with a binding like:
-
-```html
-<my-tabs addPanel:to="scope.vars.addPanel">
-```
-
-And pass the method like:
-
-```html
-<my-panel addPanel:from="scope.vars.addPanel" title:from="'CanJS'">CanJS Content</my-panel>
-```
-
-Check it out in this demo by clicking on the list items:
-
-@demo demos/can-stache-bindings/to-parent-function.html
-@codepen
+- [can-stache-bindings#Passavaluefromanelementtothescope Pass a value from an element to the scope]
+- [can-stache-bindings#Passavaluefromacomponenttothescope Pass a value from a component to the scope]

@@ -718,7 +718,7 @@ var getObservableFrom = {
 	// ### getObservableFrom.attribute
 	// Returns a compute that is two-way bound to an attribute or property on the element.
 	attribute: function(el, scope, prop, bindingData, mustBeGettable, stickyCompute, event, bindingInfo) {
-		return new AttributeObservable(el, prop, bindingData, event);
+		return new AttributeObservable(el, prop, {}, event);
 	}
 };
 
