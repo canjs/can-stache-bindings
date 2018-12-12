@@ -1315,4 +1315,19 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		QUnit.equal(demoContext.person.name, 'Kevin', "source-component has correct name set");
 	});
+
+	QUnit.test('this:to works', function() {
+
+		var template = stache('<input this:to="this.input" />');
+
+		var map = new SimpleMap({
+			input: null
+		});
+
+		var frag = template(map);
+		var input = frag.firstChild;
+
+		QUnit.equal(input, map.get("input"), "set the input");
+	});
+
 });

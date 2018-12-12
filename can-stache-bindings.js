@@ -718,7 +718,25 @@ var getObservableFrom = {
 	// ### getObservableFrom.attribute
 	// Returns a compute that is two-way bound to an attribute or property on the element.
 	attribute: function(el, scope, prop, bindingData, mustBeGettable, stickyCompute, event, bindingInfo) {
-		return new AttributeObservable(el, prop, {}, event);
+		if(prop === "this") {
+			return canReflect.assignSymbols({}, {
+				"can.getValue": function() {
+					return el;
+				},
+
+				"can.valueHasDependencies": function() {
+					return false;
+				},
+				"can.getName": function getName() {
+					//!steal-remove-start
+					return "<"+el.nodeName+">";
+					//!steal-remove-end
+				}
+			});
+		} else {
+			return new AttributeObservable(el, prop, {}, event);
+		}
+
 	}
 };
 
