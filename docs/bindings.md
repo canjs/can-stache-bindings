@@ -541,6 +541,50 @@ Component.extend({
 > NOTE: Using `on:event:elementPropery:to` prevents initialization of the value until an event happens.
 > You'll notice the `name` is left as `"Justin"` until you start typing.
 
+### Pass an element to the scope
+
+You can use `this:to="key"` to pass an element reference to a value on the scope (typically a ViewModel).
+
+The following adds the `video` element to the `ViewModel` so it can be played when `playing` is set to true:
+
+```html
+<video-player src:raw="http://bit.ly/can-tom-n-jerry"></video-player>
+<script type="module">
+import {Component} from "can";
+
+Component.extend({
+	tag: "video-player",
+	view: `
+		<video this:to="this.video">
+			<source src="{{src}}"/>
+		</video>
+		<button on:click="togglePlay()">
+			{{#if(this.playing)}} Pause {{else}} Play {{/if}}
+		</button>
+	`,
+	ViewModel: {
+		video: "any",
+		src: "string",
+		playing: "boolean",
+		togglePlay() {
+			this.playing = !this.playing;
+		},
+		connectedCallback(element) {
+			this.listenTo("playing", (event, isPlaying) => {
+				if (isPlaying) {
+					this.video.play();
+				} else {
+					this.video.pause();
+				}
+			});
+		}
+	}
+});
+</script>
+```
+@highlight 8
+@codepen
+
 ### Pass a value from a component to the scope
 
 Use [can-stache-bindings.toParent] to pass a value from a component to a value
