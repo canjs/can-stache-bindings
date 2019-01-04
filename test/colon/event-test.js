@@ -12,6 +12,7 @@ var DefineList = require("can-define/list/list");
 
 var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
+var canReflect = require("can-reflect");
 
 var domData = require('can-dom-data-state');
 var domMutate = require('can-dom-mutate');
@@ -607,5 +608,103 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		domEvents.dispatch(button, "click");
 
 		QUnit.equal(map.get('myProp'), 2, "set from value");
-	});	
+	});
+
+	QUnit.test("Registering events on nullish context with :by should register an observation on the scope and properly teardown all listeners on removal", function () {
+		var map = new SimpleMap({
+			user: null,
+			doSomething: function () {
+				QUnit.ok(true);
+			}
+		});
+		var user = new SimpleMap({
+			name: "Michael"
+		});
+		var fragment = stache("<div on:name:by:this.user='doSomething()'/>")(map);
+		var div = fragment.firstChild;
+		domMutateNode.appendChild.call(this.fixture, fragment);
+		QUnit.equal(canReflect.isBound( map ), true);
+		map.set("user", user);
+		QUnit.equal(canReflect.isBound(user), true);
+		domMutateNode.removeChild.call(this.fixture, div);
+		testHelpers.afterMutation(function(){
+			QUnit.equal(canReflect.isBound( map ), false);
+			QUnit.equal(canReflect.isBound(user), false);
+		});
+	});
+
+	QUnit.test("Registering events on nullish context with :by should switch bindings when the context is defined and teardiwn old listener", function(){
+		var map = new SimpleMap({
+			user: null,
+			doSomething: function () {
+				QUnit.ok(true);
+			}
+		});
+		var user1 = new SimpleMap({
+			name: "Michael"
+		});
+		var user2 = new SimpleMap({
+			name: "Justin"
+		});
+		stache("<div on:name:by:this.user='doSomething()'/>")(map);
+		QUnit.equal(canReflect.isBound( map ), true);
+		map.set("user", user1);
+		QUnit.equal(canReflect.isBound(user1), true);
+		QUnit.equal(canReflect.isBound(user2), false);
+		map.set("user", user2);
+		QUnit.equal(canReflect.isBound(user1), false);
+		QUnit.equal(canReflect.isBound(user2), true);
+	});
+
+
+	QUnit.test('Registering events on nullish context with :by should be supported', function () {
+		expect(3);
+		var map = new SimpleMap({
+			user: null,
+			doSomething: function () {
+				QUnit.ok(true);
+			}
+		});
+		var user1 = new SimpleMap({
+			name: "Michael"
+		});
+		var user2 = new SimpleMap({
+			name: "Justin"
+		});
+		stache("<div on:name:by:this.user='doSomething()'/>")(map);
+		map.set("user", user1);
+		map.get("user").set("name", "Greg");
+		map.get("user").set("name", "Jim");
+		map.set("user", user2);
+		map.get("user").set("name", "Todd");
+	});
+
+	QUnit.test('Registering events on nullish context with :by should be supported on :vm bindings', function () {
+		expect(2);
+		var map = new SimpleMap({
+			user: null
+		});
+		var ParentScope = SimpleMap.extend({
+			doSomething: function(){
+				QUnit.ok(true);
+			}
+		});
+		var parent = new ParentScope();
+		var user1 = new SimpleMap({
+			name: "Michael"
+		});
+		var user2 = new SimpleMap({
+			name: "Justin"
+		});
+
+		MockComponent.extend({
+			tag: "view-model-able",
+			viewModel: map
+		});
+		stache("<view-model-able on:vm:name:by:this.user='doSomething()'/>")(parent);
+		map.set("user", user1);
+		map.get("user").set("name", "Greg");
+		map.set("user", user2);
+		map.get("user").set("name", "Todd");
+	});
 });
