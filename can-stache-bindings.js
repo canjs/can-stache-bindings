@@ -156,12 +156,15 @@ var runEventCallback = function (el, ev, data, scope, expr, attributeName, attrV
 // ## Behaviors
 var behaviors = {
 	// ## completeBindings
-	// Given a list of bindings, initializes a viewModel
+	// Given a list of bindings, initializes the bindings, then the viewModel then completes the bindings.
 	// Arguments:
 	// - bindings  - An array of `{binding, siblingBindingData}`
+	// - initialViewModelData - Extra initial viewModel values
+	// - makeViewModel - `makeViewModel(props, hasBindings, bindingsState)`
+	// - bindingContext - optional, `{scope}`
 	// Returns:
 	// `{viewModel, onTeardowns, bindingsState}`
-	initializeViewModel: function(bindings, bindingContext, initialViewModelData, makeViewModel) {
+	initializeViewModel: function(bindings, initialViewModelData, makeViewModel, bindingContext) {
 
 		var onCompleteBindings = [],
 			onTeardowns = {};
@@ -267,10 +270,10 @@ var behaviors = {
 		}
 
 		// Initialize the viewModel
-		var completedData = behaviors.initializeViewModel(dataBindings, bindingContext, initialViewModelData, function(){
+		var completedData = behaviors.initializeViewModel(dataBindings, initialViewModelData, function(){
 			// we need to make sure we have the viewModel available
 			bindingSettings.viewModel = makeViewModel.apply(this, arguments);
-		}),
+		}, bindingContext),
 			onTeardowns = completedData.onTeardowns,
 			bindingsState = completedData.bindingsState,
 			siblingBindingDatas = {};
@@ -280,6 +283,8 @@ var behaviors = {
 		// the bindings.
 		var attributeDisposal;
 		if (!bindingsState.isSettingViewModel) {
+			// We need to update the child on any new bindings.
+			bindingSettings.alreadyUpdatedChild = false;
 			attributeDisposal = domMutate.onNodeAttributeChange(el, function(ev) {
 				var attrName = ev.attributeName,
 					value = el.getAttribute(attrName);
@@ -1062,7 +1067,8 @@ var cleanVMName = function(name, scope) {
 var canStacheBindings = {
 	behaviors: behaviors,
 	getSiblingBindingData: getSiblingBindingData,
-	bindings: bindings
+	bindings: bindings,
+	getObservableFrom: getObservableFrom
 };
 
 canStacheBindings[canSymbol.for("can.callbackMap")] = bindings;
