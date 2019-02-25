@@ -220,13 +220,14 @@ var behaviors = {
 	// ### bindings.behaviors.viewModel
 	// Sets up all of an element's data binding attributes to a "soon-to-be-created"
 	// `viewModel`.
-	// This is primarily used by `can.Component` to ensure that its
+	// This is primarily used by `Component` to ensure that its
 	// `viewModel` is initialized with values from the data bindings as quickly as possible.
 	// Component could look up the data binding values itself.  However, that lookup
 	// would have to be duplicated when the bindings are established.
 	// Instead, this uses the `makeDataBinding` helper, which allows creation of the `viewModel`
 	// after scope values have been looked up.
 	//
+	// Arguments:
 	// - `makeViewModel(initialViewModelData)` - a function that returns the `viewModel`.
 	// - `initialViewModelData` any initial data that should already be added to the `viewModel`.
 	//
@@ -237,10 +238,12 @@ var behaviors = {
 
 		var attributeViewModelBindings = assign({}, initialViewModelData),
 
+			// The data around the binding.
 			bindingContext = assign({
 				element: el
 			}, tagData),
 
+			// global settings for the bindings
 			bindingSettings = {
 				getViewModel: function() {
 					return this.viewModel;
@@ -688,9 +691,9 @@ var getObservableFrom = {
 	// Returns a compute that's two-way bound to the `viewModel` returned by
 	// `options.bindingSettings()`.
 	// Arguments:
-	// - el - the element the binding is associated with, this is not used
-	// - bindingData - {scope}
-	// - bindingInfo - {childName, stickyParentToChild}
+	// - bindingData - {source, name, setCompute}
+	// - bindingContext - {scope, element}
+	// - bindingSettings - {getViewModel}
 	viewModel: function(bindingData, bindingContext, bindingSettings, siblingObservable) {
 		var scope = bindingContext.scope,
 			vmName = bindingData.name,
@@ -878,27 +881,26 @@ var getChildBindingStr = function(tokens, favorViewModel) {
 // - node - An attribute node like: `{name, value}`
 // - bindingSettings - Optional.  Has {favorViewModel: Boolean}
 // Returns an object with:
-// - parent - {source, name, event, exports, syncSibling}
-// - child - {source, name, event, exports, syncSibling, setCompute}
-// - bindingAttributeName - debugging name.
-// - initializeValues - hould parent and child be initialized to their counterpart.
+// - `parent` - {source, name, event, exports, syncSibling}
+// - `child` - {source, name, event, exports, syncSibling, setCompute}
+// - `bindingAttributeName` - debugging name.
+// - `initializeValues` - hould parent and child be initialized to their counterpart.
 //
 // `parent` and `child` properties:
 //
-// - source - where is the value read from: "scope", "attribute", "viewModel".
-// - name - the name of the property that should be read
-// - event - an optional event name to listen to
-// - exports - if the value is exported to its sibling
-// - syncSibling - if the value is sticky. When this value is updated, should the value be checked after
+// - `source` - where is the value read from: "scope", "attribute", "viewModel".
+// - `name` - the name of the property that should be read
+// - `event` - an optional event name to listen to
+// - `exports` - if the value is exported to its sibling
+// - `syncSibling` - if the value is sticky. When this value is updated, should the value be checked after
 //   and its sibling be updated immediately.
-// - setCompute - set the value to a compute.
+// - `setCompute` - set the value to a compute.
 function getSiblingBindingData(node, bindingSettings) {
 
 	var siblingBindingData,
 		attributeName = encoder.decode(node.name),
 		attributeValue = node.value || "";
 
-	// START: check new binding syntaxes ======
 	var result = tokenize(attributeName),
 		dataBindingName,
 		specialIndex;
@@ -934,7 +936,6 @@ function getSiblingBindingData(node, bindingSettings) {
 		}
 		return siblingBindingData;
 	}
-	// END: check new binding syntaxes ======
 }
 
 
@@ -946,21 +947,20 @@ function getSiblingBindingData(node, bindingSettings) {
 // the object.  This method must be called after the element has a `viewModel` with the
 // `viewModel` to complete the binding.
 //
+// Arguments:
 // - `node` - an attribute node or an object with a `name` and `value` property.
-// - `el` - the element this binding belongs on.
-// - `bindingContext` - The stache context `{scope, parentNodeList}`
+// - `bindingContext` - The stache context  `{scope, element, parentNodeList}`
 // - `bindingSettings` - Settings to control the behavior.
 //   - `getViewModel`  - a function that returns the `viewModel` when called.  This function can be passed around (not called) even if the
 //      `viewModel` doesn't exist yet.
 //   - `attributeViewModelBindings` - properties already specified as being a viewModel<->attribute (as opposed to viewModel<->scope) binding.
 //   - `favorViewModel`
-// - `alreadyUpdatedChild`
+//   - `alreadyUpdatedChild`
 // Returns:
 // - `undefined` - If this isn't a data binding.
 // - `object` - An object with information about the binding:
-//   - bindingInfo: bindingInfo,
-//   - canBinding: canBinding,
-//   - parent: parentObservable
+//   - siblingBindingData: the binding behavior
+//   - binding: canBinding
 var makeDataBinding = function(node, bindingContext, bindingSettings) {
 	// Get information about the binding.
 	var siblingBindingData = getSiblingBindingData( node, bindingSettings );
@@ -1038,8 +1038,6 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 
 	// Create the binding
 	var canBinding = new Bind(bindingOptions);
-
-
 
 	return {
 		siblingBindingData: siblingBindingData,
