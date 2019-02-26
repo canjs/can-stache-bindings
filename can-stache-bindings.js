@@ -240,15 +240,13 @@ var behaviors = {
 
 			// The data around the binding.
 			bindingContext = assign({
-				element: el
+				element: el,
+				// this gets defined later
+				viewModel: undefined
 			}, tagData),
 
 			// global settings for the bindings
 			bindingSettings = {
-				getViewModel: function() {
-					return this.viewModel;
-				},
-				viewModel: undefined,
 				attributeViewModelBindings: attributeViewModelBindings,
 				alreadyUpdatedChild: true,
 				// force viewModel bindings in cases when it is ambiguous whether you are binding
@@ -275,7 +273,7 @@ var behaviors = {
 		// Initialize the viewModel
 		var completedData = behaviors.initializeViewModel(dataBindings, initialViewModelData, function(){
 			// we need to make sure we have the viewModel available
-			bindingSettings.viewModel = makeViewModel.apply(this, arguments);
+			bindingContext.viewModel = makeViewModel.apply(this, arguments);
 		}, bindingContext),
 			onTeardowns = completedData.onTeardowns,
 			bindingsState = completedData.bindingsState,
@@ -336,19 +334,22 @@ var behaviors = {
 			}),
 			teardown,
 			attributeDisposal,
-			removedDisposal;
+			removedDisposal,
+			bindingContext = {
+				element: el,
+				templateType: attrData.templateType,
+				scope: attrData.scope,
+				parentNodeList: attrData.nodeList,
+				get viewModel(){
+					return getViewModel();
+				}
+			};
 
 		// Setup binding
 		var dataBinding = makeDataBinding({
 			name: attrData.attributeName,
 			value: el.getAttribute(attrData.attributeName),
-		}, {
-			element: el,
-			templateType: attrData.templateType,
-			scope: attrData.scope,
-			parentNodeList: attrData.nodeList
-		},{
-			getViewModel: getViewModel,
+		}, bindingContext, {
 			syncChildWithParent: false
 		});
 
@@ -372,13 +373,7 @@ var behaviors = {
 				}
 
 				if(value !== null  ) {
-					var dataBinding = makeDataBinding({name: attrName, value: value}, {
-						element: el,
-						templateType: attrData.templateType,
-						scope: attrData.scope,
-						parentNodeList: attrData.nodeList
-					},{
-						getViewModel: getViewModel,
+					var dataBinding = makeDataBinding({name: attrName, value: value}, bindingContext, {
 						syncChildWithParent: false
 					});
 					if(dataBinding) {
@@ -694,17 +689,17 @@ var getObservableFrom = {
 	// - bindingData - {source, name, setCompute}
 	// - bindingContext - {scope, element}
 	// - bindingSettings - {getViewModel}
-	viewModel: function(bindingData, bindingContext, bindingSettings, siblingObservable) {
+	viewModel: function(bindingData, bindingContext) {
 		var scope = bindingContext.scope,
 			vmName = bindingData.name,
-			setCompute = bindingData.setCompute && siblingObservable;
+			setCompute = bindingData.setCompute;
 
 		var setName = cleanVMName(vmName, scope);
 		var isBoundToContext = vmName === "." || vmName === "this";
 		var keysToRead = isBoundToContext ? [] : observeReader.reads(vmName);
 
 		function getViewModelProperty() {
-			var viewModel = bindingSettings.getViewModel();
+			var viewModel = bindingContext.viewModel;
 			return observeReader.read(viewModel, keysToRead, {}).value;
 		}
 		//!steal-remove-start
@@ -720,7 +715,7 @@ var getObservableFrom = {
 			getViewModelProperty,
 
 			function setViewModelProperty(newVal) {
-				var viewModel = bindingSettings.getViewModel();
+				var viewModel = bindingContext.viewModel;
 
 				if (setCompute) {
 					// If there is a binding like `foo:from="~bar"`, we need
@@ -747,7 +742,7 @@ var getObservableFrom = {
 
 		//!steal-remove-start
 		if (process.env.NODE_ENV !== 'production') {
-			var viewModel = bindingSettings.getViewModel();
+			var viewModel = bindingContext.viewModel;
 			if (viewModel && setName) {
 				canReflectDeps.addMutatedBy(viewModel, setName, observation);
 			}
@@ -884,7 +879,7 @@ var getChildBindingStr = function(tokens, favorViewModel) {
 // - `parent` - {source, name, event, exports, syncSibling}
 // - `child` - {source, name, event, exports, syncSibling, setCompute}
 // - `bindingAttributeName` - debugging name.
-// - `initializeValues` - hould parent and child be initialized to their counterpart.
+// - `initializeValues` - should parent and child be initialized to their counterpart.
 //
 // `parent` and `child` properties:
 //
