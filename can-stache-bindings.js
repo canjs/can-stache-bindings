@@ -1061,7 +1061,8 @@ var canStacheBindings = {
 	behaviors: behaviors,
 	getSiblingBindingData: getSiblingBindingData,
 	bindings: bindings,
-	getObservableFrom: getObservableFrom
+	getObservableFrom: getObservableFrom,
+	makeDataBinding: makeDataBinding
 };
 
 canStacheBindings[canSymbol.for("can.callbackMap")] = bindings;
