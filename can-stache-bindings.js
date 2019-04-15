@@ -18,6 +18,7 @@ var canViewModel = require('can-view-model');
 var observeReader = require('can-stache-key');
 var ObservationRecorder = require('can-observation-recorder');
 var SimpleObservable = require('can-simple-observable');
+var Scope = require('can-view-scope');
 
 var assign = require('can-assign');
 var dev = require('can-log/dev/dev');
@@ -88,10 +89,79 @@ var checkBindingState = function(bindingState, siblingBindingData) {
 		return bindingState;
 	}
 };
+
+var getEventBindingData = function (attributeName, el, scope) {
+	var bindingCode = attributeName.substr(onMatchStr.length);
+	var viewModel = el && el[canSymbol.for('can.viewModel')];
+	var elUsed = startsWith.call(bindingCode, elMatchStr);
+	var vmUsed = startsWith.call(bindingCode, vmMatchStr);
+	var byUsed = bindingCode.indexOf(byMatchStr) > -1;
+	var scopeUsed;
+
+	// The values being returned
+	var bindingContext;
+	var eventName;
+	var bindingContextObservable;
+
+	// if explicit context is specified, trim the string down
+	// else, determine value of which scope being used elUsed, vmUsed, scopeUsed
+	if (vmUsed) {
+		bindingCode = bindingCode.substr(vmMatchStr.length);
+	} else if (elUsed) {
+		bindingCode = bindingCode.substr(elMatchStr.length);
+	} else if (!vmUsed && !elUsed) {
+		if (byUsed) {
+			scopeUsed = true;
+		} else if (viewModel)  {
+			vmUsed = true;
+		} else {
+			elUsed = true;
+		}
+	}
+
+	// if by is used, take the appropriate path to determine the bindingContext
+	// and create the bindingKeyValue
+	var bindingContextKey;
+	if (byUsed) {
+		var byIndex = bindingCode.indexOf(byMatchStr);
+		bindingContextKey = bindingCode.substr(byIndex + byMatchStr.length);
+		bindingCode = bindingCode.substr(0, byIndex);
+	}
+	eventName = bindingCode;
+	if (elUsed) {
+		if (byUsed) {
+			throw new Error('binding with :by in element scope is not currently supported');
+		} else {
+			bindingContext = el;
+		}
+	} else if (vmUsed) {
+		bindingContext = viewModel;
+		if (byUsed) {
+			bindingContext = viewModel.get(bindingContextKey);
+			bindingContextObservable = new Scope(viewModel).computeData(bindingContextKey);
+		}
+	} else if (scopeUsed) {
+		bindingContext = scope;
+		if (byUsed) {
+			bindingContext = bindingContext.get(bindingContextKey);
+			bindingContextObservable = scope.computeData(bindingContextKey);
+		}
+	}
+
+	return {
+		// single observable object to listen to eventName directly on one observable object
+		bindingContext: bindingContext,
+		// this observable emits the bindingContext
+		bindingContextObservable: bindingContextObservable,
+		// the eventName string
+		eventName: eventName
+	};
+};
+
 var onKeyValueSymbol = canSymbol.for("can.onKeyValue");
 var makeScopeFromEvent = function(element, event, viewModel, args, data, bindingContext){
 	// TODO: Remove in 6.0.  In 4 and 5 arguments were wrong.
-	var shiftArgumentsForLegacyArguments = bindingContext[onKeyValueSymbol] !== undefined;
+	var shiftArgumentsForLegacyArguments = bindingContext && bindingContext[onKeyValueSymbol] !== undefined;
 
 	var specialValues = {
 		element: element,
@@ -425,14 +495,16 @@ var behaviors = {
 	// and can-xxx (anything starting with can-), this callback will be run.  Inside, its setting up an event handler
 	// that calls a method identified by the value of this attribute.
 	event: function(el, data) {
-
+		var eventBindingData;
 		// Get the `event` name and if we are listening to the element or viewModel.
 		// The attribute name is the name of the event.
 		var attributeName = encoder.decode(data.attributeName),
 			// the name of the event we are binding
 			event,
-			// if we are binding on the element or the VM
-			bindingContext;
+			// the context to which we bind the event listener
+			bindingContext,
+			// if the bindingContext is null, then use this observable to watch for changes
+			bindingContextObservable;
 
 		// check for `on:event:value:to` type things and call data bindings
 		if (attributeName.indexOf(toMatchStr + ":") !== -1 ||
@@ -443,43 +515,10 @@ var behaviors = {
 		}
 
 		if (startsWith.call(attributeName, onMatchStr)) {
-			event = attributeName.substr(onMatchStr.length);
-			var viewModel = el[canSymbol.for('can.viewModel')];
-
-			// when using on:prop:by:obj
-			// bindingContext should be scope.obj
-			var byParent = data.scope;
-
-			// get the bindingContext
-			// on:el:prop -> bindingContext = element
-			// on:vm:prop -> bindingContext = viewModel
-			// otherwise,
-			// bind on the element if there is not a viewModel
-			if (startsWith.call(event, elMatchStr)) {
-				event = event.substr(elMatchStr.length);
-				bindingContext = el;
-			} else {
-				if (startsWith.call(event, vmMatchStr)) {
-					event = event.substr(vmMatchStr.length);
-					bindingContext = viewModel;
-
-					// when using on:vm:prop:by:obj
-					// bindingContext should be viewModel.obj
-					byParent = viewModel;
-				} else {
-					bindingContext = viewModel || el;
-				}
-
-				// update the bindingContext and event if using :by:
-				// on:prop:by:obj
-				//   -> bindingContext = byParent.get('obj')
-				//   -> event = 'prop'
-				var byIndex = event.indexOf(byMatchStr);
-				if (byIndex >= 0) {
-					bindingContext = byParent.get(event.substr(byIndex + byMatchStr.length));
-					event = event.substr(0, byIndex);
-				}
-			}
+			eventBindingData = getEventBindingData(attributeName, el, data.scope);
+			event = eventBindingData.eventName;
+			bindingContext = eventBindingData.bindingContext;
+			bindingContextObservable = eventBindingData.bindingContextObservable;
 		} else {
 			throw new Error("can-stache-bindings - unsupported event bindings " + attributeName);
 		}
@@ -520,7 +559,9 @@ var behaviors = {
 		};
 
 		var attributesDisposal,
-			removalDisposal;
+			removalDisposal,
+			removeObservation,
+			currentContext;
 
 		// Unbind the event when the attribute is removed from the DOM
 		var attributesHandler = function(ev) {
@@ -539,7 +580,9 @@ var behaviors = {
 			}
 		};
 		var unbindEvent = function() {
-			canEventQueue.off.call(bindingContext, event, handler);
+			if (bindingContext) {
+				canEventQueue.off.call(bindingContext, event, handler);
+			}
 			if (attributesDisposal) {
 				attributesDisposal();
 				attributesDisposal = undefined;
@@ -548,14 +591,38 @@ var behaviors = {
 				removalDisposal();
 				removalDisposal = undefined;
 			}
+			if (removeObservation) {
+				removeObservation();
+				removeObservation = undefined;
+			}
 		};
+
+		function updateListener(newVal, oldVal) {
+			if (oldVal) {
+				canEventQueue.off.call(oldVal, event, handler);
+			}
+			if (newVal) {
+				canEventQueue.on.call(newVal, event, handler);
+				currentContext = newVal;
+			}
+		}
 
 		// Bind the handler defined above to the element we're currently processing and the event name provided in this
 		// attribute name (can-click="foo")
-
-		canEventQueue.on.call(bindingContext, event, handler);
 		attributesDisposal = domMutate.onNodeAttributeChange(el, attributesHandler);
 		removalDisposal = domMutate.onNodeRemoval(el, removalHandler);
+		if (!bindingContext && bindingContextObservable) {
+			// on value changes of the observation, rebind the listener to the new context
+			removeObservation = function () {
+				if (currentContext) {
+					canEventQueue.off.call(currentContext, event, handler);
+				}
+				canReflect.offValue(bindingContextObservable, updateListener);
+			};
+			canReflect.onValue(bindingContextObservable, updateListener);
+		} else {
+			canEventQueue.on.call(bindingContext, event, handler);
+		}
 	}
 };
 
