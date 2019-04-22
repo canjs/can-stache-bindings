@@ -63,6 +63,7 @@ is fired. The following [can-stache/keys/scope] key values are also supported:
 - __primitives__ - `on:click="this.priority = 0"`
 - __variables__ - `on:click="this.priority = todo.priority"`
 - __functions__ - `on:click="this.priority = this.getPriority(todo)"`
+- __converters__ - `on:click="this.complete = not(this.complete)"`
 
 The following [can-stache/keys/scope] values can also be read:
 
