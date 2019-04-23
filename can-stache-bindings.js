@@ -527,12 +527,14 @@ var behaviors = {
 
 			//!steal-remove-start
 			if(process.env.NODE_ENV !== "production") {
-				if(!eventBindingData.bindingCode
-					&& el[canSymbol.for("can.viewModel")]
-					&& ("on" + event) in HTMLElement.prototype) {
+				if(
+					!eventBindingData.bindingCode &&
+					el[canSymbol.for("can.viewModel")] &&
+					("on" + event) in HTMLElement.prototype
+				) {
 					dev.warn(
-						"The " + event + " event is bound the view model for <" + el.tagName.toLowerCase()
-						+ ">. Use " + attributeName.replace(onMatchStr, "on:el:") +  " to bind to the element instead."
+						"The " + event + " event is bound the view model for <" + el.tagName.toLowerCase() +
+							">. Use " + attributeName.replace(onMatchStr, "on:el:") +  " to bind to the element instead."
 					);
 				}
 			}
