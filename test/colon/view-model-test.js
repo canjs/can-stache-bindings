@@ -825,7 +825,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	QUnit.test("nested props with two way binding", function() {
 		var nestedValue = new SimpleMap({
 			first: 'Matt'
-		})
+		});
 		var childVM = new SimpleMap({
 			name: nestedValue
 		});
