@@ -15,7 +15,7 @@ var Bind = require('can-bind');
 var expression = require('can-stache/src/expression');
 var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
-var canStacheKey = require('can-stache-key');
+var stacheKey = require('can-stache-key');
 var ObservationRecorder = require('can-observation-recorder');
 var SimpleObservable = require('can-simple-observable');
 var Scope = require('can-view-scope');
@@ -763,11 +763,11 @@ var getObservableFrom = {
 
 		var setName = cleanVMName(vmName, scope);
 		var isBoundToContext = vmName === "." || vmName === "this";
-		var keysToRead = isBoundToContext ? [] : canStacheKey.reads(vmName);
+		var keysToRead = isBoundToContext ? [] : stacheKey.reads(vmName);
 
 		function getViewModelProperty() {
 			var viewModel = bindingContext.viewModel;
-			return canStacheKey.read(viewModel, keysToRead, {}).value;
+			return stacheKey.read(viewModel, keysToRead, {}).value;
 		}
 		//!steal-remove-start
 		if (process.env.NODE_ENV !== 'production') {
@@ -801,7 +801,7 @@ var getObservableFrom = {
 					if (isBoundToContext) {
 						canReflect.setValue(viewModel, newVal);
 					} else {
-						canStacheKey.write(viewModel, keysToRead, newVal);
+						stacheKey.write(viewModel, keysToRead, newVal);
 					}
 				}
 			}
