@@ -14,7 +14,7 @@ var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
 var canReflect = require("can-reflect");
 
-var domData = require('can-dom-data-state');
+var domData = require('can-dom-data');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
@@ -429,7 +429,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			domEvents.dispatch(input, "change");
 
 			// Read from mock component's shadow scope for refs.
-			var scope = domData.get.call(this.fixture.firstChild).shadowScope;
+			var scope = domData.get(this.fixture.firstChild).shadowScope;
 			assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
 
 			var refElement = doc.getElementsByTagName('ref-syntax')[0];

@@ -23,7 +23,7 @@ var Scope = require('can-view-scope');
 var assign = require('can-assign');
 var dev = require('can-log/dev/dev');
 var domMutate = require('can-dom-mutate');
-var domData = require('can-dom-data-state');
+var domData = require('can-dom-data');
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
 var canReflectDeps = require("can-reflect-dependencies");
@@ -395,7 +395,7 @@ var behaviors = {
 	// This is called when an individual data binding attribute is placed on an element.
 	// For example `{^value}="name"`.
 	data: function(el, attrData) {
-		if (domData.get.call(el, "preventDataBindings")) {
+		if (domData.get(el, "preventDataBindings")) {
 			return;
 		}
 		var viewModel,
