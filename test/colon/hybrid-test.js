@@ -10,7 +10,7 @@ var domEvents = require("can-dom-events");
 
 testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, doc, enableMO){
 
-	test("value:to:on:click and on:click:value:to work (#269)", function() {
+	QUnit.test("value:to:on:click and on:click:value:to work (#269)", function(assert) {
 		var template = stache(
 			"<input value:to:on:click='theProp'/>" +
 				"<input on:click:value:to='theProp'/>"
@@ -35,7 +35,7 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 		QUnit.equal(map.get('theProp'), "23");
 	});
 
-	QUnit.test("on:input:value:to works (#289)", function() {
+	QUnit.test("on:input:value:to works (#289)", function(assert) {
 		var scope = new SimpleMap({
 			myProp: ""
 		});
@@ -52,21 +52,21 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 		inputTo.value = 'wurld';
 		domEvents.dispatch(inputTo, 'input');
 
-		equal(scope.get('myProp'), 'wurld', "Got the value on the scope");
+		assert.equal(scope.get('myProp'), 'wurld', "Got the value on the scope");
 
 	});
 
-	QUnit.test("on:input:value:to does not initialize values (#289)", function() {
+	QUnit.test("on:input:value:to does not initialize values (#289)", function(assert) {
 		try {
 			stache("<input on:input:value:to='scope.vars.editing.licensePlate'/>")();
-			ok(true, "renderer was made without error");
+			assert.ok(true, "renderer was made without error");
 		}
 		catch(e) {
-			ok(false, e.message);
+			assert.ok(false, e.message);
 		}
 	});
 
-	QUnit.test("on:input:value:bind should initialize values (#457)", function() {
+	QUnit.test("on:input:value:bind should initialize values (#457)", function(assert) {
 
 		var frag = stache("<input on:input:value:bind='foo'/>")({
 			foo: "bar"

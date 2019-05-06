@@ -21,7 +21,7 @@ var DefineMap = require("can-define/map/map");
 
 testHelpers.makeTests("can-stache-bindings - colon - element", function(name, doc, enableMO, testIfRealDocument){
 
-	QUnit.test("<input text> value:bind input text", function() {
+	QUnit.test("<input text> value:bind input text", function(assert) {
 		var template = stache("<input value:bind='age'/>");
 
 		var map = new SimpleMap();
@@ -32,25 +32,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		ta.appendChild(frag);
 
 		var input = ta.getElementsByTagName("input")[0];
-		equal(input.value, "", "input value set correctly if key does not exist in map");
+		assert.equal(input.value, "", "input value set correctly if key does not exist in map");
 
 		map.set("age", "30");
 
-		equal(input.value, "30", "input value set correctly");
+		assert.equal(input.value, "30", "input value set correctly");
 
 		map.set("age", "31");
 
-		equal(input.value, "31", "input value update correctly");
+		assert.equal(input.value, "31", "input value update correctly");
 
 		input.value = "32";
 
 		domEvents.dispatch(input, "change");
 
-		equal(map.get("age"), "32", "updated from input");
+		assert.equal(map.get("age"), "32", "updated from input");
 	});
 
 
-	QUnit.test('<input text> el:prop:to/:from/:bind work (#280)', function() {
+	QUnit.test('<input text> el:prop:to/:from/:bind work (#280)', function(assert) {
 		var template = stache(
 			"<input el:value:to='scope1' value='1'/>" +
 				"<input el:value:from='scope2' value='2'/>" +
@@ -71,39 +71,39 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var inputBind = ta.getElementsByTagName('input')[2];
 
 		// el:value:to
-		equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
+		assert.equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
 
 		inputTo.value = '4';
 		domEvents.dispatch(inputTo, 'change');
-		equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
+		assert.equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
 
 		scope.attr('scope1', 'scope4');
-		equal(inputTo.value, '4', 'el:value:to - attribute not updated when scope changed');
+		assert.equal(inputTo.value, '4', 'el:value:to - attribute not updated when scope changed');
 
 		// el:value:from
-		equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
+		assert.equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
 
 		inputFrom.value = 'scope5';
 		domEvents.dispatch(inputFrom, 'change');
-		equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
+		assert.equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
 
 		scope.attr('scope2', 'scope6');
-		equal(inputFrom.value, 'scope6', 'el:value:from - attribute updated when scope changed');
+		assert.equal(inputFrom.value, 'scope6', 'el:value:from - attribute updated when scope changed');
 
 		// el:value:bind
-		equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
+		assert.equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
 
 		inputBind.value = 'scope6';
 		domEvents.dispatch(inputBind, 'change');
-		equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
+		assert.equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
 
 		scope.attr('scope3', 'scope7');
-		equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
+		assert.equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
 	});
 
 	if (System.env !== 'canjs-test') {
-		test("<input text> dynamic attribute bindings (#2016)", function(assert){
-			var done = assert.async();
+		QUnit.test("<input text> dynamic attribute bindings (#2016)", function(assert){
+			var QUnit.done = assert.async();
 			var template = stache("<input value:bind='{{propName}}'/>");
 
 			var map = new SimpleMap({propName: 'first', first: "Justin", last: "Meyer"});
@@ -115,24 +115,24 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 			var input = ta.getElementsByTagName("input")[0];
 			testHelpers.afterMutation(function() {
-				equal(input.value, "Justin", "input value set correctly if key does not exist in map");
+				assert.equal(input.value, "Justin", "input value set correctly if key does not exist in map");
 				map.set('propName','last');
 				testHelpers.afterMutation(function(){
-					equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
+					assert.equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
 					input.value = "Lueke";
 					domEvents.dispatch(input, "change");
 
 					testHelpers.afterMutation(function() {
-						equal(map.get("last"), "Lueke", "updated from input");
-						done();
+						assert.equal(map.get("last"), "Lueke", "updated from input");
+						QUnit.done();
 					});
 				});
 			});
 		});
 	}
 
-	test("value:bind compute rejects new value (#887)", function() {
+	QUnit.test("value:bind compute rejects new value (#887)", function(assert) {
 		var template = stache("<input value:bind='age'/>");
 
 		// Compute only accepts numbers
@@ -160,11 +160,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		input.value = "30f";
 		domEvents.dispatch(input, "change");
 
-		equal(compute.get(), 30, "Still the old value");
-		equal(input.value, "30", "Text input has also not changed");
+		assert.equal(compute.get(), 30, "Still the old value");
+		assert.equal(input.value, "30", "Text input has also not changed");
 	});
 
-	test("value:from works with camelCase and kebab-case properties", function() {
+	QUnit.test("value:from works with camelCase and kebab-case properties", function(assert) {
 		var template = stache(
 			"<input value:from='theProp'/>" +
 				"<input value:from='the-prop'/>"
@@ -180,37 +180,37 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var camelPropInput = ta.getElementsByTagName("input")[0];
 		var kebabPropInput = ta.getElementsByTagName("input")[1];
 
-		equal(camelPropInput.value, "", "input bound to camelCase prop value set correctly if camelCase key does not exist in map");
-		equal(kebabPropInput.value, "", "input bound to kebab-case prop value set correctly if kebab-case key does not exist in map");
+		assert.equal(camelPropInput.value, "", "input bound to camelCase prop value set correctly if camelCase key does not exist in map");
+		assert.equal(kebabPropInput.value, "", "input bound to kebab-case prop value set correctly if kebab-case key does not exist in map");
 
 		map.attr("theProp", "30");
-		equal(camelPropInput.value, "30", "input bound to camelCase prop value set correctly when camelCase prop changes");
-		equal(kebabPropInput.value, "", "input bound to kebab-case prop value not updated when camelCase prop changes");
+		assert.equal(camelPropInput.value, "30", "input bound to camelCase prop value set correctly when camelCase prop changes");
+		assert.equal(kebabPropInput.value, "", "input bound to kebab-case prop value not updated when camelCase prop changes");
 
 		map.attr("theProp", "31");
-		equal(camelPropInput.value, "31", "input bound to camelCase prop value updated correctly when camelCase prop changes");
-		ok(!kebabPropInput.value, "input bound to kebab-case prop value not updated when camelCase prop changes");
+		assert.equal(camelPropInput.value, "31", "input bound to camelCase prop value updated correctly when camelCase prop changes");
+		assert.ok(!kebabPropInput.value, "input bound to kebab-case prop value not updated when camelCase prop changes");
 
 		camelPropInput.value = "32";
 		domEvents.dispatch(camelPropInput, "change");
-		equal(map.attr("theProp"), "31", "camelCase prop NOT updated when input bound to camelCase prop changes");
-		ok(!map.attr("the-prop"), "kebabCase prop NOT updated when input bound to camelCase prop changes");
+		assert.equal(map.attr("theProp"), "31", "camelCase prop NOT updated when input bound to camelCase prop changes");
+		assert.ok(!map.attr("the-prop"), "kebabCase prop NOT updated when input bound to camelCase prop changes");
 
 		map.attr("the-prop", "33");
-		equal(kebabPropInput.value, "33", "input bound to kebab-case prop value set correctly when kebab-case prop changes");
-		equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
+		assert.equal(kebabPropInput.value, "33", "input bound to kebab-case prop value set correctly when kebab-case prop changes");
+		assert.equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
 
 		map.attr("the-prop", "34");
-		equal(kebabPropInput.value, "34", "input bound to kebab-case prop value updated correctly when kebab-case prop changes");
-		equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
+		assert.equal(kebabPropInput.value, "34", "input bound to kebab-case prop value updated correctly when kebab-case prop changes");
+		assert.equal(camelPropInput.value, "32", "input bound to camelCase prop value not updated when kebab-case prop changes");
 
 		kebabPropInput.value = "35";
 		domEvents.dispatch(kebabPropInput, "change");
-		equal(map.attr("the-prop"), "34", "kebab-case prop NOT updated from input bound to kebab-case prop");
-		equal(map.attr("theProp"), "31", "camelCase prop NOT updated from input bound to kebab-case prop");
+		assert.equal(map.attr("the-prop"), "34", "kebab-case prop NOT updated from input bound to kebab-case prop");
+		assert.equal(map.attr("theProp"), "31", "camelCase prop NOT updated from input bound to kebab-case prop");
 	});
 
-	test("value:to works with camelCase and kebab-case properties", function() {
+	QUnit.test("value:to works with camelCase and kebab-case properties", function(assert) {
 		var template = stache(
 			"<input value:to='theProp'/>" +
 				"<input value:to='the-prop'/>"
@@ -228,25 +228,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		camelPropInput.value = "32";
 		domEvents.dispatch(camelPropInput, "change");
-		equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
-		ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
+		assert.equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
+		assert.ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
 		map.attr("theProp", "30");
-		equal(camelPropInput.value, "32", "input bound to camelCase Prop value NOT updated when camelCase prop changes");
-		ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
+		assert.equal(camelPropInput.value, "32", "input bound to camelCase Prop value NOT updated when camelCase prop changes");
+		assert.ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
 		kebabPropInput.value = "33";
 		domEvents.dispatch(kebabPropInput, "change");
-		equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
-		equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
+		assert.equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
+		assert.equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
 		map.attr("theProp", "34");
-		equal(kebabPropInput.value, "33", "input bound to kebabCase Prop value NOT updated when kebabCase prop changes");
-		equal(camelPropInput.value, "32", "input bound to camelCase Prop value NOT updated when kebabCase prop changes");
+		assert.equal(kebabPropInput.value, "33", "input bound to kebabCase Prop value NOT updated when kebabCase prop changes");
+		assert.equal(camelPropInput.value, "32", "input bound to camelCase Prop value NOT updated when kebabCase prop changes");
 	});
 
 
-	test("value:bind works with camelCase and kebab-case properties", function() {
+	QUnit.test("value:bind works with camelCase and kebab-case properties", function(assert) {
 		var template = stache(
 			"<input value:bind='theProp'/>" +
 				"<input value:bind='the-prop'/>"
@@ -264,25 +264,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		camelPropInput.value = "32";
 		domEvents.dispatch(camelPropInput, "change");
-		equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
-		ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
+		assert.equal(map.attr("theProp"), "32", "camelCaseProp updated from input bound to camelCase Prop");
+		assert.ok(!map.attr("the-prop"), "kebabCaseProp NOT updated from input bound to camelCase Prop");
 
 		map.attr("theProp", "30");
-		equal(camelPropInput.value, "30", "input bound to camelCase Prop value updated when camelCase prop changes");
-		ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
+		assert.equal(camelPropInput.value, "30", "input bound to camelCase Prop value updated when camelCase prop changes");
+		assert.ok(!kebabPropInput.value, "input bound to kebabCase Prop value NOT updated when camelCase prop changes");
 
 		kebabPropInput.value = "33";
 		domEvents.dispatch(kebabPropInput, "change");
-		equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
-		equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
+		assert.equal(map.attr("the-prop"), "33", "kebabCaseProp updated from input bound to kebabCase Prop");
+		assert.equal(map.attr("theProp"), "30", "camelCaseProp NOT updated from input bound to camelCase Prop");
 
 		map.attr("theProp", "34");
-		equal(kebabPropInput.value, "33", "input bound to kebabCase Prop value NOT updated when kebabCase prop changes");
-		equal(camelPropInput.value, "34", "input bound to camelCase Prop value updated when kebabCase prop changes");
+		assert.equal(kebabPropInput.value, "33", "input bound to kebabCase Prop value NOT updated when kebabCase prop changes");
+		assert.equal(camelPropInput.value, "34", "input bound to camelCase Prop value updated when kebabCase prop changes");
 	});
 
 
-	test("Bracket expression with dot and no explicit root and value:bind", function () {
+	QUnit.test("Bracket expression with dot and no explicit root and value:bind", function(assert) {
 		var template;
 		var div = this.fixture;
 
@@ -298,25 +298,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		div.appendChild(dom);
 		var input = div.getElementsByTagName('input')[0];
 
-		equal(input.value, "", "input value set correctly if key does not exist in map");
+		assert.equal(input.value, "", "input value set correctly if key does not exist in map");
 
 		data.set("two.hops", "slide to the left");
 
-		equal(input.value, "slide to the left", "input value set correctly");
+		assert.equal(input.value, "slide to the left", "input value set correctly");
 
 		data.set("two.hops", "slide to the right");
 
-		equal(input.value, "slide to the right", "input value update correctly");
+		assert.equal(input.value, "slide to the right", "input value update correctly");
 
 		input.value = "REVERSE REVERSE";
 
 		domEvents.dispatch(input, "change");
 
-		equal(data.get("two.hops"), "REVERSE REVERSE", "updated from input");
+		assert.equal(data.get("two.hops"), "REVERSE REVERSE", "updated from input");
 	});
 
 
-	test("Bracket expression with colon and no explicit root and value:bind", function () {
+	QUnit.test("Bracket expression with colon and no explicit root and value:bind", function(assert) {
 		var template;
 		var div = this.fixture;
 
@@ -331,25 +331,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		div.appendChild(dom);
 		var input = div.getElementsByTagName('input')[0];
 
-		equal(input.value, "", "input value set correctly if key does not exist in map");
+		assert.equal(input.value, "", "input value set correctly if key does not exist in map");
 
 		data.set("two:hops", "slide to the left");
 
-		equal(input.value, "slide to the left", "input value set correctly");
+		assert.equal(input.value, "slide to the left", "input value set correctly");
 
 		data.set("two:hops", "slide to the right");
 
-		equal(input.value, "slide to the right", "input value update correctly");
+		assert.equal(input.value, "slide to the right", "input value update correctly");
 
 		input.value = "REVERSE REVERSE";
 
 		domEvents.dispatch(input, "change");
 
-		equal(data.get("two:hops"), "REVERSE REVERSE", "updated from input");
+		assert.equal(data.get("two:hops"), "REVERSE REVERSE", "updated from input");
 	});
 
 
-	QUnit.test('el:prop:to/:from/:bind work (#280)', function() {
+	QUnit.test('el:prop:to/:from/:bind work (#280)', function(assert) {
 		var template = stache(
 			"<input el:value:to='scope1' value='1'/>" +
 				"<input el:value:from='scope2' value='2'/>" +
@@ -370,38 +370,38 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var inputBind = ta.getElementsByTagName('input')[2];
 
 		// el:value:to
-		equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
+		assert.equal(scope.attr('scope1'), '1', 'el:value:to - scope value set from attribute');
 
 		inputTo.value = '4';
 		domEvents.dispatch(inputTo, 'change');
-		equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
+		assert.equal(scope.attr('scope1'), '4', 'el:value:to - scope updated when attribute changed');
 
 		scope.attr('scope1', 'scope4');
-		equal(inputTo.value, '4', 'el:value:to - attribute not updated when scope changed');
+		assert.equal(inputTo.value, '4', 'el:value:to - attribute not updated when scope changed');
 
 		// el:value:from
-		equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
+		assert.equal(inputFrom.value, 'scope2', 'el:value:from - attribute set from scope');
 
 		inputFrom.value = 'scope5';
 		domEvents.dispatch(inputFrom, 'change');
-		equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
+		assert.equal(scope.attr('scope2'), 'scope2', 'el:value:from - scope not updated when attribute changed');
 
 		scope.attr('scope2', 'scope6');
-		equal(inputFrom.value, 'scope6', 'el:value:from - attribute updated when scope changed');
+		assert.equal(inputFrom.value, 'scope6', 'el:value:from - attribute updated when scope changed');
 
 		// el:value:bind
-		equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
+		assert.equal(inputBind.value, 'scope3', 'el:value:bind - attribute set from scope prop (parent -> child wins)');
 
 		inputBind.value = 'scope6';
 		domEvents.dispatch(inputBind, 'change');
-		equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
+		assert.equal(scope.attr('scope3'), 'scope6', 'el:value:bind - scope updated when attribute changed');
 
 		scope.attr('scope3', 'scope7');
-		equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
+		assert.equal(inputBind.value, 'scope7', 'el:value:bind - attribute updated when scope changed');
 	});
 
 
-	test("<input text> two-way - DOM - input text (#1700)", function() {
+	QUnit.test("<input text> two-way - DOM - input text (#1700)", function(assert) {
 
 		var template = stache("<input value:bind='age'/>");
 
@@ -413,21 +413,21 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		ta.appendChild(frag);
 
 		var input = ta.getElementsByTagName("input")[0];
-		equal(input.value, "", "input value set correctly if key does not exist in map");
+		assert.equal(input.value, "", "input value set correctly if key does not exist in map");
 
 		map.attr("age", "30");
 
 		stop();
 		testHelpers.afterMutation(function() {
-			start();
-			equal(input.value, "30", "input value set correctly");
+			QUnit.start();
+			assert.equal(input.value, "30", "input value set correctly");
 
 			map.attr("age", "31");
 
 			stop();
 			testHelpers.afterMutation(function() {
-				start();
-				equal(input.value, "31", "input value update correctly");
+				QUnit.start();
+				assert.equal(input.value, "31", "input value update correctly");
 
 				input.value = "32";
 
@@ -435,25 +435,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 				stop();
 				testHelpers.afterMutation(function() {
-					start();
-					equal(map.attr("age"), "32", "updated from input");
+					QUnit.start();
+					assert.equal(map.attr("age"), "32", "updated from input");
 				});
 			});
 		});
 	});
 
-	QUnit.test("errors subproperties of undefined properties (#298)", function() {
+	QUnit.test("errors subproperties of undefined properties (#298)", function(assert) {
 		try {
 			stache("<input value:to='prop.subprop'/>")();
-			ok(true, "renderer was made without error");
+			assert.ok(true, "renderer was made without error");
 		}
 		catch(e) {
-			ok(false, e.message);
+			assert.ok(false, e.message);
 		}
 	});
 
-	test("updates happen on two-way even when one binding is satisfied", function(assert) {
-		var done = assert.async();
+	QUnit.test("updates happen on two-way even when one binding is satisfied", function(assert) {
+		var QUnit.done = assert.async();
 		var template = stache('<input value:bind="firstName"/>');
 		var viewModel = new SimpleMap({ firstName: "jeffrey" });
 		canReflect.assignSymbols(viewModel,{
@@ -474,12 +474,12 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domEvents.dispatch(input, "change");
 		assert.equal(input.value, "jeffrey", 'updated value should be "jeffrey"');
 		testHelpers.afterMutation(function () {
-			done();
+			QUnit.done();
 		});
 	});
 
 	QUnit.test("updates happen on changed two-way even when one binding is satisfied", function(assert) {
-		var done = assert.async();
+		var QUnit.done = assert.async();
 		var template = stache('<input value:bind="{{bindValue}}"/>');
 
 		var ViewModel = DefineMap.extend({
@@ -520,7 +520,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 					input.value = "KING";
 					domEvents.dispatch(input, "change");
 					assert.equal(input.value, "king");
-					done();
+					QUnit.done();
 				},13);
 
 
@@ -530,7 +530,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		}.bind(this));
 	});
 
-	test("value:bind memory leak (#2270)", function() {
+	QUnit.test("value:bind memory leak (#2270)", function(assert) {
 
 
 		var template = stache('<div><input value:bind="foo"></div>');
@@ -554,12 +554,12 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 					if( meta.handlers.get([]).length === 0 ) {
 						QUnit.ok(true, "no bindings");
-						start();
+						QUnit.start();
 					} else {
 						checkCount++;
 						if (checkCount > 5) {
 							QUnit.ok(false, "lifecycle bindings still existed after timeout");
-							return start();
+							return QUnit.start();
 						}
 						setTimeout(checkLifecycleBindings, 1000);
 					}
@@ -570,7 +570,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 	});
 
-	test("converters work (#2299)", function(){
+	QUnit.test("converters work (#2299)", function(assert) {
 		stache.registerConverter("numberToString",{
 			get: function(source){
 				return source() + "";
@@ -586,13 +586,13 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var frag = template(map);
 
-		equal(frag.firstChild.value, "25");
-		equal(map.get("age"), 25);
+		assert.equal(frag.firstChild.value, "25");
+		assert.equal(map.get("age"), 25);
 
 		map.set("age",33);
 
-		equal(frag.firstChild.value, "33");
-		equal(map.get("age"), 33);
+		assert.equal(frag.firstChild.value, "33");
+		assert.equal(map.get("age"), 33);
 
 		frag.firstChild.value = "1";
 
@@ -600,9 +600,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		stop();
 		testHelpers.afterMutation(function() {
-			start();
-			equal(frag.firstChild.value, "1");
-			equal(map.get("age"), 1);
+			QUnit.start();
+			assert.equal(frag.firstChild.value, "1");
+			assert.equal(map.get("age"), 1);
 		});
 
 	});
@@ -643,14 +643,14 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		barRadio.checked = true;
 		domEvents.dispatch(barRadio, 'change');
 
-		equal(text(fooText), 'false', 'foo text is false');
-		equal(text(barText), 'true', 'bar text is true');
+		assert.equal(text(fooText), 'false', 'foo text is false');
+		assert.equal(text(barText), 'true', 'bar text is true');
 
-		equal(data.get("foo"), false);
-		equal(data.get("bar"), true);
+		assert.equal(data.get("foo"), false);
+		assert.equal(data.get("bar"), true);
 	});
 
-	QUnit.test('<input radio> change event handler set up when binding on radiochange (#206)', function() {
+	QUnit.test('<input radio> change event handler set up when binding on radiochange (#206)', function(assert) {
 
 		var template = stache('<input type="radio" checked:bind="attending" />');
 
@@ -667,7 +667,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		QUnit.equal(map.get('attending'), true, "now it is true");
 	});
 
-	test('<input checkbox> one-way - DOM - with undefined (#135)', function() {
+	QUnit.test('<input checkbox> one-way - DOM - with undefined (#135)', function(assert) {
 		var data = new SimpleMap({
 			completed: undefined
 		}),
@@ -676,10 +676,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.getElementsByTagName('input')[0];
-		equal(input.checked, false, 'checkbox value should be false for undefined');
+		assert.equal(input.checked, false, 'checkbox value should be false for undefined');
 	});
 
-	test('<input checkbox> two-way - DOM - with truthy and falsy values binds to checkbox (#1700)', function() {
+	QUnit.test('<input checkbox> two-way - DOM - with truthy and falsy values binds to checkbox (#1700)', function(assert) {
 		var data = new SimpleMap({
 			completed: 1
 		}),
@@ -688,17 +688,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.getElementsByTagName('input')[0];
-		equal(input.checked, true, 'checkbox value bound (via attr check)');
+		assert.equal(input.checked, true, 'checkbox value bound (via attr check)');
 		data.attr('completed', 0);
 		stop();
 
 		testHelpers.afterMutation(function() {
-			start();
-			equal(input.checked, false, 'checkbox value bound (via attr check)');
+			QUnit.start();
+			assert.equal(input.checked, false, 'checkbox value bound (via attr check)');
 		});
 	});
 
-	test("<input checkbox> checkboxes with checked:bind bind properly (#628)", function() {
+	QUnit.test("<input checkbox> checkboxes with checked:bind bind properly (#628)", function(assert) {
 		var data = new SimpleMap({
 			completed: true
 		}),
@@ -707,18 +707,18 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.getElementsByTagName('input')[0];
-		equal(input.checked, data.get('completed'), 'checkbox value bound (via attr check)');
+		assert.equal(input.checked, data.get('completed'), 'checkbox value bound (via attr check)');
 
 		data.attr('completed', false);
-		equal(input.checked, data.get('completed'), 'checkbox value bound (via attr uncheck)');
+		assert.equal(input.checked, data.get('completed'), 'checkbox value bound (via attr uncheck)');
 		input.checked = true;
 		domEvents.dispatch(input, 'change');
-		equal(input.checked, true, 'checkbox value bound (via check)');
-		equal(data.get('completed'), true, 'checkbox value bound (via check)');
+		assert.equal(input.checked, true, 'checkbox value bound (via check)');
+		assert.equal(data.get('completed'), true, 'checkbox value bound (via check)');
 		input.checked = false;
 		domEvents.dispatch(input, 'change');
-		equal(input.checked, false, 'checkbox value bound (via uncheck)');
-		equal(data.get('completed'), false, 'checkbox value bound (via uncheck)');
+		assert.equal(input.checked, false, 'checkbox value bound (via uncheck)');
+		assert.equal(data.get('completed'), false, 'checkbox value bound (via uncheck)');
 	});
 
 	testIfRealDocument("<select> keeps its value as <option>s change with {{#each}} (#1762)", function(){
@@ -734,12 +734,12 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var options = select.getElementsByTagName("option");
 		// the value is set asynchronously
 		testHelpers.afterMutation(function(){
-			ok(options[1].selected, "value is initially selected");
+			assert.ok(options[1].selected, "value is initially selected");
 			values.set(["7","2","5","4"]);
 
 			testHelpers.afterMutation(function(){
-				ok(options[1].selected, "after changing options, value should still be selected");
-				start();
+				assert.ok(options[1].selected, "after changing options, value should still be selected");
+				QUnit.start();
 			});
 		});
 
@@ -765,35 +765,35 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var map = new SimpleMap({ });
 		var frag = renderer(map);
 
-		equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
+		assert.equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
 
 		map.attr('key', 'notfoo');
 		stop();
 
 		testHelpers.afterMutation(function() {
-			start();
-			equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
+			QUnit.start();
+			assert.equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
 
 			map.attr('key', 'foo');
-			strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
+			assert.strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
 
 			map.attr('key', 'notbar');
 			stop();
 
 			testHelpers.afterMutation(function() {
-				start();
-				equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
+				QUnit.start();
+				assert.equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
 
 				map.attr('key', 'bar');
-				strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
+				assert.strictEqual(frag.firstChild.selectedIndex, 1, 'bar: selectedIndex = 1');
 
 				map.attr('key', 'bar');
-				strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
+				assert.strictEqual(frag.firstChild.selectedIndex, 1, 'bar (no change): selectedIndex = 1');
 			});
 		});
 	});
 
-	test("<select multiple> Multi-select empty string works(#1263)", function(){
+	QUnit.test("<select multiple> Multi-select empty string works(#1263)", function(assert) {
 
 		var data = new SimpleMap({
 			isMultiple: 1,
@@ -815,8 +815,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var frag = template(data);
 
-		equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
-		equal(frag.firstChild.getElementsByTagName("option")[2].selected, true, "One is selected");
+		assert.equal(frag.firstChild.getElementsByTagName("option")[0].selected, false, "The first empty value is not selected");
+		assert.equal(frag.firstChild.getElementsByTagName("option")[2].selected, true, "One is selected");
 
 	});
 
@@ -846,17 +846,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		// Wait for Multiselect.set() to be called.
 		testHelpers.afterMutation(function(){
-			ok(options[0].selected, "red should be set initially");
-			ok(options[1].selected, "green should be set initially");
-			ok(!options[2].selected, "blue should not be set initially");
-			start();
+			assert.ok(options[0].selected, "red should be set initially");
+			assert.ok(options[1].selected, "green should be set initially");
+			assert.ok(!options[2].selected, "blue should not be set initially");
+			QUnit.start();
 		});
 
 	});
 
 
 
-	test("<select> one-way bindings keep value if options are replaced - each (#1762)", function(){
+	QUnit.test("<select> one-way bindings keep value if options are replaced - each (#1762)", function(assert) {
 		var countries = [{code: 'MX', countryName:'MEXICO'},
 			{code: 'US', countryName:'USA'}
 		];
@@ -882,13 +882,13 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			testHelpers.afterMutation(function(){
 				data.attr("countries").replace(countries);
 
-				equal(data.attr("countryCode"), "US", "country kept as USA");
+				assert.equal(data.attr("countryCode"), "US", "country kept as USA");
 
 				testHelpers.afterMutation(function(){
-					ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
+					assert.ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
 				});
 
-				start();
+				QUnit.start();
 			});
 
 		});
@@ -914,10 +914,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var inputs = ta.getElementsByTagName("select");
 
-		equal(inputs[0].value, 'red', "default value set");
+		assert.equal(inputs[0].value, 'red', "default value set");
 
 		map.set("color", "green");
-		equal(inputs[0].value, 'green', "alternate value set");
+		assert.equal(inputs[0].value, 'green', "alternate value set");
 
 
 		canReflect.each(ta.getElementsByTagName('option'), function(opt) {
@@ -926,18 +926,18 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			}
 		});
 
-		equal(map.get("color"), "green", "not yet updated from input");
+		assert.equal(map.get("color"), "green", "not yet updated from input");
 		domEvents.dispatch(inputs[0], "change");
-		equal(map.get("color"), "red", "updated from input");
+		assert.equal(map.get("color"), "red", "updated from input");
 
 		canReflect.each(ta.getElementsByTagName('option'), function(opt) {
 			if (opt.value === 'green') {
 				opt.selected = 'selected';
 			}
 		});
-		equal(map.get("color"), "red", "not yet updated from input");
+		assert.equal(map.get("color"), "red", "not yet updated from input");
 		domEvents.dispatch(inputs[0], "change");
-		equal(map.get("color"), "green", "updated from input");
+		assert.equal(map.get("color"), "green", "updated from input");
 	});
 
 
@@ -969,17 +969,17 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			options[0].selected = true;
 			domEvents.dispatch(select, "change");
 
-			deepEqual(list.get(), ["red"], "A DefineList value is set even if none existed");
+			assert.deepEqual(list.get(), ["red"], "A DefineList value is set even if none existed");
 
 			options[1].selected = true;
 			domEvents.dispatch(select, "change");
 
-			deepEqual(list.get(), ["red", "green"], "Adds items to the list");
+			assert.deepEqual(list.get(), ["red", "green"], "Adds items to the list");
 
 			options[0].selected = false;
 			domEvents.dispatch(select, "change");
 
-			deepEqual(list.get(), ["green"], "Removes items from the list");
+			assert.deepEqual(list.get(), ["green"], "Removes items from the list");
 
 			// Test changing observable values changes the DOM
 
@@ -989,11 +989,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			options[2].selected = true;
 
 			ta.removeChild(select);
-			start();
+			QUnit.start();
 		}, 1);
 	});
 
-	QUnit.test("<select> one-way bindings keep value if options are replaced (#1762)", function(){
+	QUnit.test("<select> one-way bindings keep value if options are replaced (#1762)", function(assert) {
 		var countries = [{code: 'MX', countryName:'MEXICO'},
 			{code: 'US', countryName:'USA'}
 		];
@@ -1019,13 +1019,13 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			testHelpers.afterMutation(function(){
 				data.get("countries").replace(countries);
 
-				equal(data.get("countryCode"), "US", "country kept as USA");
+				assert.equal(data.get("countryCode"), "US", "country kept as USA");
 
 				testHelpers.afterMutation(function(){
-					ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
+					assert.ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
 				});
 
-				start();
+				QUnit.start();
 			});
 
 		});
@@ -1055,9 +1055,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 
 			testHelpers.afterMutation(function(){
-				equal(data.get("countryCode"), undefined, "countryCode set to undefined");
+				assert.equal(data.get("countryCode"), undefined, "countryCode set to undefined");
 
-				start();
+				QUnit.start();
 			});
 
 		});
@@ -1087,24 +1087,24 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		stop();
 		vm.on('person', function(ev, newVal, oldVal) {
-			ok(false, 'person attribute should not change');
+			assert.ok(false, 'person attribute should not change');
 		});
 
 		var frag = template(vm);
 
-		equal(vm.attr('person'), 'Brian', 'Person is still set');
+		assert.equal(vm.attr('person'), 'Brian', 'Person is still set');
 
 		testHelpers.afterMutation(function() {
 			people.push('Brian');
 			testHelpers.afterMutation(function() {
 				var select = frag.firstChild;
-				ok(select.lastChild.selected, 'New child should be selected');
-				start();
+				assert.ok(select.lastChild.selected, 'New child should be selected');
+				QUnit.start();
 			});
 		});
 	});
 
-	test("<select> select bindings respond to changes immediately or during insert using bind (#2134)", function(){
+	QUnit.test("<select> select bindings respond to changes immediately or during insert using bind (#2134)", function(assert) {
 		var countries = [{code: 'MX', countryName:'MEXICO'},
 			{code: 'US', countryName:'USA'},
 			{code: 'IND', countryName:'INDIA'},
@@ -1127,8 +1127,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		stop();
 		testHelpers.afterMutation(function(){
-			start();
-			equal(frag.firstChild.value, "IND", "got last updated value");
+			QUnit.start();
+			assert.equal(frag.firstChild.value, "IND", "got last updated value");
 		});
 
 	});
@@ -1170,11 +1170,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		// wait for set to be called which will change the selects
 		testHelpers.afterMutation(function(){
-			ok(!nullInputOptions[0].selected, "default (null) value set");
+			assert.ok(!nullInputOptions[0].selected, "default (null) value set");
 			// the first item is selected because "" is the value.
-			ok(undefinedInputOptions[0].selected, "default (undefined) value set");
-			ok(stringInputOptions[0].selected, "default ('') value set");
-			start();
+			assert.ok(undefinedInputOptions[0].selected, "default (undefined) value set");
+			assert.ok(stringInputOptions[0].selected, "default ('') value set");
+			QUnit.start();
 		});
 	});
 
@@ -1186,9 +1186,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var select = frag.childNodes.item(0);
 
 		testHelpers.afterMutation(function(){
-			equal(select.selectedIndex, -1, "selectedIndex is 0 because no value exists on the map");
-			equal(map.get("key"), null, "The map's value property is set to the select's value");
-			start();
+			assert.equal(select.selectedIndex, -1, "selectedIndex is 0 because no value exists on the map");
+			assert.equal(map.get("key"), null, "The map's value property is set to the select's value");
+			QUnit.start();
 		});
 
 		stop();
@@ -1203,9 +1203,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var select = frag.childNodes.item(0);
 
 		testHelpers.afterMutation(function(){
-			equal(select.selectedIndex, 0, "selectedIndex is 0 because no value exists on the map");
-			equal(map.attr("value"), "One", "The map's value property is set to the select's value");
-			start();
+			assert.equal(select.selectedIndex, 0, "selectedIndex is 0 because no value exists on the map");
+			assert.equal(map.attr("value"), "One", "The map's value property is set to the select's value");
+			QUnit.start();
 		});
 
 		stop();
@@ -1316,7 +1316,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		QUnit.equal(demoContext.person.name, 'Kevin', "source-component has correct name set");
 	});
 
-	QUnit.test('this:to works', function() {
+	QUnit.test('this:to works', function(assert) {
 
 		var template = stache('<input this:to="this.input" />');
 
