@@ -25,14 +25,14 @@ var Scope = require("can-view-scope");
 
 testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, doc, enableMO){
 
-	QUnit.test("on:el:click works inside {{#if}} on element with a viewModel (#279)", function() {
+	QUnit.test("on:el:click works inside {{#if}} on element with a viewModel (#279)", function(assert) {
 		var map = new SimpleMap({
 		});
 
 		var MySimpleMap = SimpleMap.extend({
 			show: true,
 			method: function(){
-				ok(true, "method called");
+				assert.ok(true, "method called");
 			}
 		});
 		var parent = new MySimpleMap();
@@ -49,7 +49,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		domEvents.dispatch(el, "click");
 	});
 
-	QUnit.test("vm:prop:to/:from/:bind work (#280)", function() {
+	QUnit.test("vm:prop:to/:from/:bind work (#280)", function(assert) {
 		var vm1 = new SimpleMap({ value: 'vm1' });
 		var vm2 = new SimpleMap({ value: 'vm2' });
 		var vm3 = new SimpleMap({ value: 'vm3' });
@@ -81,31 +81,31 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		template(scope);
 
 		// vm:value:to
-		equal(scope.attr('scope1'), 'vm1', 'vm:value:to - scope value set from vm');
+		assert.equal(scope.attr('scope1'), 'vm1', 'vm:value:to - scope value set from vm');
 
 		vm1.attr('value', 'vm4');
-		equal(scope.attr('scope1'), 'vm4', 'vm:value:to - scope updated when vm changes');
+		assert.equal(scope.attr('scope1'), 'vm4', 'vm:value:to - scope updated when vm changes');
 
 		scope.attr('scope1', 'scope4');
-		equal(vm1.attr('value'), 'vm4', 'vm:value:to - vm not updated when scope changes');
+		assert.equal(vm1.attr('value'), 'vm4', 'vm:value:to - vm not updated when scope changes');
 
 		// vm:value:from
-		equal(vm2.attr('value'), 'scope2', 'vm:value:from - vm value set from scope');
+		assert.equal(vm2.attr('value'), 'scope2', 'vm:value:from - vm value set from scope');
 
 		scope.attr('scope2', 'scope5');
-		equal(vm2.attr('value'), 'scope5', 'vm:value:from - vm updated when scope changes');
+		assert.equal(vm2.attr('value'), 'scope5', 'vm:value:from - vm updated when scope changes');
 
 		vm2.attr('value', 'vm5');
-		equal(scope.attr('scope2'), 'scope5', 'vm:value:from - scope not updated when vm changes');
+		assert.equal(scope.attr('scope2'), 'scope5', 'vm:value:from - scope not updated when vm changes');
 
 		// vm:value:bind
-		equal(vm3.attr('value'), 'scope3', 'vm:value:bind - vm value set from scope');
+		assert.equal(vm3.attr('value'), 'scope3', 'vm:value:bind - vm value set from scope');
 
 		scope.attr('scope3', 'scope6');
-		equal(vm3.attr('value'), 'scope6', 'vm:value:bind - vm updated when scope changes');
+		assert.equal(vm3.attr('value'), 'scope6', 'vm:value:bind - vm updated when scope changes');
 
 		vm3.attr('value', 'vm6');
-		equal(scope.attr('scope3'), 'vm6', 'vm:value:bind - scope updated when vm changes');
+		assert.equal(scope.attr('scope3'), 'vm6', 'vm:value:bind - scope updated when vm changes');
 	});
 
 	canTestHelpers.dev.devOnlyTest("Warning happens when changing the map that a to-parent binding points to.", function() {
@@ -114,7 +114,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		// Delete previous tags, to avoid warnings from can-view-callbacks.
 		delete viewCallbacks._tags[tagName];
 
-		expect(2);
+		assert.expect(2);
 
 		var step1 = { "baz": "quux" };
 		var overwrite = { "plonk": "waldo" };
@@ -141,14 +141,14 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		this.fixture.appendChild(template(data));
 
 		viewModel.set("foo", overwrite);
-		deepEqual(data.bar.get(), { "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
+		assert.deepEqual(data.bar.get(), { "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
 
-		QUnit.equal(teardown(), 1, "warning shown");
+		assert.equal(teardown(), 1, "warning shown");
 	});
 
-	QUnit.test("changing a scope property calls registered stache helper's returned function", function(){
-		expect(1);
-		stop();
+	QUnit.test("changing a scope property calls registered stache helper's returned function", function(assert) {
+		assert.expect(1);
+		var done = assert.async();
 		var scope = new SimpleMap({
 			test: "testval"
 		});
@@ -161,8 +161,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		stache.registerHelper("propChangeEventStacheHelper", function(){
 			return function(){
-				start();
-				ok(true, "helper's returned function called");
+				done();
+				assert.ok(true, "helper's returned function called");
 			};
 		});
 
@@ -174,8 +174,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 	});
 
-	test("one-way pass computes to components with ~", function(assert) {
-		expect(6);
+	QUnit.test("one-way pass computes to components with ~", function(assert) {
+		assert.expect(6);
 		MockComponent.extend({
 			tag: "foo-bar"
 		});
@@ -185,24 +185,24 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		this.fixture.appendChild(stache("<foo-bar compute:from=\"~foo\"></foo-bar>")(baseVm));
 
 		var vm = canViewModel(this.fixture.firstChild);
-		ok(vm.get("compute")[canSymbol.for('can.getValue')], "observable returned");
-		equal(vm.get("compute")(), "bar", "Compute has correct value");
+		assert.ok(vm.get("compute")[canSymbol.for('can.getValue')], "observable returned");
+		assert.equal(vm.get("compute")(), "bar", "Compute has correct value");
 
 		canReflect.onValue(vm.get("compute"), function() {
 			// NB: This gets called twice below, once by
 			//  the parent and once directly.
-			ok(true, "Change handler called");
+			assert.ok(true, "Change handler called");
 		});
 
 		baseVm.set("foo", "quux");
-		equal(vm.get("compute")(), "quux", "Compute updates");
+		assert.equal(vm.get("compute")(), "quux", "Compute updates");
 
 		vm.get("compute")("xyzzy");
-		equal(baseVm.get("foo"), "xyzzy", "Compute does update the other direction");
+		assert.equal(baseVm.get("foo"), "xyzzy", "Compute does update the other direction");
 	});
 
 
-	test("Child bindings updated before parent (#2252)", function(){
+	QUnit.test("Child bindings updated before parent (#2252)", function(assert) {
 		var template = stache("{{#eq page 'view'}}<child-binder page:from='page' title:from='title'/>{{/eq}}");
 		MockComponent.extend({
 			tag: 'child-binder',
@@ -212,9 +212,9 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 				canReflect.assignSymbols(map,{
 					"can.setKeyValue": function(key, value){
 						if(key === "page"){
-							equal(value, "view", "value should not be edit");
+							assert.equal(value, "view", "value should not be edit");
 						} else {
-							QUnit.equal(key, "title", "title was set, we are trapping right");
+							assert.equal(key, "title", "title was set, we are trapping right");
 						}
 
 						this.set(key, value);
@@ -231,12 +231,12 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		data.set('title', 'foo');
 
-		queues.batch.start();
+		queues.batch.done();
 		data.set('page', 'edit');
-		queues.batch.stop();
+		queues.batch.var done = assert.async();
 	});
 
-	test("backtrack path in to-parent bindings (#2132)", function(){
+	QUnit.test("backtrack path in to-parent bindings (#2132)", function(assert) {
 		MockComponent.extend({
 			tag: "parent-export",
 			viewModel: {
@@ -252,13 +252,13 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		template(data);
 
-		equal(data.get("parentValue"), "VALUE", "set on correct context");
-		equal(data.get("innerMap").get("parentValue"), undefined, "nothing on innerMap");
+		assert.equal(data.get("parentValue"), "VALUE", "set on correct context");
+		assert.equal(data.get("innerMap").get("parentValue"), undefined, "nothing on innerMap");
 
 	});
 
-	test("function reference to child binding (#2116)", function(){
-		expect(2);
+	QUnit.test("function reference to child binding (#2116)", function(assert) {
+		assert.expect(2);
 		var template = stache('<foo-bar vm:child:from="parent"></foo-bar>');
 		MockComponent.extend({
 			tag : 'foo-bar',
@@ -269,26 +269,26 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var vm = new VM({});
 		var frag = template(vm);
 
-		vm.attr("parent", function(){ ok(false, "should not be called"); });
-		equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
+		vm.attr("parent", function(){ assert.ok(false, "should not be called"); });
+		assert.equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
 		template = stache('<foo-bar vm:method:to="vmMethod"></foo-bar>');
 		vm = new VM({});
 		frag = template(vm);
 
 		canViewModel(frag.firstChild).attr("method",function(){
-			ok(false, "method should not be called");
+			assert.ok(false, "method should not be called");
 		});
-		equal(typeof vm.get("vmMethod"), "function", "parent export function");
+		assert.equal(typeof vm.get("vmMethod"), "function", "parent export function");
 	});
 
 
-	test("setter only gets called once (#2117)", function(){
-		expect(1);
+	QUnit.test("setter only gets called once (#2117)", function(assert) {
+		assert.expect(1);
 		var VM = SimpleMap.extend({
 			attr: function(prop, val){
 				if(prop === "bar") {
-					equal(val, "BAR");
+					assert.equal(val, "BAR");
 				}
 				return SimpleMap.prototype.attr.apply(this, arguments);
 			}
@@ -306,46 +306,46 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	});
 
 
-	test("function reference to child (#2116)", function(){
-		expect(2);
+	QUnit.test("function reference to child (#2116)", function(assert) {
+		assert.expect(2);
 		var template = stache('<foo-bar vm:child:from="parent"></foo-bar>');
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel : {
 				method: function(){
-					ok(false, "should not be called");
+					assert.ok(false, "should not be called");
 				}
 			}
 		});
 
 		var VM = SimpleMap.extend({
 			parent : function() {
-				ok(false, "should not be called");
+				assert.ok(false, "should not be called");
 			}
 		});
 
 		var vm = new VM({});
 		var frag = template(vm);
 
-		equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
+		assert.equal( typeof canViewModel(frag.firstChild).attr("child"), "function", "to child binding");
 
 
 		template = stache('<foo-bar vm:method:to="vmMethod"></foo-bar>');
 		vm = new VM({});
 		template(vm);
 
-		ok(typeof vm.attr("vmMethod") === "function", "parent export function");
+		assert.ok(typeof vm.attr("vmMethod") === "function", "parent export function");
 	});
 
-	test("exporting methods (#2051)", function(){
-		expect(2);
+	QUnit.test("exporting methods (#2051)", function(assert) {
+		assert.expect(2);
 
 
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel : {
 				method : function() {
-					ok(true, "foo called");
+					assert.ok(true, "foo called");
 					return 5;
 				}
 			}
@@ -354,11 +354,11 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var template = stache("<foo-bar method:to='scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
 
 		var frag = template({});
-		equal( frag.lastChild.nodeValue, "5");
+		assert.equal( frag.lastChild.nodeValue, "5");
 
 	});
 
-	test('one way - child to parent - importing viewModel hyphenatedProp:to="test"', function(){
+	QUnit.test('one way - child to parent - importing viewModel hyphenatedProp:to="test"', function(assert) {
 		MockComponent.extend({
 			tag: 'import-prop-scope',
 			template: stache('Hello {{userName}}'),
@@ -386,13 +386,13 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		var importPropParentViewModel = canViewModel(importPropParent);
 
-		equal(importPropParentViewModel.get("test"), "Justin", "got hyphenated prop");
+		assert.equal(importPropParentViewModel.get("test"), "Justin", "got hyphenated prop");
 
-		equal(importPropParentViewModel.get("childComponent"), canViewModel(importPropScope), "got view model");
+		assert.equal(importPropParentViewModel.get("childComponent"), canViewModel(importPropScope), "got view model");
 
 	});
 
-	test('one way - child to parent - importing viewModel prop:to="test"', function() {
+	QUnit.test('one way - child to parent - importing viewModel prop:to="test"', function(assert) {
 		MockComponent.extend({
 			tag: 'import-prop-scope',
 			template: stache('Hello {{name}}'),
@@ -411,11 +411,11 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var template = stache('<import-prop-parent></import-prop-parent>');
 		var frag = template({});
 
-		equal(frag.childNodes.item(0).childNodes.item(1).innerHTML,
+		assert.equal(frag.childNodes.item(0).childNodes.item(1).innerHTML,
 			'Imported: David',  '{name} component scope imported into variable');
 	});
 
-	test('one-way - child to parent - viewModel', function(){
+	QUnit.test('one-way - child to parent - viewModel', function(assert) {
 		MockComponent.extend({
 			tag: "view-model-able",
 			viewModel: function(){
@@ -430,17 +430,17 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var frag = template(map);
 		var viewModel = canViewModel(frag.firstChild);
 
-		equal( viewModel.get("viewModelProp"), "Mercury", "initial value kept" );
-		equal( map.get("scopeProp"), "Mercury", "initial value set on parent" );
+		assert.equal( viewModel.get("viewModelProp"), "Mercury", "initial value kept" );
+		assert.equal( map.get("scopeProp"), "Mercury", "initial value set on parent" );
 
 		viewModel.set("viewModelProp", "Earth");
-		equal(map.get("scopeProp"), "Earth", "binding from child to parent");
+		assert.equal(map.get("scopeProp"), "Earth", "binding from child to parent");
 
 		map.set("scopeProp", "Mars");
-		equal( viewModel.get("viewModelProp"), "Earth", "no binding from parent to child" );
+		assert.equal( viewModel.get("viewModelProp"), "Earth", "no binding from parent to child" );
 	});
 
-	test('one-way - child to parent - viewModel - with converters', function(){
+	QUnit.test('one-way - child to parent - viewModel - with converters', function(assert) {
 		MockComponent.extend({
 			tag: "view-model-able",
 			viewModel: function(){
@@ -464,17 +464,17 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var frag = template(map);
 		var viewModel = canViewModel(frag.firstChild);
 
-		equal( viewModel.get("viewModelProp"), "Mercury", "initial value kept" );
-		equal( map.get("scopeProp"), "MERCURY", "initial value set on parent, but upper cased" );
+		assert.equal( viewModel.get("viewModelProp"), "Mercury", "initial value kept" );
+		assert.equal( map.get("scopeProp"), "MERCURY", "initial value set on parent, but upper cased" );
 
 		viewModel.set("viewModelProp", "Earth");
-		equal(map.get("scopeProp"), "EARTH", "binding from child to parent updated");
+		assert.equal(map.get("scopeProp"), "EARTH", "binding from child to parent updated");
 
 		map.set("scopeProp", "Mars");
-		equal( viewModel.get("viewModelProp"), "Earth", "no binding from parent to child" );
+		assert.equal( viewModel.get("viewModelProp"), "Earth", "no binding from parent to child" );
 	});
 
-	test('one-way - parent to child - viewModel', function(){
+	QUnit.test('one-way - parent to child - viewModel', function(assert) {
 
 
 		var template = stache("<div vm:viewModelProp:from='scopeProp'/>");
@@ -485,17 +485,17 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var frag = template(map);
 		var viewModel = canViewModel(frag.firstChild);
 
-		equal( viewModel.attr("viewModelProp"), "Venus", "initial value set" );
+		assert.equal( viewModel.attr("viewModelProp"), "Venus", "initial value set" );
 
 		viewModel.attr("viewModelProp", "Earth");
-		equal(map.attr("scopeProp"), "Venus", "no binding from child to parent");
+		assert.equal(map.attr("scopeProp"), "Venus", "no binding from child to parent");
 
 		map.attr("scopeProp", "Mars");
-		equal( viewModel.attr("viewModelProp"), "Mars", "binding from parent to child" );
+		assert.equal( viewModel.attr("viewModelProp"), "Mars", "binding from parent to child" );
 	});
 
 
-	test('two-way - reference - child:bind="scope.vars.ref" (#1700)', function(){
+	QUnit.test('two-way - reference - child:bind="scope.vars.ref" (#1700)', function(assert) {
 		var data = new SimpleMap({person: new SimpleMap({name: new SimpleMap({})}) });
 		MockComponent.extend({
 			tag: 'reference-export',
@@ -525,19 +525,19 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		refExport.set("name", "v1");
 
-		equal( scope.peek("scope.vars.refName"), "v1", "reference scope updated");
+		assert.equal( scope.peek("scope.vars.refName"), "v1", "reference scope updated");
 
-		equal(refImport.get("name"), "v1", "updated ref-import");
+		assert.equal(refImport.get("name"), "v1", "updated ref-import");
 
 		refImport.set("name", "v2");
 
-		equal(refExport.get("name"), "v2", "updated ref-export");
+		assert.equal(refExport.get("name"), "v2", "updated ref-export");
 
-		equal( scope.peek("scope.vars.refName"), "v2", "actually put in refs scope");
+		assert.equal( scope.peek("scope.vars.refName"), "v2", "actually put in refs scope");
 
 	});
 
-	test('one-way - DOM - parent value undefined (#189)', function() {
+	QUnit.test('one-way - DOM - parent value undefined (#189)', function(assert) {
 		/* WHAT: We are testing whether, given the parent's passed property is
 		   undefined, the child template's value is always set to undefined
 		   or if the child template is free to update its value.
@@ -575,14 +575,14 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			return node && node.nodeValue;
 		}
 
-		equal(text(button), 'false', 'Initial value is "false"');
+		assert.equal(text(button), 'false', 'Initial value is "false"');
 		domEvents.dispatch(button, 'click');
-		equal(text(button), 'true', 'Value is "true" after first click');
+		assert.equal(text(button), 'true', 'Value is "true" after first click');
 		domEvents.dispatch(button, 'click');
-		equal(text(button), 'false', 'Value is "false" after second click');
+		assert.equal(text(button), 'false', 'Value is "false" after second click');
 	});
 
-	test("two way - viewModel (#1700)", function(){
+	QUnit.test("two way - viewModel (#1700)", function(assert) {
 
 		var template = stache("<div vm:viewModelProp:bind='scopeProp'/>");
 		var map = new SimpleMap({ scopeProp: "Hello" });
@@ -603,8 +603,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		var frag = template(map);
 		var viewModel = canViewModel(frag.firstChild);
 
-		equal(scopeMapSetCalled, 0, "set is not called on scope map");
-		equal(viewModel.get("viewModelProp"), "Hello", "initial value set" );
+		assert.equal(scopeMapSetCalled, 0, "set is not called on scope map");
+		assert.equal(viewModel.get("viewModelProp"), "Hello", "initial value set" );
 
 		viewModel = canViewModel(frag.firstChild);
 
@@ -618,17 +618,17 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			return origViewModelSet.apply(this, arguments);
 		};
 		viewModel.set("viewModelProp", "HELLO");
-		equal(map.get("scopeProp"), "HELLO", "binding from child to parent");
-		equal(scopeMapSetCalled, 1, "set is called on scope map");
-		equal(viewModelSetCalled, 2, "set is called viewModel");
+		assert.equal(map.get("scopeProp"), "HELLO", "binding from child to parent");
+		assert.equal(scopeMapSetCalled, 1, "set is called on scope map");
+		assert.equal(viewModelSetCalled, 2, "set is called viewModel");
 
 		map.set("scopeProp", "WORLD");
-		equal(viewModel.get("viewModelProp"), "WORLD", "binding from parent to child" );
-		equal(scopeMapSetCalled, 1, "can.setKey is not called again on scope map");
-		equal(viewModelSetCalled, 3, "set is called again on viewModel");
+		assert.equal(viewModel.get("viewModelProp"), "WORLD", "binding from parent to child" );
+		assert.equal(scopeMapSetCalled, 1, "can.setKey is not called again on scope map");
+		assert.equal(viewModelSetCalled, 3, "set is called again on viewModel");
 	});
 
-	test("standard attributes should not set viewModel props", function(){
+	QUnit.test("standard attributes should not set viewModel props", function(assert) {
 		MockComponent.extend({
 			tag: "test-elem",
 			viewModel: SimpleMap
@@ -642,22 +642,22 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		var vm = canViewModel(frag.firstChild);
 
-		equal(vm.get('foo'), undefined);
+		assert.equal(vm.get('foo'), undefined);
 	});
 
-	test("set string on the viewModel", function(){
-		expect(2);
+	QUnit.test("set string on the viewModel", function(assert) {
+		assert.expect(2);
 		var ViewModel = DefineMap.extend({
 			foo: {
 				type: "string",
 				set: function(val){
-					equal(val, "bar");
+					assert.equal(val, "bar");
 				}
 			},
 			baz: {
 				type: "string",
 				set: function(val){
-					equal(val, "qux");
+					assert.equal(val, "qux");
 				}
 			}
 		});
@@ -671,7 +671,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		template();
 	});
 
-	test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
+	QUnit.test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
 		MockComponent.extend({
 			tag: "view-model-binder",
 			viewModel: {},
@@ -723,14 +723,14 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	});
 
 	canTestHelpers.dev.devOnlyTest("warning displayed when using @", function(){
-		expect(3);
+		assert.expect(3);
 		var teardown = canTestHelpers.dev.willWarn("myTemplate.stache:1: functions are no longer called by default so @ is unnecessary in '@scope.vars.refKey'.");
 
 		MockComponent.extend({
 			tag : 'foo-bar',
 			viewModel : {
 				method : function() {
-					ok(true, "foo called");
+					assert.ok(true, "foo called");
 					return 5;
 				}
 			}
@@ -740,12 +740,12 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			"<foo-bar method:to='@scope.vars.refKey'></foo-bar>{{scope.vars.refKey()}}");
 
 		var frag = template({});
-		equal( frag.lastChild.nodeValue, "5");
-		equal(teardown(), 2, "warnings displayed for read and write");
+		assert.equal( frag.lastChild.nodeValue, "5");
+		assert.equal(teardown(), 2, "warnings displayed for read and write");
 
 	});
 
-	QUnit.test("bindings.viewModel makeViewModel gets passed the binding state", function(){
+	QUnit.test("bindings.viewModel makeViewModel gets passed the binding state", function(assert) {
 
 		var element = document.createElement("bindings-viewmodel");
 		element.setAttribute("age:from","years");
@@ -753,8 +753,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		stacheBindings.behaviors.viewModel(element, {
 			scope: new Scope({years: 22})
 		}, function(data, hasDataBinding, bindingState){
-			QUnit.equal(bindingState.isSettingOnViewModel,true, "isSettingOnViewModel called with correct value");
-			QUnit.ok(!bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
+			assert.equal(bindingState.isSettingOnViewModel,true, "isSettingOnViewModel called with correct value");
+			assert.ok(!bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
 		}, {});
 
 		var element2 = document.createElement("bindings-viewmodel");
@@ -763,13 +763,13 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		stacheBindings.behaviors.viewModel(element2, {
 			scope: new Scope({user: {name: "me"}})
 		}, function(data, hasDataBinding, bindingState){
-			QUnit.ok(!bindingState.isSettingOnViewModel, "isSettingOnViewModel called with correct value");
-			QUnit.ok(bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
+			assert.ok(!bindingState.isSettingOnViewModel, "isSettingOnViewModel called with correct value");
+			assert.ok(bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
 		}, {});
 
 	});
 
-	QUnit.test("double parent update", function() {
+	QUnit.test("double parent update", function(assert) {
 		var parentVM = new SimpleMap({
 			parentValue: ""
 		});
@@ -799,10 +799,10 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		template(root);
 		root.set("show", true);
 
-		QUnit.equal(parentVM.get("parentValue"), "gc");
+		assert.equal(parentVM.get("parentValue"), "gc");
 	});
 
-	QUnit.test("scope.event should be available", function() {
+	QUnit.test("scope.event should be available", function(assert) {
 		var vm = new SimpleMap({});
 		MockComponent.extend({
 			tag: "event-producer",
@@ -814,15 +814,15 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		template({
 			doSomething: function(events, argums, args){
-				QUnit.equal(events.type , "event", "got an event");
-				QUnit.equal(argums.length, 2, "two arguments");
-				QUnit.equal(args.length, 3, "3 args");
+				assert.equal(events.type , "event", "got an event");
+				assert.equal(argums.length, 2, "two arguments");
+				assert.equal(args.length, 3, "3 args");
 			}
 		});
 		vm.dispatch({type: "event"},[1,2]);
 	});
 	
-	QUnit.test("nested props with two way binding", function() {
+	QUnit.test("nested props with two way binding", function(assert) {
 		var nestedValue = new SimpleMap({
 			first: 'Matt'
 		});
@@ -851,13 +851,13 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		parentInput.value = 'updated';
 		domEvents.dispatch(parentInput, 'change');
 
-		QUnit.equal(parentVM.get('name'), 'updated', 'parent vm has correct value');
-		QUnit.equal(nestedValue.get('first'), 'updated', 'child vm has correct value');
+		assert.equal(parentVM.get('name'), 'updated', 'parent vm has correct value');
+		assert.equal(nestedValue.get('first'), 'updated', 'child vm has correct value');
 
 		childInput.value = 'child-updated';
 		domEvents.dispatch(childInput, 'change');
 
-		QUnit.equal(parentVM.get('name'), 'child-updated', 'parent vm has correct value');
-		QUnit.equal(nestedValue.get('first'), 'child-updated', 'child vm has correct value');
+		assert.equal(parentVM.get('name'), 'child-updated', 'parent vm has correct value');
+		assert.equal(nestedValue.get('first'), 'child-updated', 'child vm has correct value');
 	});
 });
