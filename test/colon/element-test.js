@@ -417,25 +417,25 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		map.attr("age", "30");
 
-		stop();
+		var done = assert.async();
 		testHelpers.afterMutation(function() {
-			start();
+			done();
 			equal(input.value, "30", "input value set correctly");
 
 			map.attr("age", "31");
 
-			stop();
+			var done = assert.async();
 			testHelpers.afterMutation(function() {
-				start();
+				done();
 				equal(input.value, "31", "input value update correctly");
 
 				input.value = "32";
 
 				domEvents.dispatch(input, "change");
 
-				stop();
+				var done = assert.async();
 				testHelpers.afterMutation(function() {
-					start();
+					done();
 					equal(map.attr("age"), "32", "updated from input");
 				});
 			});
@@ -542,7 +542,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var ta = this.fixture;
 		domMutateNode.appendChild.call(ta,frag);
 
-		QUnit.stop();
+		var done = assert.async();
 
 		testHelpers.afterMutation(function(){
 			domMutateNode.removeChild.call(ta, ta.firstChild);
@@ -553,13 +553,13 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 					var meta = vm[canSymbol.for("can.meta")];
 
 					if( meta.handlers.get([]).length === 0 ) {
-						QUnit.ok(true, "no bindings");
-						start();
+						assert.ok(true, "no bindings");
+						done();
 					} else {
 						checkCount++;
 						if (checkCount > 5) {
-							QUnit.ok(false, "lifecycle bindings still existed after timeout");
-							return start();
+							assert.ok(false, "lifecycle bindings still existed after timeout");
+							return done();
 						}
 						setTimeout(checkLifecycleBindings, 1000);
 					}
@@ -598,9 +598,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		domEvents.dispatch(frag.firstChild, "change");
 
-		stop();
+		var done = assert.async();
 		testHelpers.afterMutation(function() {
-			start();
+			done();
 			equal(frag.firstChild.value, "1");
 			equal(map.get("age"), 1);
 		});
@@ -664,7 +664,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		input.checked = true;
 		domEvents.dispatch(input, "change");
 
-		QUnit.equal(map.get('attending'), true, "now it is true");
+		assert.equal(map.get('attending'), true, "now it is true");
 	});
 
 	test('<input checkbox> one-way - DOM - with undefined (#135)', function() {
@@ -690,10 +690,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var input = this.fixture.getElementsByTagName('input')[0];
 		equal(input.checked, true, 'checkbox value bound (via attr check)');
 		data.attr('completed', 0);
-		stop();
+		var done = assert.async();
 
 		testHelpers.afterMutation(function() {
-			start();
+			done();
 			equal(input.checked, false, 'checkbox value bound (via attr check)');
 		});
 	});
@@ -729,7 +729,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			values: values,
 			id: id
 		});
-		stop();
+		var done = assert.async();
 		var select = frag.firstChild;
 		var options = select.getElementsByTagName("option");
 		// the value is set asynchronously
@@ -739,7 +739,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 			testHelpers.afterMutation(function(){
 				ok(options[1].selected, "after changing options, value should still be selected");
-				start();
+				done();
 			});
 		});
 
@@ -757,7 +757,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		ta.appendChild(frag);
 
 		var select = ta.childNodes.item(0);
-		QUnit.equal(select.selectedIndex, 0, 'Got selected index');
+		assert.equal(select.selectedIndex, 0, 'Got selected index');
 	});
 
 	testIfRealDocument('<select> two-way bound values that do not match a select option set selectedIndex to -1 (#2027)', function() {
@@ -768,20 +768,20 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		equal(frag.firstChild.selectedIndex, 0, 'undefined <- {($first value)}: selectedIndex = 0');
 
 		map.attr('key', 'notfoo');
-		stop();
+		var done = assert.async();
 
 		testHelpers.afterMutation(function() {
-			start();
+			done();
 			equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
 
 			map.attr('key', 'foo');
 			strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
 
 			map.attr('key', 'notbar');
-			stop();
+			var done = assert.async();
 
 			testHelpers.afterMutation(function() {
-				start();
+				done();
 				equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
 
 				map.attr('key', 'bar');
@@ -835,7 +835,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			])
 		});
 
-		stop();
+		var done = assert.async();
 		var frag = template(map);
 
 		var ta = this.fixture;
@@ -849,7 +849,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			ok(options[0].selected, "red should be set initially");
 			ok(options[1].selected, "green should be set initially");
 			ok(!options[2].selected, "blue should not be set initially");
-			start();
+			done();
 		});
 
 	});
@@ -874,7 +874,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var frag = template(data);
 		var select = frag.firstChild;
-		stop();
+		var done = assert.async();
 		testHelpers.afterMutation(function(){
 
 			data.get("countries").replace([]);
@@ -888,7 +888,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 					ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
 				});
 
-				start();
+				done();
 			});
 
 		});
@@ -952,7 +952,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var list = new DefineList();
 
-		stop();
+		var done = assert.async();
 		var frag = template({
 			colors: list
 		});
@@ -989,7 +989,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			options[2].selected = true;
 
 			ta.removeChild(select);
-			start();
+			done();
 		}, 1);
 	});
 
@@ -1011,7 +1011,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var frag = template(data);
 		var select = frag.firstChild;
-		stop();
+		var done = assert.async();
 		testHelpers.afterMutation(function(){
 
 			data.get("countries").replace([]);
@@ -1025,7 +1025,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 					ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
 				});
 
-				start();
+				done();
 			});
 
 		});
@@ -1049,7 +1049,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			'</select>');
 
 		template(data);
-		stop();
+		var done = assert.async();
 		testHelpers.afterMutation(function(){
 			data.attr("countries").replace([]);
 
@@ -1057,7 +1057,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			testHelpers.afterMutation(function(){
 				equal(data.get("countryCode"), undefined, "countryCode set to undefined");
 
-				start();
+				done();
 			});
 
 		});
@@ -1085,7 +1085,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			people: people
 		});
 
-		stop();
+		var done = assert.async();
 		vm.on('person', function(ev, newVal, oldVal) {
 			ok(false, 'person attribute should not change');
 		});
@@ -1099,7 +1099,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			testHelpers.afterMutation(function() {
 				var select = frag.firstChild;
 				ok(select.lastChild.selected, 'New child should be selected');
-				start();
+				done();
 			});
 		});
 	});
@@ -1125,9 +1125,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(data);
 		data.set('countryCode', 'IND');
 
-		stop();
+		var done = assert.async();
 		testHelpers.afterMutation(function(){
-			start();
+			done();
 			equal(frag.firstChild.value, "IND", "got last updated value");
 		});
 
@@ -1157,7 +1157,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			'color-2': undefined,
 			'color-3': ""
 		});
-		stop();
+		var done = assert.async();
 		var frag = template(map);
 		domMutateNode.appendChild.call(this.fixture, frag);
 
@@ -1174,7 +1174,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			// the first item is selected because "" is the value.
 			ok(undefinedInputOptions[0].selected, "default (undefined) value set");
 			ok(stringInputOptions[0].selected, "default ('') value set");
-			start();
+			done();
 		});
 	});
 
@@ -1188,10 +1188,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		testHelpers.afterMutation(function(){
 			equal(select.selectedIndex, -1, "selectedIndex is 0 because no value exists on the map");
 			equal(map.get("key"), null, "The map's value property is set to the select's value");
-			start();
+			done();
 		});
 
-		stop();
+		var done = assert.async();
 
 	});
 
@@ -1205,10 +1205,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		testHelpers.afterMutation(function(){
 			equal(select.selectedIndex, 0, "selectedIndex is 0 because no value exists on the map");
 			equal(map.attr("value"), "One", "The map's value property is set to the select's value");
-			start();
+			done();
 		});
 
-		stop();
+		var done = assert.async();
 
 	});
 
@@ -1264,24 +1264,24 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var sourceComponentVM = canViewModel(frag.childNodes[1]);
 		var clearButtonVM = canViewModel(frag.childNodes[2]);
 
-		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person is empty");
-		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person is default");
-		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person is empty");
+		assert.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person is empty");
+		assert.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person is default");
+		assert.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person is empty");
 
 		sourceComponentVM.person = 'Bob';
 
-		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, 'Bob', "demoContext person set correctly");
-		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'Bob', "source-component person set correctly");
-		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'Bob', "clear-button person set correctly");
+		assert.equal(frag.childNodes[0].childNodes[0].nodeValue, 'Bob', "demoContext person set correctly");
+		assert.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'Bob', "source-component person set correctly");
+		assert.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, 'Bob', "clear-button person set correctly");
 
 		clearButtonVM.clearPerson();
 
 		// Note that 'John' will not be set on the parent or clear button because parent was already set
 		// to an empty string and the bindingSemaphore will not allow another change to the parent
 		// (giving the parent priority) to prevent cyclic dependencies.
-		QUnit.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person set correctly");
-		QUnit.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
-		QUnit.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person set correctly");
+		assert.equal(frag.childNodes[0].childNodes[0].nodeValue, '', "demoContext person set correctly");
+		assert.equal(frag.childNodes[1].childNodes[0].childNodes[0].nodeValue, 'John', "source-component person set correctly");
+		assert.equal(frag.childNodes[2].childNodes[1].childNodes[0].nodeValue, '', "clear-button person set correctly");
 
 		if(groupCollapsed) {
 			console.groupCollapsed = groupCollapsed;
@@ -1313,7 +1313,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		demoRenderer(demoContext);
 
-		QUnit.equal(demoContext.person.name, 'Kevin', "source-component has correct name set");
+		assert.equal(demoContext.person.name, 'Kevin', "source-component has correct name set");
 	});
 
 	QUnit.test('this:to works', function() {
@@ -1327,7 +1327,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(map);
 		var input = frag.firstChild;
 
-		QUnit.equal(input, map.get("input"), "set the input");
+		assert.equal(input, map.get("input"), "set the input");
 	});
 
 });

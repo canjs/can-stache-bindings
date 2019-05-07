@@ -26,13 +26,13 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 		var bindFirstInput = ta.getElementsByTagName("input")[0];
 		bindFirstInput.value = "22";
 		domEvents.dispatch(bindFirstInput, "click");
-		QUnit.equal(map.get('theProp'), "22");
+		assert.equal(map.get('theProp'), "22");
 
 
 		var eventFirstInput = ta.getElementsByTagName("input")[1];
 		eventFirstInput.value = "23";
 		domEvents.dispatch(eventFirstInput, "click");
-		QUnit.equal(map.get('theProp'), "23");
+		assert.equal(map.get('theProp'), "23");
 	});
 
 	QUnit.test("on:input:value:to works (#289)", function() {
@@ -73,7 +73,7 @@ testHelpers.makeTests("can-stache-bindings - colon - hybrids", function(name, do
 		});
 		var input = frag.firstChild;
 
-		QUnit.equal(input.value, "bar", "initialized to the parent value");
+		assert.equal(input.value, "bar", "initialized to the parent value");
 	});
 
 });

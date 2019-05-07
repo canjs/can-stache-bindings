@@ -143,12 +143,12 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		viewModel.set("foo", overwrite);
 		deepEqual(data.bar.get(), { "plonk": "waldo" }, "sanity check: parent binding set (default map -> default map)");
 
-		QUnit.equal(teardown(), 1, "warning shown");
+		assert.equal(teardown(), 1, "warning shown");
 	});
 
 	QUnit.test("changing a scope property calls registered stache helper's returned function", function(){
 		expect(1);
-		stop();
+		var done = assert.async();
 		var scope = new SimpleMap({
 			test: "testval"
 		});
@@ -161,7 +161,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		stache.registerHelper("propChangeEventStacheHelper", function(){
 			return function(){
-				start();
+				done();
 				ok(true, "helper's returned function called");
 			};
 		});
@@ -214,7 +214,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 						if(key === "page"){
 							equal(value, "view", "value should not be edit");
 						} else {
-							QUnit.equal(key, "title", "title was set, we are trapping right");
+							assert.equal(key, "title", "title was set, we are trapping right");
 						}
 
 						this.set(key, value);
@@ -753,8 +753,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		stacheBindings.behaviors.viewModel(element, {
 			scope: new Scope({years: 22})
 		}, function(data, hasDataBinding, bindingState){
-			QUnit.equal(bindingState.isSettingOnViewModel,true, "isSettingOnViewModel called with correct value");
-			QUnit.ok(!bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
+			assert.equal(bindingState.isSettingOnViewModel,true, "isSettingOnViewModel called with correct value");
+			assert.ok(!bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
 		}, {});
 
 		var element2 = document.createElement("bindings-viewmodel");
@@ -763,8 +763,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		stacheBindings.behaviors.viewModel(element2, {
 			scope: new Scope({user: {name: "me"}})
 		}, function(data, hasDataBinding, bindingState){
-			QUnit.ok(!bindingState.isSettingOnViewModel, "isSettingOnViewModel called with correct value");
-			QUnit.ok(bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
+			assert.ok(!bindingState.isSettingOnViewModel, "isSettingOnViewModel called with correct value");
+			assert.ok(bindingState.isSettingViewModel, "isSettingOnViewModel called with correct value");
 		}, {});
 
 	});
@@ -799,7 +799,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		template(root);
 		root.set("show", true);
 
-		QUnit.equal(parentVM.get("parentValue"), "gc");
+		assert.equal(parentVM.get("parentValue"), "gc");
 	});
 
 	QUnit.test("scope.event should be available", function() {
@@ -814,9 +814,9 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		template({
 			doSomething: function(events, argums, args){
-				QUnit.equal(events.type , "event", "got an event");
-				QUnit.equal(argums.length, 2, "two arguments");
-				QUnit.equal(args.length, 3, "3 args");
+				assert.equal(events.type , "event", "got an event");
+				assert.equal(argums.length, 2, "two arguments");
+				assert.equal(args.length, 3, "3 args");
 			}
 		});
 		vm.dispatch({type: "event"},[1,2]);
@@ -851,13 +851,13 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		parentInput.value = 'updated';
 		domEvents.dispatch(parentInput, 'change');
 
-		QUnit.equal(parentVM.get('name'), 'updated', 'parent vm has correct value');
-		QUnit.equal(nestedValue.get('first'), 'updated', 'child vm has correct value');
+		assert.equal(parentVM.get('name'), 'updated', 'parent vm has correct value');
+		assert.equal(nestedValue.get('first'), 'updated', 'child vm has correct value');
 
 		childInput.value = 'child-updated';
 		domEvents.dispatch(childInput, 'change');
 
-		QUnit.equal(parentVM.get('name'), 'child-updated', 'parent vm has correct value');
-		QUnit.equal(nestedValue.get('first'), 'child-updated', 'child vm has correct value');
+		assert.equal(parentVM.get('name'), 'child-updated', 'parent vm has correct value');
+		assert.equal(nestedValue.get('first'), 'child-updated', 'child vm has correct value');
 	});
 });

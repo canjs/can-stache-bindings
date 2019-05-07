@@ -50,7 +50,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		var MySimpleMap = SimpleMap.extend({
 			methodD: function(){
-				QUnit.ok(true, "on:vmevent bindings work");
+				assert.ok(true, "on:vmevent bindings work");
 			}
 		});
 
@@ -62,13 +62,13 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		template(parent);
 
-		QUnit.deepEqual(parent.get(), {
+		assert.deepEqual(parent.get(), {
 			valueA: 'A',
 			valueB: 'toParent',
 			valueC: 'C',
 		}, "initial scope values correct");
 
-		QUnit.deepEqual(viewModel.get(), {
+		assert.deepEqual(viewModel.get(), {
 			toChild: "A",
 			toParent: "toParent",
 			twoWay: "C"
@@ -81,7 +81,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 			valueC: 'c'
 		});
 
-		QUnit.deepEqual(viewModel.get(), {
+		assert.deepEqual(viewModel.get(), {
 			toChild: "a",
 			toParent: "toParent",
 			twoWay: "c"
@@ -94,7 +94,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 			twoWay: "two-way"
 		});
 
-		QUnit.deepEqual(parent.get(), {
+		assert.deepEqual(parent.get(), {
 			valueA: "a",
 			valueB: "to-parent",
 			valueC: "two-way"
@@ -407,7 +407,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		var map = new SimpleMap({ source: new SimpleMap({ foo: "foo" }) });
 		template(map);
-		QUnit.equal(teardown(), 1, 'warning shown');
+		assert.equal(teardown(), 1, 'warning shown');
 
 	});
 
@@ -421,10 +421,10 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		this.fixture.appendChild(frag);
 
-		QUnit.equal(input.value, "VALUE", "value set initially");
+		assert.equal(input.value, "VALUE", "value set initially");
 		map.set("value","");
 
-		QUnit.equal(input.value, "VALUE", "value should not have been updated");
+		assert.equal(input.value, "VALUE", "value should not have been updated");
 	});
 
 	QUnit.test("bindings still work for moved elements (#460)", function(assert) {
@@ -443,11 +443,11 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		testHelpers.afterMutation(function() {
 			map.set("value", "second");
-			QUnit.equal(input.value, "second", "value should have been updated");
+			assert.equal(input.value, "second", "value should have been updated");
 
 			input.value = "third";
 			domEvents.dispatch(input, "change");
-			QUnit.equal(map.get("value"), "third", "map should have been updated");
+			assert.equal(map.get("value"), "third", "map should have been updated");
 
 			done();
 		});

@@ -208,14 +208,14 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 
 	test('can listen to camelCase events using on:', function(){
-		QUnit.stop();
+		var done = assert.async();
 		expect(1);
 
 		var map = new SimpleMap({
 			someProp: 'foo'
 		});
 		map.someMethod =  function() {
-			QUnit.start();
+			done();
 			ok(true);
 		};
 
@@ -226,7 +226,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 	test('can listen to kebab-case events using on:', function(){
-		QUnit.stop();
+		var done = assert.async();
 		expect(1);
 
 		var map = new SimpleMap({
@@ -234,7 +234,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 
 		map.someMethod = function() {
-			QUnit.start();
+			done();
 			ok(true);
 		};
 
@@ -245,7 +245,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 	test('can bind to property on scope using :by:', function(){
-		stop();
+		var done = assert.async();
 		expect(1);
 
 		MockComponent.extend({
@@ -260,7 +260,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			})
 		});
 		map.someMethod = function(args){
-			start();
+			done();
 			equal(args[0], "Venus", "method called");
 		};
 
@@ -269,7 +269,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 	test('can bind to entire scope using :by:this', function(){
-		stop();
+		var done = assert.async();
 		expect(1);
 
 		MockComponent.extend({
@@ -283,7 +283,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 
 		map.someMethod = function(newVal){
-			start();
+			done();
 			equal(newVal, "Venus", "method called");
 		};
 
@@ -292,7 +292,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 	test('can bind to viewModel using on:vm:prop', function() {
-		stop();
+		var done = assert.async();
 		expect(1);
 
 		var map = new SimpleMap({
@@ -301,7 +301,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		var MySimpleMap = SimpleMap.extend({
 			someMethod: function(newVal){
-				start();
+				done();
 				equal(newVal, "Venus", "method called");
 			}
 		});
@@ -319,7 +319,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 	});
 
 	test('can bind to element using on:el:prop', function() {
-		stop();
+		var done = assert.async();
 		expect(1);
 
 		var map = new SimpleMap({
@@ -328,7 +328,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		var MySimpleMap = SimpleMap.extend({
 			someMethod: function(){
-				start();
+				done();
 				ok(true, "method called");
 			}
 		});
@@ -356,7 +356,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 
 		stache.registerHelper("helperWithArgs", function(arg){
-			QUnit.equal(arg, 3, "got the helper");
+			assert.equal(arg, 3, "got the helper");
 			ok(true, "helper called");
 		});
 
@@ -380,7 +380,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 
 		domEvents.dispatch(frag.firstChild, 'foo');
-		QUnit.ok(flip, "Plain object method successfully called");
+		assert.ok(flip, "Plain object method successfully called");
 	});
 
 
@@ -485,7 +485,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		domEvents.dispatch(frag.firstChild, "click");
 
-	    QUnit.ok(true, "no errors");
+	    assert.ok(true, "no errors");
 	});
 
 	QUnit.test("support simple setters", function () {
@@ -504,7 +504,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			type: "click"
 		});
 
-		QUnit.equal(map.get("prop"), 'Value');
+		assert.equal(map.get("prop"), 'Value');
 
 
 		// Try with something on the element
@@ -524,7 +524,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			type: "click"
 		});
 
-		QUnit.equal(map.get("prop"), 'ELEMENT-VALUE');
+		assert.equal(map.get("prop"), 'ELEMENT-VALUE');
 
 		// PRIMITIVES
 		template = stache("<input on:click='this.prop = 3'/>");
@@ -542,7 +542,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			type: "click"
 		});
 
-		QUnit.equal(map.get("prop"), 3, "primitives");
+		assert.equal(map.get("prop"), 3, "primitives");
 
 		// setting stuff on special?
 		template = stache("<input on:click='this.prop = this.returnEight()'/>");
@@ -561,7 +561,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			type: "click"
 		});
 
-		QUnit.equal(map.get("prop"), 8, "can set to result of calling a function");
+		assert.equal(map.get("prop"), 8, "can set to result of calling a function");
 
 		// As functions
 
@@ -583,14 +583,14 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var button = frag.firstChild;
 		var myButton = button.firstChild;
 
-		QUnit.equal(typeof button.viewModel.get('clicked'), 'function', 'has function');
+		assert.equal(typeof button.viewModel.get('clicked'), 'function', 'has function');
 
 		// Dispatch click on the my-button button
 		domEvents.dispatch(myButton, {
 			type: "click"
 		});
 
-		QUnit.equal(map.get("clickCount"), 1, "function got called");
+		assert.equal(map.get("clickCount"), 1, "function got called");
 	});
 
 	testIfRealDocument("on:click:value:to on button (#484)", function() {
@@ -603,18 +603,18 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var frag = template(map);
 		var button = frag.firstChild;
 
-		QUnit.equal(map.get('myProp'), 1, "initial value");
+		assert.equal(map.get('myProp'), 1, "initial value");
 
 		domEvents.dispatch(button, "click");
 
-		QUnit.equal(map.get('myProp'), 2, "set from value");
+		assert.equal(map.get('myProp'), 2, "set from value");
 	});
 
 	QUnit.test("Registering events on nullish context with :by should register an observation on the scope and properly teardown all listeners on removal", function () {
 		var map = new SimpleMap({
 			user: null,
 			doSomething: function () {
-				QUnit.ok(true);
+				assert.ok(true);
 			}
 		});
 		var user = new SimpleMap({
@@ -623,13 +623,13 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var fragment = stache("<div on:name:by:this.user='doSomething()'/>")(map);
 		var div = fragment.firstChild;
 		domMutateNode.appendChild.call(this.fixture, fragment);
-		QUnit.equal(canReflect.isBound( map ), true);
+		assert.equal(canReflect.isBound( map ), true);
 		map.set("user", user);
-		QUnit.equal(canReflect.isBound(user), true);
+		assert.equal(canReflect.isBound(user), true);
 		domMutateNode.removeChild.call(this.fixture, div);
 		testHelpers.afterMutation(function(){
-			QUnit.equal(canReflect.isBound( map ), false);
-			QUnit.equal(canReflect.isBound(user), false);
+			assert.equal(canReflect.isBound( map ), false);
+			assert.equal(canReflect.isBound(user), false);
 		});
 	});
 
@@ -637,7 +637,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var map = new SimpleMap({
 			user: null,
 			doSomething: function () {
-				QUnit.ok(true);
+				assert.ok(true);
 			}
 		});
 		var user1 = new SimpleMap({
@@ -647,13 +647,13 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			name: "Justin"
 		});
 		stache("<div on:name:by:this.user='doSomething()'/>")(map);
-		QUnit.equal(canReflect.isBound( map ), true);
+		assert.equal(canReflect.isBound( map ), true);
 		map.set("user", user1);
-		QUnit.equal(canReflect.isBound(user1), true);
-		QUnit.equal(canReflect.isBound(user2), false);
+		assert.equal(canReflect.isBound(user1), true);
+		assert.equal(canReflect.isBound(user2), false);
 		map.set("user", user2);
-		QUnit.equal(canReflect.isBound(user1), false);
-		QUnit.equal(canReflect.isBound(user2), true);
+		assert.equal(canReflect.isBound(user1), false);
+		assert.equal(canReflect.isBound(user2), true);
 	});
 
 
@@ -662,7 +662,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var map = new SimpleMap({
 			user: null,
 			doSomething: function () {
-				QUnit.ok(true);
+				assert.ok(true);
 			}
 		});
 		var user1 = new SimpleMap({
@@ -686,7 +686,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		});
 		var ParentScope = SimpleMap.extend({
 			doSomething: function(){
-				QUnit.ok(true);
+				assert.ok(true);
 			}
 		});
 		var parent = new ParentScope();
