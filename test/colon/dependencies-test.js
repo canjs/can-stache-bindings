@@ -16,10 +16,10 @@ var browserSupportsAutomaticallyNamedConstructors = (function() {
 }());
 
 QUnit.module("bindings dependencies", {
-	beforeEach: function() {
+	undefined: function() {
 		this.fixture = document.getElementById("qunit-fixture");
 	},
-	afterEach: function() {
+	undefined: function() {
 		document.getElementById("qunit-fixture").innerHTML = "";
 	}
 });
