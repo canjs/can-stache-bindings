@@ -17,7 +17,7 @@ var canViewModel = require('can-view-model');
 var canReflect = require("can-reflect");
 var canSymbol = require("can-symbol");
 
-var domData = require('can-dom-data-state');
+var domData = require('can-dom-data');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
@@ -432,7 +432,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			domEvents.dispatch(input, "change");
 
 			// Read from mock component's shadow scope for refs.
-			var scope = domData.get.call(this.fixture.firstChild).shadowScope;
+			var scope = domData.get(this.fixture.firstChild).shadowScope;
 			assert.equal(scope.get("*foo"), "bar", "Reference attribute set");
 
 			var refElement = doc.getElementsByTagName('ref-syntax')[0];
@@ -711,7 +711,6 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map.get("user").set("name", "Todd");
 	});
 });
-
 
 canTestHelpers.dev.devOnlyTest("warning when binding known DOM event name to view model", function() {
 	var teardown = canTestHelpers.dev.willWarn("The focus event is bound the view model for <warning-el>. Use on:el:focus to bind to the element instead.");

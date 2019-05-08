@@ -821,4 +821,43 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		});
 		vm.dispatch({type: "event"},[1,2]);
 	});
+	
+	QUnit.test("nested props with two way binding", function() {
+		var nestedValue = new SimpleMap({
+			first: 'Matt'
+		});
+		var childVM = new SimpleMap({
+			name: nestedValue
+		});
+		MockComponent.extend({
+			tag: "my-child",
+			viewModel: childVM,
+			template: stache('<input value:bind="name.first" />')
+		});
+		var parentVM = new SimpleMap({
+			name: 'Justin'
+		});
+		MockComponent.extend({
+			tag: "my-parent",
+			viewModel: parentVM,
+			template: stache('<my-child name.first:bind="name" /><input value:bind="name" />')
+		});
+
+		var template = stache("<my-parent />")();
+
+		var parentInput = template.childNodes.item(0).childNodes.item(1);
+		var childInput = template.childNodes.item(0).childNodes.item(0).childNodes.item(0);
+
+		parentInput.value = 'updated';
+		domEvents.dispatch(parentInput, 'change');
+
+		QUnit.equal(parentVM.get('name'), 'updated', 'parent vm has correct value');
+		QUnit.equal(nestedValue.get('first'), 'updated', 'child vm has correct value');
+
+		childInput.value = 'child-updated';
+		domEvents.dispatch(childInput, 'change');
+
+		QUnit.equal(parentVM.get('name'), 'child-updated', 'parent vm has correct value');
+		QUnit.equal(nestedValue.get('first'), 'child-updated', 'child vm has correct value');
+	});
 });

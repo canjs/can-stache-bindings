@@ -2,7 +2,7 @@ var globals = require('can-globals');
 var domEvents = require('can-dom-events');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
-var domData = require('can-dom-data-state');
+var domData = require('can-dom-data');
 var makeDocument = require('can-vdom/make-document/make-document');
 var helpers = {
 	makeQUnitModule: function(name, doc, enableMO){
@@ -34,7 +34,7 @@ var helpers = {
 
 					var fixture = document.getElementById("qunit-fixture");
 					while (fixture && fixture.hasChildNodes()) {
-						domData.delete.call(fixture.lastChild);
+						domData.delete(fixture.lastChild);
 						fixture.removeChild(fixture.lastChild);
 					}
 
