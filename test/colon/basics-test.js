@@ -31,7 +31,7 @@ function siblingsDataToInfo(siblingData) {
 
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
 
-	test("basics", 5, function(){
+	QUnit.test("basics", 5, function(assert) {
 
 		var viewModel = new SimpleMap({
 			toChild: "toChild",
@@ -50,7 +50,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		var MySimpleMap = SimpleMap.extend({
 			methodD: function(){
-				QUnit.ok(true, "on:vmevent bindings work");
+				assert.ok(true, "on:vmevent bindings work");
 			}
 		});
 
@@ -62,13 +62,13 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		template(parent);
 
-		QUnit.deepEqual(parent.get(), {
+		assert.deepEqual(parent.get(), {
 			valueA: 'A',
 			valueB: 'toParent',
 			valueC: 'C',
 		}, "initial scope values correct");
 
-		QUnit.deepEqual(viewModel.get(), {
+		assert.deepEqual(viewModel.get(), {
 			toChild: "A",
 			toParent: "toParent",
 			twoWay: "C"
@@ -81,7 +81,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 			valueC: 'c'
 		});
 
-		QUnit.deepEqual(viewModel.get(), {
+		assert.deepEqual(viewModel.get(), {
 			toChild: "a",
 			toParent: "toParent",
 			twoWay: "c"
@@ -94,7 +94,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 			twoWay: "two-way"
 		});
 
-		QUnit.deepEqual(parent.get(), {
+		assert.deepEqual(parent.get(), {
 			valueA: "a",
 			valueB: "to-parent",
 			valueC: "two-way"
@@ -104,10 +104,10 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 	});
 
-	test("getSiblingBindingData", function(){
+	QUnit.test("getSiblingBindingData", function(assert) {
 		var info = stacheBindings.getSiblingBindingData({name: "foo-ed:from", value: "bar"});
 
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModelOrAttribute",
 			childEvent: undefined,
@@ -121,7 +121,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":from");
 
 		info = stacheBindings.getSiblingBindingData({name: "foo-ed:bind", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModelOrAttribute",
 			childEvent: undefined,
@@ -135,7 +135,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":bind");
 
 		info = stacheBindings.getSiblingBindingData({name: "foo-ed:to", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModelOrAttribute",
 			childEvent: undefined,
@@ -149,7 +149,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":to");
 
 		info = stacheBindings.getSiblingBindingData({name: "foo-ed:from", value: "bar"}, {favorViewModel: true});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -163,7 +163,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":from, favorViewModel=true");
 
 		info = stacheBindings.getSiblingBindingData({name: "foo-ed:bind", value: "bar"}, {favorViewModel: true});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -177,7 +177,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":bind, favorViewModel=true");
 
 		info = stacheBindings.getSiblingBindingData({name: "foo-ed:to", value: "bar"}, {favorViewModel: true});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -191,9 +191,9 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":to, favorViewModel=true");
 	});
 
-	test("getSiblingBindingData for vm:", function() {
+	QUnit.test("getSiblingBindingData for vm:", function(assert) {
 		var info = stacheBindings.getSiblingBindingData({name: "vm:foo-ed:from", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -207,7 +207,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":from");
 
 		info = stacheBindings.getSiblingBindingData({name: "vm:foo-ed:bind", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -221,7 +221,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":bind");
 
 		info = stacheBindings.getSiblingBindingData({name: "vm:foo-ed:to", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -236,7 +236,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		info = stacheBindings.getSiblingBindingData({name: "vm:foo-ed:from", value: "bar"}, {favorViewModel: true});
 
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -250,7 +250,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":from, favorViewModel=true");
 
 		info = stacheBindings.getSiblingBindingData({name: "vm:foo-ed:bind", value: "bar"}, {favorViewModel: true});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -264,7 +264,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":bind, favorViewModel=true");
 
 		info = stacheBindings.getSiblingBindingData({name: "vm:foo-ed:to", value: "bar"}, {favorViewModel: true});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModel",
 			childEvent: undefined,
@@ -278,9 +278,9 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":to, favorViewModel=true");
 	});
 
-	test("getSiblingBindingData for el:", function() {
+	QUnit.test("getSiblingBindingData for el:", function(assert) {
 		var info = stacheBindings.getSiblingBindingData({name: "el:foo-ed:from", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "attribute",
 			childEvent: undefined,
@@ -294,7 +294,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":from");
 
 		info = stacheBindings.getSiblingBindingData({name: "el:foo-ed:bind", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "attribute",
 			childEvent: undefined,
@@ -308,7 +308,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":bind");
 
 		info = stacheBindings.getSiblingBindingData({name: "el:foo-ed:to", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "attribute",
 			childEvent: undefined,
@@ -322,7 +322,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":to");
 
 		info = stacheBindings.getSiblingBindingData({name: "el:foo-ed:from", value: "bar"}, null, null, null, true);
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "attribute",
 			childEvent: undefined,
@@ -336,7 +336,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":from, favorViewModel=true");
 
 		info = stacheBindings.getSiblingBindingData({name: "el:foo-ed:bind", value: "bar"}, null, null, null, true);
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "attribute",
 			childEvent: undefined,
@@ -350,7 +350,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":bind, favorViewModel=true");
 
 		info = stacheBindings.getSiblingBindingData({name: "el:foo-ed:to", value: "bar"}, null, null, null, true);
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "attribute",
 			childEvent: undefined,
@@ -364,10 +364,10 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		}, ":to, favorViewModel=true");
 	});
 
-	QUnit.test("getSiblingBindingData works for value:to:on:click (#269)", function(){
+	QUnit.test("getSiblingBindingData works for value:to:on:click (#269)", function(assert) {
 
 		var info = stacheBindings.getSiblingBindingData({name: "value:to:on:click", value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModelOrAttribute",
 			childEvent: "click",
@@ -382,10 +382,10 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 	});
 
-	QUnit.test("decode values with To (#504)", function(){
+	QUnit.test("decode values with To (#504)", function(assert) {
 		var name = encoder.encode("goToHome:to");
 		var info = stacheBindings.getSiblingBindingData({name: name, value: "bar"});
-		deepEqual(siblingsDataToInfo(info), {
+		assert.deepEqual(siblingsDataToInfo(info), {
 			parent: "scope",
 			child: "viewModelOrAttribute",
 			childEvent: undefined,
@@ -400,18 +400,18 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 	});
 
-	canTestHelpers.dev.devOnlyTest("warning when binding to non-existing value (#136) (#119)", function() {
+	canTestHelpers.dev.devOnlyTest("warning when binding to non-existing value (#136) (#119)", function(assert) {
 		var teardown = canTestHelpers.dev.willWarn('This element does not have a viewModel. (Attempting to bind `target:vm:bind="source.bar"`)');
 
 		var template = stache("<div target:vm:bind='source.bar'/>");
 
 		var map = new SimpleMap({ source: new SimpleMap({ foo: "foo" }) });
 		template(map);
-		QUnit.equal(teardown(), 1, 'warning shown');
+		assert.equal(teardown(), 1, 'warning shown');
 
 	});
 
-	QUnit.test("parent stache is able to teardown child bindings (#278)", function(){
+	QUnit.test("parent stache is able to teardown child bindings (#278)", function(assert) {
 		var map = new SimpleMap({value: "VALUE"});
 
 		var template = stache("<div>{{#if value}}<span><input value:bind='value'/></span>{{/if}}</div>");
@@ -421,10 +421,10 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		this.fixture.appendChild(frag);
 
-		QUnit.equal(input.value, "VALUE", "value set initially");
+		assert.equal(input.value, "VALUE", "value set initially");
 		map.set("value","");
 
-		QUnit.equal(input.value, "VALUE", "value should not have been updated");
+		assert.equal(input.value, "VALUE", "value should not have been updated");
 	});
 
 	QUnit.test("bindings still work for moved elements (#460)", function(assert) {
@@ -443,11 +443,11 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 
 		testHelpers.afterMutation(function() {
 			map.set("value", "second");
-			QUnit.equal(input.value, "second", "value should have been updated");
+			assert.equal(input.value, "second", "value should have been updated");
 
 			input.value = "third";
 			domEvents.dispatch(input, "change");
-			QUnit.equal(map.get("value"), "third", "map should have been updated");
+			assert.equal(map.get("value"), "third", "map should have been updated");
 
 			done();
 		});
