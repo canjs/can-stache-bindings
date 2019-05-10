@@ -530,7 +530,7 @@ var behaviors = {
 				if(
 					!eventBindingData.bindingCode &&
 					el[canSymbol.for("can.viewModel")] &&
-					("on" + event) in HTMLElement.prototype
+					("on" + event) in el
 				) {
 					dev.warn(
 						"The " + event + " event is bound the view model for <" + el.tagName.toLowerCase() +
