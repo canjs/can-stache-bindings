@@ -102,12 +102,15 @@ var getEventBindingData = function (attributeName, el, scope) {
 	var bindingContext;
 	var eventName;
 	var bindingContextObservable;
+	var shortBindingCode = "";
 
 	// if explicit context is specified, trim the string down
 	// else, determine value of which scope being used elUsed, vmUsed, scopeUsed
 	if (vmUsed) {
+		shortBindingCode = "vm";
 		bindingCode = bindingCode.substr(vmMatchStr.length);
 	} else if (elUsed) {
+		shortBindingCode = "el";
 		bindingCode = bindingCode.substr(elMatchStr.length);
 	} else if (!vmUsed && !elUsed) {
 		if (byUsed) {
@@ -154,7 +157,9 @@ var getEventBindingData = function (attributeName, el, scope) {
 		// this observable emits the bindingContext
 		bindingContextObservable: bindingContextObservable,
 		// the eventName string
-		eventName: eventName
+		eventName: eventName,
+		// which binding code was explicitly set by the user
+		bindingCode: shortBindingCode,
 	};
 };
 
@@ -519,6 +524,21 @@ var behaviors = {
 			event = eventBindingData.eventName;
 			bindingContext = eventBindingData.bindingContext;
 			bindingContextObservable = eventBindingData.bindingContextObservable;
+
+			//!steal-remove-start
+			if(process.env.NODE_ENV !== "production") {
+				if(
+					!eventBindingData.bindingCode &&
+					el[canSymbol.for("can.viewModel")] &&
+					("on" + event) in el
+				) {
+					dev.warn(
+						"The " + event + " event is bound the view model for <" + el.tagName.toLowerCase() +
+							">. Use " + attributeName.replace(onMatchStr, "on:el:") +  " to bind to the element instead."
+					);
+				}
+			}
+			//!steal-remove-end
 		} else {
 			throw new Error("can-stache-bindings - unsupported event bindings " + attributeName);
 		}
