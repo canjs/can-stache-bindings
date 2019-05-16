@@ -114,16 +114,16 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			ta.appendChild(frag);
 
 			var input = ta.getElementsByTagName("input")[0];
-			testHelpers.afterMutation(function (assert) {
+			testHelpers.afterMutation(function () {
 				assert.equal(input.value, "Justin", "input value set correctly if key does not exist in map");
 				map.set('propName','last');
-				testHelpers.afterMutation(function (assert){
+				testHelpers.afterMutation(function (){
 					assert.equal(input.value, "Meyer", "input value set correctly if key does not exist in map");
 
 					input.value = "Lueke";
 					domEvents.dispatch(input, "change");
 
-					testHelpers.afterMutation(function (assert) {
+					testHelpers.afterMutation(function () {
 						assert.equal(map.get("last"), "Lueke", "updated from input");
 						done();
 					});
@@ -418,15 +418,15 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		map.attr("age", "30");
 
 		var done = assert.async();
-		testHelpers.afterMutation(function (assert) {
-			done();
+		testHelpers.afterMutation(function () {
+			
 			assert.equal(input.value, "30", "input value set correctly");
 
 			map.attr("age", "31");
 
 
-			testHelpers.afterMutation(function (assert) {
-				done();
+			testHelpers.afterMutation(function () {
+				
 				assert.equal(input.value, "31", "input value update correctly");
 
 				input.value = "32";
@@ -434,7 +434,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 				domEvents.dispatch(input, "change");
 
 
-				testHelpers.afterMutation(function (assert) {
+				testHelpers.afterMutation(function () {
 					done();
 					assert.equal(map.attr("age"), "32", "updated from input");
 				});
@@ -473,7 +473,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		input.value = "JEFFREY";
 		domEvents.dispatch(input, "change");
 		assert.equal(input.value, "jeffrey", 'updated value should be "jeffrey"');
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			done();
 		});
 	});
@@ -505,7 +505,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domMutateNode.appendChild.call(this.fixture, frag);
 
 		var input = this.fixture.firstChild;
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 
 			assert.equal(input.value, "jeffrey");
 
@@ -544,10 +544,10 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var done = assert.async();
 
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			domMutateNode.removeChild.call(ta, ta.firstChild);
 			// still 1 binding, should be 0
-			testHelpers.afterMutation(function (assert){
+			testHelpers.afterMutation(function (){
 				var checkCount = 0;
 				var checkLifecycleBindings = function(){
 					var meta = vm[canSymbol.for("can.meta")];
@@ -599,7 +599,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		domEvents.dispatch(frag.firstChild, "change");
 
 		var done = assert.async();
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			done();
 			assert.equal(frag.firstChild.value, "1");
 			assert.equal(map.get("age"), 1);
@@ -692,7 +692,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		data.attr('completed', 0);
 		var done = assert.async();
 
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			done();
 			assert.equal(input.checked, false, 'checkbox value bound (via attr check)');
 		});
@@ -733,11 +733,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var select = frag.firstChild;
 		var options = select.getElementsByTagName("option");
 		// the value is set asynchronously
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			assert.ok(options[1].selected, "value is initially selected");
 			values.set(["7","2","5","4"]);
 
-			testHelpers.afterMutation(function (assert){
+			testHelpers.afterMutation(function (){
 				assert.ok(options[1].selected, "after changing options, value should still be selected");
 				done();
 			});
@@ -770,8 +770,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		map.attr('key', 'notfoo');
 		var done = assert.async();
 
-		testHelpers.afterMutation(function (assert) {
-			done();
+		testHelpers.afterMutation(function () {
 			assert.equal(frag.firstChild.selectedIndex, -1, 'notfoo: selectedIndex = -1');
 
 			map.attr('key', 'foo');
@@ -780,7 +779,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			map.attr('key', 'notbar');
 		
 
-			testHelpers.afterMutation(function (assert) {
+			testHelpers.afterMutation(function () {
 				done();
 				assert.equal(frag.firstChild.selectedIndex, -1, 'notbar: selectedIndex = -1');
 
@@ -845,7 +844,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			options = select.getElementsByTagName("option");
 
 		// Wait for Multiselect.set() to be called.
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			assert.ok(options[0].selected, "red should be set initially");
 			assert.ok(options[1].selected, "green should be set initially");
 			assert.ok(!options[2].selected, "blue should not be set initially");
@@ -875,16 +874,16 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(data);
 		var select = frag.firstChild;
 		var done = assert.async();
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 
 			data.get("countries").replace([]);
 
-			testHelpers.afterMutation(function (assert){
+			testHelpers.afterMutation(function (){
 				data.attr("countries").replace(countries);
 
 				assert.equal(data.attr("countryCode"), "US", "country kept as USA");
 
-				testHelpers.afterMutation(function (assert){
+				testHelpers.afterMutation(function (){
 					assert.ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
 				});
 
@@ -1012,16 +1011,16 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(data);
 		var select = frag.firstChild;
 		var done = assert.async();
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 
 			data.get("countries").replace([]);
 
-			testHelpers.afterMutation(function (assert){
+			testHelpers.afterMutation(function (){
 				data.get("countries").replace(countries);
 
 				assert.equal(data.get("countryCode"), "US", "country kept as USA");
 
-				testHelpers.afterMutation(function (assert){
+				testHelpers.afterMutation(function (){
 					assert.ok( select.getElementsByTagName("option")[1].selected, "USA still selected");
 				});
 
@@ -1050,11 +1049,11 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		template(data);
 		var done = assert.async();
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			data.attr("countries").replace([]);
 
 
-			testHelpers.afterMutation(function (assert){
+			testHelpers.afterMutation(function (){
 				assert.equal(data.get("countryCode"), undefined, "countryCode set to undefined");
 
 				done();
@@ -1094,9 +1093,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		assert.equal(vm.attr('person'), 'Brian', 'Person is still set');
 
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			people.push('Brian');
-			testHelpers.afterMutation(function (assert) {
+			testHelpers.afterMutation(function () {
 				var select = frag.firstChild;
 				assert.ok(select.lastChild.selected, 'New child should be selected');
 				done();
@@ -1126,7 +1125,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		data.set('countryCode', 'IND');
 
 		var done = assert.async();
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			done();
 			assert.equal(frag.firstChild.value, "IND", "got last updated value");
 		});
@@ -1169,7 +1168,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var stringInputOptions = stringInput.getElementsByTagName('option');
 
 		// wait for set to be called which will change the selects
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			assert.ok(!nullInputOptions[0].selected, "default (null) value set");
 			// the first item is selected because "" is the value.
 			assert.ok(undefinedInputOptions[0].selected, "default (undefined) value set");
@@ -1185,7 +1184,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(map);
 		var select = frag.childNodes.item(0);
 
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			assert.equal(select.selectedIndex, -1, "selectedIndex is 0 because no value exists on the map");
 			assert.equal(map.get("key"), null, "The map's value property is set to the select's value");
 			done();
@@ -1202,7 +1201,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		var frag = template(map);
 		var select = frag.childNodes.item(0);
 
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			assert.equal(select.selectedIndex, 0, "selectedIndex is 0 because no value exists on the map");
 			assert.equal(map.attr("value"), "One", "The map's value property is set to the select's value");
 			done();

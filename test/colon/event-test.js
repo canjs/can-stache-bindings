@@ -200,7 +200,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		};
 		domMutateNode.appendChild.call(this.fixture, frag);
 		trig();
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			assert.equal(clickHandlerCount, 0, "click handler not called");
 			done();
 		});
@@ -423,7 +423,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var frag = template({});
 		domMutateNode.appendChild.call(this.fixture, frag);
 
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			var input = doc.getElementsByTagName("input")[0];
 			input.value = "bar";
 			domEvents.dispatch(input, "change");
@@ -627,7 +627,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map.set("user", user);
 		assert.equal(canReflect.isBound(user), true);
 		domMutateNode.removeChild.call(this.fixture, div);
-		testHelpers.afterMutation(function (assert){
+		testHelpers.afterMutation(function (){
 			assert.equal(canReflect.isBound( map ), false);
 			assert.equal(canReflect.isBound(user), false);
 		});

@@ -442,7 +442,7 @@ testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc
 		this.fixture.appendChild(div);
 		div.appendChild(input);
 
-		testHelpers.afterMutation(function (assert) {
+		testHelpers.afterMutation(function () {
 			map.set("value", "second");
 			assert.equal(input.value, "second", "value should have been updated");
 
