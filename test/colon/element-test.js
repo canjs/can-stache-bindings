@@ -424,7 +424,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 			map.attr("age", "31");
 
-			var done = assert.async();
+
 			testHelpers.afterMutation(function (assert) {
 				done();
 				assert.equal(input.value, "31", "input value update correctly");
@@ -433,7 +433,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 				domEvents.dispatch(input, "change");
 
-				var done = assert.async();
+
 				testHelpers.afterMutation(function (assert) {
 					done();
 					assert.equal(map.attr("age"), "32", "updated from input");
@@ -778,7 +778,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			assert.strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
 
 			map.attr('key', 'notbar');
-			var done = assert.async();
+		
 
 			testHelpers.afterMutation(function (assert) {
 				done();

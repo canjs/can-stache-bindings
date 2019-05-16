@@ -31,7 +31,8 @@ function siblingsDataToInfo(siblingData) {
 
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
 
-	QUnit.test("basics", 5, function(assert) {
+	QUnit.test("basics", function(assert) {
+		assert.expect(5);
 
 		var viewModel = new SimpleMap({
 			toChild: "toChild",
