@@ -15,7 +15,7 @@ var browserSupportsAutomaticallyNamedConstructors = (function() {
 	return c.constructor.name === "C";
 }());
 
-QUnit.module("bindings dependencies", {
+QUnit.module("can-stache-bindings bindings dependencies", {
 	beforeEach: function() {
 		this.fixture = document.getElementById("qunit-fixture");
 	},

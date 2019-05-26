@@ -158,28 +158,32 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		// We use the also effected span so we
 		// can test the input handlers in isolation.
-		var span = this.fixture.firstChild.lastChild;
+		var span = this.fixture.getElementsByTagName("span")[0];
 		var done = assert.async();
-		var undo = domMutate.onNodeRemoval(span, function () {
+		var undo = domMutate.onNodeDisconnected(span, function () {
+
 			undo();
+			// The span might be removed before the element.
+			setTimeout(function(){
+				// Reset domEvents
+				domEvents.addEventListener = realAddEventListener;
+				domEvents.removeEventListener = realRemoveEventListener;
 
-			// Reset domEvents
-			domEvents.addEventListener = realAddEventListener;
-			domEvents.removeEventListener = realRemoveEventListener;
+				// We should have:
+				// - Called add/remove for the event handler at least once
+				// - Called add/remove for the event handler an equal number of times
+				assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+				assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
 
-			// We should have:
-			// - Called add/remove for the event handler at least once
-			// - Called add/remove for the event handler an equal number of times
-			assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
-			assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
+				var message = bindingListenerCount + ' event listeners were added but not removed';
+				if (removeEventListener < 0) {
+					message = 'Event listeners were removed more than necessary';
+				}
 
-			var message = bindingListenerCount + ' event listeners were added but not removed';
-			if (removeEventListener < 0) {
-				message = 'Event listeners were removed more than necessary';
-			}
+				assert.equal(bindingListenerCount, 0, message);
+				done();
+			},1);
 
-			assert.equal(bindingListenerCount, 0, message);
-			done();
 		});
 		viewModel.set('isShowing', false);
 	});

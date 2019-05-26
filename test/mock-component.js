@@ -1,11 +1,10 @@
 var stacheBindings = require('can-stache-bindings');
 var CanMap = require("can-map");
 var viewCallbacks = require('can-view-callbacks');
-var nodeLists = require('can-view-nodelist');
 var canSymbol = require('can-symbol');
 
 var domData = require('can-dom-data');
-var domMutateNode = require('can-dom-mutate');
+var domMutate = require('can-dom-mutate');
 var MockComponent;
 module.exports = MockComponent = {
 	extend: function(proto){
@@ -30,12 +29,13 @@ module.exports = MockComponent = {
 			if(proto.template) {
 				var shadowScope = componentTagData.scope.add(viewModel);
 				domData.set(el, "shadowScope", shadowScope);
-				var nodeList = nodeLists.register([], function(){
+				domMutate.onNodeRemoved(el, function(){
 					teardownBindings();
-				}, componentTagData.parentNodeList || true, false);
-				var frag = proto.template(shadowScope, componentTagData.options, nodeList);
+				});
 
-				domMutateNode.appendChild.call(el, frag);
+				var frag = proto.template(shadowScope, componentTagData.options);
+
+				domMutate.appendChild.call(el, frag);
 			}
 		});
 	}

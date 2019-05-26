@@ -671,7 +671,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		template();
 	});
 
-	test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
+	QUnit.test('viewModel behavior event bindings should be removed when the bound element is', function (assert) {
 		MockComponent.extend({
 			tag: "view-model-binder",
 			viewModel: {},
@@ -710,14 +710,17 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		domMutateNode.appendChild.call(this.fixture, fragment);
 		// We use the also effected hr so we
 		// can test the span handlers in isolation.
-		var hr = this.fixture.firstChild.lastChild;
-		var removalDisposal = domMutate.onNodeRemoval(hr, function () {
+		var hr = this.fixture.getElementsByTagName("hr")[0];
+		var removalDisposal = domMutate.onNodeDisconnected(hr, function () {
 			removalDisposal();
 			domMutate.onNodeAttributeChange = onNodeAttributeChange;
+			// delay because we remove from front to back
+			setTimeout(function(){
+				assert.ok(isAttributeChangeTracked, 'Attribute foo:bind="bar" should be tracked');
+				assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
+				done();
+			},10);
 
-			assert.ok(isAttributeChangeTracked, 'Attribute foo:bind="bar" should be tracked');
-			assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
-			done();
 		});
 		viewModel.attr('isShowing', false);
 	});
@@ -821,7 +824,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		});
 		vm.dispatch({type: "event"},[1,2]);
 	});
-	
+
 	QUnit.test("nested props with two way binding", function() {
 		var nestedValue = new SimpleMap({
 			first: 'Matt'

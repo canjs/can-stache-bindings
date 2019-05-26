@@ -10,6 +10,7 @@ var domMutateNode = require('can-dom-mutate/node');
 var globals = require('can-globals');
 
 testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, testIfRealDocument){
+
 	QUnit.test('event bindings should be removed when the bound element is', function (assert) {
 		var done = assert.async();
 		var template = stache('<div>{{#if isShowing}}<span foo:from="bar"></span><hr/>{{/if}}</div>');
@@ -40,15 +41,15 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 
 		var removalCount = 0;
 		var isRemovalTracked = false;
-		var onNodeRemoval = domMutate.onNodeRemoval;
-		domMutate.onNodeRemoval = function (node) {
+		var onNodeDisconnected = domMutate.onNodeDisconnected;
+		domMutate.onNodeDisconnected = function (node) {
 			if (!isTarget(node)) {
-				return onNodeRemoval.apply(null, arguments);
+				return onNodeDisconnected.apply(null, arguments);
 			}
 
 			removalCount++;
 			isRemovalTracked = true;
-			var disposal = onNodeRemoval.apply(null, arguments);
+			var disposal = onNodeDisconnected.apply(null, arguments);
 			return function () {
 				removalCount--;
 				return disposal();
@@ -60,19 +61,24 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 
 		// We use the also effected hr so we
 		// can test the span handlers in isolation.
-		var hr = this.fixture.firstChild.lastChild;
-		var removalDisposal = domMutate.onNodeRemoval(hr, function () {
+		var hr = this.fixture.getElementsByTagName("hr")[0];
+		var removalDisposal = domMutate.onNodeDisconnected(hr, function () {
 			removalDisposal();
 
-			domMutate.onNodeAttributeChange = onNodeAttributeChange;
-			assert.ok(isAttributeChangeTracked, 'Attribute foo:from="bar" should be tracked');
-			assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
+			// make sure we always run after all disconnected handlers
+			setTimeout(function(){
+				domMutate.onNodeAttributeChange = onNodeAttributeChange;
+				assert.ok(isAttributeChangeTracked, 'Attribute foo:from="bar" should be tracked');
+				assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
 
-			domMutate.onNodeRemoval = onNodeRemoval;
-			assert.ok(isRemovalTracked, 'Element span should be tracked');
-			assert.equal(removalCount, 0, 'all removal listeners should be disposed');
+				domMutate.onNodeDisconnected = onNodeDisconnected;
+				assert.ok(isRemovalTracked, 'Element span should be tracked');
+				assert.equal(removalCount, 0, 'all removal listeners should be disposed');
+				done();
+			},10);
 
-			done();
+
+
 		});
 		viewModel.attr('isShowing', false);
 	});
@@ -92,9 +98,10 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 
 		var template = stache("<div on:click='doStuff()' bar:raw='foo'>Test</div>");
 		d.body.appendChild(template({ doStuff: function() {} }));
+
 		var el = d.body.firstChild;
 
-		var removalDisposal = domMutate.onNodeRemoval(el, function() {
+		var removalDisposal = domMutate.onNodeDisconnected(el, function() {
 			removalDisposal();
 			globals.setKeyValue('document', realDoc);
 
@@ -102,6 +109,6 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 			done();
 		});
 
-		d.removeChild(d.documentElement);
+		domMutateNode.removeChild.call(d, d.documentElement);
 	});
 });

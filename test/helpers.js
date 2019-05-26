@@ -46,7 +46,7 @@ var helpers = {
 	afterMutation: function(cb) {
 		var doc = globals.getKeyValue('document');
 		var div = doc.createElement("div");
-		var undo = domMutate.onNodeInsertion(div, function () {
+		var undo = domMutate.onNodeConnected(div, function () {
 			undo();
 			doc.body.removeChild(div);
 			setTimeout(cb, 5);

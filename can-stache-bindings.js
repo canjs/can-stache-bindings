@@ -32,7 +32,6 @@ var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
 var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
-var ViewNodeList = require("can-view-nodelist");
 
 var canEventQueue = require("can-event-queue/map/map");
 
@@ -477,16 +476,14 @@ var behaviors = {
 				attributeDisposal = undefined;
 			}
 		};
-		if (attrData.nodeList) {
-			ViewNodeList.register([], tearItAllDown, attrData.nodeList, false);
-		}
+
 
 
 		// Listen for changes
 		teardown = dataBinding.binding.stop.bind(dataBinding.binding);
 
 		attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
-		removedDisposal = domMutate.onNodeRemoval(el, function() {
+		removedDisposal = domMutate.onNodeDisconnected(el, function() {
 			var doc = el.ownerDocument;
 			var ownerNode = doc.contains ? doc : doc.documentElement;
 			if (!ownerNode || ownerNode.contains(el) === false) {
@@ -630,7 +627,7 @@ var behaviors = {
 		// Bind the handler defined above to the element we're currently processing and the event name provided in this
 		// attribute name (can-click="foo")
 		attributesDisposal = domMutate.onNodeAttributeChange(el, attributesHandler);
-		removalDisposal = domMutate.onNodeRemoval(el, removalHandler);
+		removalDisposal = domMutate.onNodeDisconnected(el, removalHandler);
 		if (!bindingContext && bindingContextObservable) {
 			// on value changes of the observation, rebind the listener to the new context
 			removeObservation = function () {

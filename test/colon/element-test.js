@@ -1097,8 +1097,8 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 		testHelpers.afterMutation(function() {
 			people.push('Brian');
 			testHelpers.afterMutation(function() {
-				var select = frag.firstChild;
-				ok(select.lastChild.selected, 'New child should be selected');
+				var options = frag.firstChild.getElementsByTagName("option");
+				ok(options[options.length - 1].selected, 'New child should be selected');
 				start();
 			});
 		});
