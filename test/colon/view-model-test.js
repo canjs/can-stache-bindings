@@ -287,7 +287,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		assert.expect(1);
 		var VM = SimpleMap.extend({
 			attr: function(prop, val){
-				if(prop === "bar") {
+				if(arguments.length > 1 && prop === "bar") {
 					assert.equal(val, "BAR");
 				}
 				return SimpleMap.prototype.attr.apply(this, arguments);
@@ -859,5 +859,36 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 
 		assert.equal(parentVM.get('name'), 'child-updated', 'parent vm has correct value');
 		assert.equal(nestedValue.get('first'), 'child-updated', 'child vm has correct value');
+	});
+
+	canTestHelpers.dev.devOnlyTest("warn when changing the value of a sticky binding child-side (initializing view model)", function(assert) {
+		assert.expect(2);
+		var teardown = canTestHelpers.dev.willWarn(
+			"can-stache-bindings: The child of the sticky two-way binding <my-child>.name.first is changing or converting its value when set.  " +
+				"Conversions should only be done on the binding parent to preserve synchronization.  " +
+				"See https://canjs.com/doc/can-stache-bindings.html#StickyBindings for more about sticky bindings",
+			function(text, match) {
+				if(match) {
+					assert.ok(true, "Correct warning generated");
+				}
+			}
+		);
+
+		var childVM = new SimpleMap({
+			name: {
+				first: "Matt"
+			}
+		});
+		MockComponent.extend({
+			tag: "my-child",
+			viewModel: childVM,
+			template: stache('<input value:bind="name.first" />')
+		});
+		var parentVM = new SimpleMap({
+			name: 'Justin'	
+		});
+		stache('<my-child name.first:bind="name" /><input value:bind="name" />')(parentVM);
+
+		assert.equal(teardown(), 1, "Warning generated only once");
 	});
 });
