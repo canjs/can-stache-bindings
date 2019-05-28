@@ -1,10 +1,12 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
+var canTestHelpers = require('can-test-helpers');
 
 require('can-stache-bindings');
 
 var stache = require('can-stache');
 var MockComponent = require("../mock-component-simple-map");
+var viewCallbacks = require('can-view-callbacks');
 
 var SimpleMap = require("can-simple-map");
 
@@ -13,6 +15,7 @@ var DefineList = require("can-define/list/list");
 var SimpleObservable = require("can-simple-observable");
 var canViewModel = require('can-view-model');
 var canReflect = require("can-reflect");
+var canSymbol = require("can-symbol");
 
 var domData = require('can-dom-data');
 var domMutate = require('can-dom-mutate');
@@ -706,5 +709,26 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map.get("user").set("name", "Greg");
 		map.set("user", user2);
 		map.get("user").set("name", "Todd");
+	});
+
+	canTestHelpers.dev.devOnlyTest("warning when binding known DOM event name to view model (dev-only wrapper)", function() {
+		expect(0);
+		testIfRealDocument("warning when binding known DOM event name to view model (real test)", function() {
+			var teardown = canTestHelpers.dev.willWarn("The focus event is bound the view model for <warning-el>. Use on:el:focus to bind to the element instead.");
+			viewCallbacks.tag("warning-el", function(el) {
+				el[canSymbol.for("can.viewModel")] = new SimpleMap({});
+			});
+
+			var template = stache(
+				"<warning-el on:vm:click='scope.element.preventDefault()' " +
+					"on:el:change='scope.element.preventDefault()' " +
+					"on:foo='scope.element.preventDefault()' " +
+					"on:focus='scope.element.preventDefault()'/>"
+			);
+
+			var map = new SimpleMap({});
+			template(map);
+			QUnit.equal(teardown(), 1, 'warning shown');
+		});
 	});
 });
