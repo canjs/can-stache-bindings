@@ -7,7 +7,7 @@ var makeDocument = require('can-vdom/make-document/make-document');
 var helpers = {
 	makeQUnitModule: function(name, doc, enableMO){
 		QUnit.module(name, {
-			setup: function() {
+			beforeEach: function() {
 
 				globals.setKeyValue('document', doc);
 				if(!enableMO){
@@ -21,12 +21,12 @@ var helpers = {
 					doc.body.appendChild(this.fixture);
 				}
 			},
-			teardown: function(){
+			afterEach: function(assert){
 				if(doc !== document) {
 					doc.body.removeChild(this.fixture);
 				}
 
-				stop();
+				var done = assert.async();
 				helpers.afterMutation(function() {
 
 					globals.deleteKeyValue('document');
@@ -38,7 +38,7 @@ var helpers = {
 						fixture.removeChild(fixture.lastChild);
 					}
 
-					start();
+					done();
 				});
 			}
 		});
