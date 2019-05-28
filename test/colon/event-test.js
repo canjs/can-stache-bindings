@@ -728,7 +728,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 			var map = new SimpleMap({});
 			template(map);
-			QUnit.equal(teardown(), 1, 'warning shown');
+			assert.equal(teardown(), 1, 'warning shown');
 		});
 	});
 });
