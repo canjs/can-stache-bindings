@@ -711,8 +711,8 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map.get("user").set("name", "Todd");
 	});
 
-	canTestHelpers.dev.devOnlyTest("warning when binding known DOM event name to view model (dev-only wrapper)", function() {
-		expect(0);
+	canTestHelpers.dev.devOnlyTest("warning when binding known DOM event name to view model (dev-only wrapper)", function(assert) {
+		assert.expect(0);
 		testIfRealDocument("warning when binding known DOM event name to view model (real test)", function() {
 			var teardown = canTestHelpers.dev.willWarn("The focus event is bound the view model for <warning-el>. Use on:el:focus to bind to the element instead.");
 			viewCallbacks.tag("warning-el", function(el) {
