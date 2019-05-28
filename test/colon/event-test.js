@@ -711,24 +711,22 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map.get("user").set("name", "Todd");
 	});
 
-	canTestHelpers.dev.devOnlyTest("warning when binding known DOM event name to view model (dev-only wrapper)", function(assert) {
-		assert.expect(0);
-		testIfRealDocument("warning when binding known DOM event name to view model (real test)", function() {
-			var teardown = canTestHelpers.dev.willWarn("The focus event is bound the view model for <warning-el>. Use on:el:focus to bind to the element instead.");
-			viewCallbacks.tag("warning-el", function(el) {
-				el[canSymbol.for("can.viewModel")] = new SimpleMap({});
-			});
-
-			var template = stache(
-				"<warning-el on:vm:click='scope.element.preventDefault()' " +
-					"on:el:change='scope.element.preventDefault()' " +
-					"on:foo='scope.element.preventDefault()' " +
-					"on:focus='scope.element.preventDefault()'/>"
-			);
-
-			var map = new SimpleMap({});
-			template(map);
-			assert.equal(teardown(), 1, 'warning shown');
+	testIfRealDocument("warning when binding known DOM event name to view model (real test)", function(assert) {
+		var teardown = canTestHelpers.dev.willWarn("The focus event is bound the view model for <warning-el>. Use on:el:focus to bind to the element instead.");
+		viewCallbacks.tag("warning-el", function(el) {
+			el[canSymbol.for("can.viewModel")] = new SimpleMap({});
 		});
+
+		var template = stache(
+			"<warning-el on:vm:click='scope.element.preventDefault()' " +
+				"on:el:change='scope.element.preventDefault()' " +
+				"on:foo='scope.element.preventDefault()' " +
+				"on:focus='scope.element.preventDefault()'/>"
+		);
+
+		var map = new SimpleMap({});
+		template(map);
+		assert.equal(teardown(), 1, 'warning shown');
 	});
+
 });
