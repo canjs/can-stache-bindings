@@ -864,8 +864,8 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 	canTestHelpers.dev.devOnlyTest("warn when changing the value of a sticky binding child-side (initializing view model)", function(assert) {
 		assert.expect(2);
 		var teardown = canTestHelpers.dev.willWarn(
-			"can-stache-bindings: The child of the sticky two-way binding <my-child>.name.first is changing or converting its value when set.  " +
-				"Conversions should only be done on the binding parent to preserve synchronization.  " +
+			"can-bind: The child of the sticky two-way binding <my-child name.first:bind=\"name\"> is changing or converting its value when set. " +
+				"Conversions should only be done on the binding parent to preserve synchronization. " +
 				"See https://canjs.com/doc/can-stache-bindings.html#StickyBindings for more about sticky bindings",
 			function(text, match) {
 				if(match) {

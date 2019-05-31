@@ -349,31 +349,6 @@ var behaviors = {
 		var completedData = behaviors.initializeViewModel(dataBindings, initialViewModelData, function(){
 			// we need to make sure we have the viewModel available
 			bindingContext.viewModel = makeViewModel.apply(this, arguments);
-
-			// Here we want to do a dev-mode check to see whether the child does type conversions on
-			//  any two-way bindings.  This will be ignored and the child and parent will be desynched.
-			dataBindings.forEach(function(dataBinding) {
-				var binding = dataBinding.binding;
-				var childContext = binding.child.observation && binding.child.observation.func || binding.child;
-				var parentValue = canReflect.getValue(binding.parent);
-				var childValue = canReflect.getValue(binding.child);
-				if (
-					binding._parentToChild &&
-					binding._childToParent &&
-					parentValue != null &&
-					childValue !== parentValue
-				) {
-					dev.warn(
-						"can-stache-bindings: The child of the sticky two-way binding " +
-						canReflect.getName(childContext) +
-						" is changing or converting its value when set.  " +
-						"Conversions should only be done on the binding parent to preserve synchronization.  " +
-						"See https://canjs.com/doc/can-stache-bindings.html#StickyBindings for more about sticky bindings"
-					);
-				}
-			});
-
-
 		}, bindingContext),
 			onTeardowns = completedData.onTeardowns,
 			bindingsState = completedData.bindingsState,
@@ -1133,11 +1108,12 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 				return ""+child+"."+childName;
 			}
 		};
-		bindingOptions.updateChildName = tagStart+" "+nodeHTML+"> updates "+
+		bindingOptions.debugName = tagStart+" "+nodeHTML+">";
+		bindingOptions.updateChildName = bindingOptions.debugName+" updates "+
 			makeUpdateName(siblingBindingData.child.source, siblingBindingData.child.name)+
 			" from "+makeUpdateName(siblingBindingData.parent.source, siblingBindingData.parent.name);
 
-		bindingOptions.updateParentName = tagStart+" "+nodeHTML+"> updates "+
+		bindingOptions.updateParentName = bindingOptions.debugName+" updates "+
 			makeUpdateName(siblingBindingData.parent.source, siblingBindingData.parent.name)+
 			" from "+makeUpdateName(siblingBindingData.child.source, siblingBindingData.child.name);
 	}
