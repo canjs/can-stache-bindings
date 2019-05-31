@@ -1108,11 +1108,12 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 				return ""+child+"."+childName;
 			}
 		};
-		bindingOptions.updateChildName = tagStart+" "+nodeHTML+"> updates "+
+		bindingOptions.debugName = tagStart+" "+nodeHTML+">";
+		bindingOptions.updateChildName = bindingOptions.debugName+" updates "+
 			makeUpdateName(siblingBindingData.child.source, siblingBindingData.child.name)+
 			" from "+makeUpdateName(siblingBindingData.parent.source, siblingBindingData.parent.name);
 
-		bindingOptions.updateParentName = tagStart+" "+nodeHTML+"> updates "+
+		bindingOptions.updateParentName = bindingOptions.debugName+" updates "+
 			makeUpdateName(siblingBindingData.parent.source, siblingBindingData.parent.name)+
 			" from "+makeUpdateName(siblingBindingData.child.source, siblingBindingData.child.name);
 	}
