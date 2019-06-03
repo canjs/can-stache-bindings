@@ -4,6 +4,7 @@ var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domData = require('can-dom-data');
 var makeDocument = require('can-vdom/make-document/make-document');
+var canTestHelpers = require('can-test-helpers');
 var helpers = {
 	makeQUnitModule: function(name, doc, enableMO){
 		QUnit.module(name, {
@@ -56,12 +57,14 @@ var helpers = {
 		}, 10);
 	},
 	makeTests: function(name, makeTest) {
+		var noop = function(){};
 
 		helpers.makeQUnitModule(name+" - dom", document, true);
-		makeTest(name+" - dom", document, true, QUnit.test);
+		makeTest(name+" - dom", document, true, QUnit.test, noop);
+		makeTest(name+" - dom - dev only", document, true, noop, canTestHelpers.dev.devOnlyTest);
 		var doc = makeDocument();
 		helpers.makeQUnitModule(name+" - vdom", doc, false);
-		makeTest(name+" - vdom", doc, false, function(){});
+		makeTest(name+" - vdom", doc, false, noop, noop);
 	},
 
 	interceptDomEvents: function(addFn, removeFn) {

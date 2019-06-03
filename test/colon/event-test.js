@@ -22,7 +22,7 @@ var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
-testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO, testIfRealDocument){
+testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO, testIfRealDocument, testIfRealDocumentInDev){
 
 	QUnit.test("on:enter", function(assert) {
 		var enterEvent = require('can-event-dom-enter');
@@ -711,7 +711,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		map.get("user").set("name", "Todd");
 	});
 
-	testIfRealDocument("warning when binding known DOM event name to view model (real test)", function(assert) {
+	testIfRealDocumentInDev("warning when binding known DOM event name to view model", function(assert) {
 		var teardown = canTestHelpers.dev.willWarn("The focus event is bound the view model for <warning-el>. Use on:el:focus to bind to the element instead.");
 		viewCallbacks.tag("warning-el", function(el) {
 			el[canSymbol.for("can.viewModel")] = new SimpleMap({});
