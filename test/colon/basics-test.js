@@ -29,6 +29,8 @@ function siblingsDataToInfo(siblingData) {
 
 }
 
+stache.addBindings(stacheBindings);
+
 testHelpers.makeTests("can-stache-bindings - colon - basics", function(name, doc, enableMO){
 
 	test("basics", 5, function(){

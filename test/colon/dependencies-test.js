@@ -7,7 +7,9 @@ var canReflectDeps = require("can-reflect-dependencies");
 var canReflect = require("can-reflect");
 
 var stache = require("can-stache");
-require("can-stache-bindings");
+var stacheBindings = require("can-stache-bindings");
+
+stache.addBindings(stacheBindings);
 
 var browserSupportsAutomaticallyNamedConstructors = (function() {
 	var C = function C() {};

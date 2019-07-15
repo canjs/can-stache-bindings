@@ -2,8 +2,7 @@ var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 var canTestHelpers = require('can-test-helpers');
 
-require('can-stache-bindings');
-
+var stacheBindings = require('can-stache-bindings');
 var stache = require('can-stache');
 var MockComponent = require("../mock-component-simple-map");
 var viewCallbacks = require('can-view-callbacks');
@@ -21,6 +20,8 @@ var domData = require('can-dom-data');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO, testIfRealDocument){
 

@@ -1,13 +1,14 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-require('can-stache-bindings');
-
+var stacheBindings = require('can-stache-bindings');
 var stache = require('can-stache');
 var SimpleMap = require("can-simple-map");
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var globals = require('can-globals');
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, testIfRealDocument){
 

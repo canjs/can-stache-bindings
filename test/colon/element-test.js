@@ -2,7 +2,7 @@ var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
 var stache = require('can-stache');
-require('can-stache-bindings');
+var stacheBindings = require('can-stache-bindings');
 
 var SimpleMap = require("can-simple-map");
 var DefineList = require("can-define/list/list");
@@ -18,6 +18,8 @@ var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
 var DefineMap = require("can-define/map/map");
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - colon - element", function(name, doc, enableMO, testIfRealDocument){
 

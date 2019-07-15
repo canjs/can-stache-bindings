@@ -1,8 +1,7 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-require('can-stache-bindings');
-
+var stacheBindings = require('can-stache-bindings');
 var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
@@ -22,6 +21,8 @@ var queues = require("can-queues");
 var canTestHelpers = require('can-test-helpers');
 var stacheBindings = require('can-stache-bindings');
 var Scope = require("can-view-scope");
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, doc, enableMO){
 

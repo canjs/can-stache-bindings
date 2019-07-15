@@ -13,7 +13,6 @@
 // - initializeValues - A helper that initializes a data binding.
 var Bind = require('can-bind');
 var expression = require('can-stache/src/expression');
-var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
 var stacheKey = require('can-stache-key');
 var ObservationRecorder = require('can-observation-recorder');
@@ -34,6 +33,9 @@ var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
 
 var canEventQueue = require("can-event-queue/map/map");
+
+// Contains all of the stache bindings that will be exported.
+var bindings = new Map();
 
 // Contains all of the stache bindings that will be exported.
 var bindings = new Map();
@@ -1150,6 +1152,5 @@ var canStacheBindings = {
 };
 
 canStacheBindings[canSymbol.for("can.callbackMap")] = bindings;
-viewCallbacks.attrs(canStacheBindings);
 
 module.exports = canStacheBindings;

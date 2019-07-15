@@ -107,6 +107,21 @@ The following are the bindings available within [can-stache]:
 
   > __Note:__ If the value being passed to the component is an object, changes to the object's properties will still be visible to the component.   Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
+## Installing can-stache-bindings
+
+To install can-stache-bindings so they can be used in your templates import the package and register it with [can-stache.addBindings] like so:
+
+```js
+import stacheBindings from 'can-stache-bindings';
+import stache from 'can-stache';
+
+stache.addBindings(stacheBindings);
+```
+
+## Binding types
+
+The following are the bindings that should be used with [can-stache]:
+
 - __[can-stache-bindings.toParent one-way to parent]__
 
   Updates `value` in the [can-view-scope scope]  with `childProp`
