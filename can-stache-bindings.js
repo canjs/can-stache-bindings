@@ -49,7 +49,8 @@ var onMatchStr = "on:",
 	viewModelBindingStr = "viewModel",
 	attributeBindingStr = "attribute",
 	scopeBindingStr = "scope",
-	viewModelOrAttributeBindingStr = "viewModelOrAttribute";
+	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
+	viewModelSymbol = canSymbol.for("can.viewModel");
 
 var throwOnlyOneTypeOfBindingError = function() {
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
@@ -92,7 +93,7 @@ var checkBindingState = function(bindingState, siblingBindingData) {
 
 var getEventBindingData = function (attributeName, el, scope) {
 	var bindingCode = attributeName.substr(onMatchStr.length);
-	var viewModel = el && el[canSymbol.for('can.viewModel')];
+	var viewModel = el && el[viewModelSymbol];
 	var elUsed = startsWith.call(bindingCode, elMatchStr);
 	var vmUsed = startsWith.call(bindingCode, vmMatchStr);
 	var byUsed = bindingCode.indexOf(byMatchStr) > -1;
@@ -529,7 +530,7 @@ var behaviors = {
 			if(process.env.NODE_ENV !== "production") {
 				if(
 					!eventBindingData.bindingCode &&
-					el[canSymbol.for("can.viewModel")] &&
+					el[viewModelSymbol] &&
 					("on" + event) in el
 				) {
 					dev.warn(
@@ -551,7 +552,7 @@ var behaviors = {
 				return;
 			}
 
-			var viewModel = canViewModel(el);
+			var viewModel = el[viewModelSymbol];
 
 			// expression.parse will read the attribute
 			// value and parse it identically to how mustache helpers
@@ -674,7 +675,7 @@ bindings.set(/on:[\w\.:]+/, behaviors.event);
 var getObservableFrom = {
 	// ### getObservableFrom.viewModelOrAttribute
 	viewModelOrAttribute: function(bindingData, bindingContext) {
-		var viewModel = bindingContext.element[canSymbol.for('can.viewModel')];
+		var viewModel = bindingContext.element[viewModelSymbol];
 
 		// if we have a viewModel, use it; otherwise, setup attribute binding
 		if (viewModel) {

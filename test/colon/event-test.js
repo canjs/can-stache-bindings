@@ -729,4 +729,20 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		assert.equal(teardown(), 1, 'warning shown');
 	});
 
+	QUnit.test("events should not create viewmodels (#540)", function(assert) {
+		var ta = this.fixture;
+
+		var template = stache("<div id='click-me' on:click='func()'></div>");
+		var frag = template({
+			func: function(){
+				assert.ok(true, "func ran");
+			}
+		});
+
+		ta.appendChild(frag);
+		var el = doc.getElementById("click-me");
+		domEvents.dispatch(el, "click");
+
+		assert.equal(el[canSymbol.for("can.viewModel")], undefined, "el does not have a viewmodel");
+	});
 });
