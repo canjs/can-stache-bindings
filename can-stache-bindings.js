@@ -1074,7 +1074,7 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 		}
 	}
 	//!steal-remove-end
-
+	
 	var bindingOptions = {
 		child: childObservable,
 		childToParent: childToParent,
@@ -1086,8 +1086,9 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 		parent: parentObservable,
 		parentToChild: parentToChild,
 		priority: bindingContext.parentNodeList ? bindingContext.parentNodeList.nesting + 1 : undefined,
-		queue: "domUI",
-		sticky: siblingBindingData.parent.syncSibling ? "childSticksToParent" : undefined
+		queue: "dom",
+		sticky: siblingBindingData.parent.syncSibling ? "childSticksToParent" : undefined,
+		element: bindingContext.element
 	};
 
 	//!steal-remove-start
