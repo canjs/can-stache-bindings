@@ -51,7 +51,8 @@ var onMatchStr = "on:",
 	attributeBindingStr = "attribute",
 	scopeBindingStr = "scope",
 	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
-	viewModelSymbol = canSymbol.for("can.viewModel");
+	viewModelSymbol = canSymbol.for("can.viewModel"),
+	preventDataBindingsSymbol = canSymbol.for("can.preventDataBindings");
 
 var throwOnlyOneTypeOfBindingError = function() {
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
@@ -402,7 +403,7 @@ var behaviors = {
 	// This is called when an individual data binding attribute is placed on an element.
 	// For example `{^value}="name"`.
 	data: function(el, attrData) {
-		if (domData.get(el, "preventDataBindings")) {
+		if (el[preventDataBindingsSymbol] === true || domData.get(el, "preventDataBindings")) {
 			return;
 		}
 		var viewModel,
@@ -1074,7 +1075,7 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 		}
 	}
 	//!steal-remove-end
-	
+
 	var bindingOptions = {
 		child: childObservable,
 		childToParent: childToParent,

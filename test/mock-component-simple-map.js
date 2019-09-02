@@ -26,7 +26,8 @@ module.exports = MockComponent = {
 			}, {});
 			el[canSymbol.for('can.viewModel')] = viewModel;
 			el.viewModel = viewModel;
-			domData.set(el, "preventDataBindings", true);
+			el[canSymbol.for('can.preventDataBindings')] = true;
+			//domData.set(el, "preventDataBindings", true);
 
 			if(proto.template) {
 				var shadowScope = componentTagData.scope.add(viewModel);
