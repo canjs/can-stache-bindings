@@ -10,7 +10,7 @@
   and vice-versa.
 
   ```html
-  <my-component someProp:bind="value"/>
+  <my-element someProp:bind="value" />
   ```
 
   When setting up the binding:
@@ -32,7 +32,7 @@
   and vice-versa.
 
   ```html
-  <input value:bind="name"/>
+  <input value:bind="name" />
   ```
 
   @param {String} child-prop The name of the element’s property or attribute to two-way bind.
@@ -46,7 +46,7 @@
   and vice-versa.
 
   ```html
-  <my-component vm:someProp:bind="value"/>
+  <my-element vm:someProp:bind="value" />
   ```
 
   When setting up the binding:
@@ -66,7 +66,7 @@ Parameters are the same as [can-stache-bindings.twoWay#childProp_bind__key_ chil
   and vice-versa.
 
   ```html
-  <input el:value:bind="name"/>
+  <input el:value:bind="name" />
   ```
 
 Parameters are the same as [can-stache-bindings.twoWay#child_prop_bind__key_ child-prop:bind="key"]

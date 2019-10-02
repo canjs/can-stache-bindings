@@ -8,10 +8,10 @@
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```html
-  <my-component someProp:from="value"/>
+  <my-element someProp:from="value" />
   ```
 
-  > __Note:__ If [can-stache.key] is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+  > __Note:__ If [can-stache.key] is an object, changes to the object’s properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
   @param {String} childProp The name of the property to set in the
   component’s viewmodel.
@@ -23,7 +23,7 @@
   Imports [can-stache.key] in the [can-view-scope scope] to `child-prop` property or attribute on the element.
 
   ```html
-  <input value:from="name"/>
+  <input value:from="name" />
   ```
 
 @signature `vm:childProp:from="key"`
@@ -31,10 +31,10 @@
   Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```html
-  <my-component vm:childProp:from="key"/>
+  <my-element vm:childProp:from="key" />
   ```
 
-  > __Note:__ If [can-stache.key] is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+  > __Note:__ If [can-stache.key] is an object, changes to the object’s properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ childProp:from="key"]
 
@@ -43,7 +43,7 @@ Parameters are the same as [can-stache-bindings.toChild#childProp_from__key_ chi
   Imports [can-stache.key] in the [can-view-scope scope] to `child-prop` property or attribute on the element.
 
   ```html
-  <input el:value:from="name"/>
+  <input el:value:from="name" />
   ```
 
 Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ child-prop:from="key"]
@@ -54,5 +54,5 @@ Parameters are the same as [can-stache-bindings.toChild#child_prop_from__key_ ch
 
 The [can-stache-bindings] page has many examples of [can-stache-bindings.toChild]. Specifically:
 
-- [can-stache-bindings#Updateanelement_svaluefromthescope Update a component ViewModel's value from the scope]
+- [can-stache-bindings#Updateanelement_svaluefromthescope Update a component ViewModel’s value from the scope]
 - [can-stache-bindings#UpdateacomponentViewModel_svaluefromthescope Pass a value from an element to the scope]
