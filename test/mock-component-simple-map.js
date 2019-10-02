@@ -1,11 +1,11 @@
 var stacheBindings = require('can-stache-bindings');
 var CanSimpleMap = require("can-simple-map");
 var viewCallbacks = require('can-view-callbacks');
-var nodeLists = require('can-view-nodelist');
 var canSymbol = require('can-symbol');
 
 var domData = require('can-dom-data');
 var domMutateNode = require('can-dom-mutate/node');
+var domMutate = require('can-dom-mutate');
 var MockComponent;
 module.exports = MockComponent = {
 	extend: function(proto){
@@ -26,15 +26,16 @@ module.exports = MockComponent = {
 			}, {});
 			el[canSymbol.for('can.viewModel')] = viewModel;
 			el.viewModel = viewModel;
-			domData.set(el, "preventDataBindings", true);
+			el[canSymbol.for('can.preventDataBindings')] = true;
+			//domData.set(el, "preventDataBindings", true);
 
 			if(proto.template) {
 				var shadowScope = componentTagData.scope.add(viewModel);
 				domData.set(el, "shadowScope", shadowScope);
-				var nodeList = nodeLists.register([], function(){
+				domMutate.onNodeRemoved(el, function(){
 					teardownBindings();
-				}, componentTagData.parentNodeList || true, false);
-				var frag = proto.template(shadowScope, componentTagData.options, nodeList);
+				});
+				var frag = proto.template(shadowScope, componentTagData.options);
 
 				domMutateNode.appendChild.call(el, frag);
 			}

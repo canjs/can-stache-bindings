@@ -1,8 +1,7 @@
 var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
-require('can-stache-bindings');
-
+var stacheBindings = require('can-stache-bindings');
 var stache = require('can-stache');
 
 var SimpleMap = require("can-simple-map");
@@ -22,6 +21,8 @@ var queues = require("can-queues");
 var canTestHelpers = require('can-test-helpers');
 var stacheBindings = require('can-stache-bindings');
 var Scope = require("can-view-scope");
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, doc, enableMO){
 
@@ -710,14 +711,17 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		domMutateNode.appendChild.call(this.fixture, fragment);
 		// We use the also effected hr so we
 		// can test the span handlers in isolation.
-		var hr = this.fixture.firstChild.lastChild;
-		var removalDisposal = domMutate.onNodeRemoval(hr, function () {
+		var hr = this.fixture.getElementsByTagName("hr")[0];
+		var removalDisposal = domMutate.onNodeDisconnected(hr, function () {
 			removalDisposal();
 			domMutate.onNodeAttributeChange = onNodeAttributeChange;
+			// delay because we remove from front to back
+			setTimeout(function(){
+				assert.ok(isAttributeChangeTracked, 'Attribute foo:bind="bar" should be tracked');
+				assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
+				done();
+			},10);
 
-			assert.ok(isAttributeChangeTracked, 'Attribute foo:bind="bar" should be tracked');
-			assert.equal(attributeChangeCount, 0, 'all attribute listeners should be disposed');
-			done();
 		});
 		viewModel.attr('isShowing', false);
 	});
@@ -821,7 +825,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 		});
 		vm.dispatch({type: "event"},[1,2]);
 	});
-	
+
 	QUnit.test("nested props with two way binding", function(assert) {
 		var nestedValue = new SimpleMap({
 			first: 'Matt'
@@ -885,7 +889,7 @@ testHelpers.makeTests("can-stache-bindings - colon - ViewModel", function(name, 
 			template: stache('<input value:bind="name.first" />')
 		});
 		var parentVM = new SimpleMap({
-			name: 'Justin'	
+			name: 'Justin'
 		});
 		stache('<my-child name.first:bind="name" /><input value:bind="name" />')(parentVM);
 

@@ -7,7 +7,9 @@ var canReflectDeps = require("can-reflect-dependencies");
 var canReflect = require("can-reflect");
 
 var stache = require("can-stache");
-require("can-stache-bindings");
+var stacheBindings = require("can-stache-bindings");
+
+stache.addBindings(stacheBindings);
 
 var browserSupportsAutomaticallyNamedConstructors = (function() {
 	var C = function C() {};
@@ -15,7 +17,7 @@ var browserSupportsAutomaticallyNamedConstructors = (function() {
 	return c.constructor.name === "C";
 }());
 
-QUnit.module("bindings dependencies", {
+QUnit.module("can-stache-bindings bindings dependencies", {
 	beforeEach: function() {
 		this.fixture = document.getElementById("qunit-fixture");
 	},

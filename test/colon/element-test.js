@@ -2,7 +2,7 @@ var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 
 var stache = require('can-stache');
-require('can-stache-bindings');
+var stacheBindings = require('can-stache-bindings');
 
 var SimpleMap = require("can-simple-map");
 var DefineList = require("can-define/list/list");
@@ -18,6 +18,8 @@ var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
 
 var DefineMap = require("can-define/map/map");
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - colon - element", function(name, doc, enableMO, testIfRealDocument){
 
@@ -419,14 +421,14 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		var done = assert.async();
 		testHelpers.afterMutation(function () {
-			
+
 			assert.equal(input.value, "30", "input value set correctly");
 
 			map.attr("age", "31");
 
 
 			testHelpers.afterMutation(function () {
-				
+
 				assert.equal(input.value, "31", "input value update correctly");
 
 				input.value = "32";
@@ -777,7 +779,7 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 			assert.strictEqual(frag.firstChild.selectedIndex, 0, 'foo: selectedIndex = 0');
 
 			map.attr('key', 'notbar');
-		
+
 
 			testHelpers.afterMutation(function () {
 				done();
@@ -1095,9 +1097,9 @@ testHelpers.makeTests("can-stache-bindings - colon - element", function(name, do
 
 		testHelpers.afterMutation(function () {
 			people.push('Brian');
-			testHelpers.afterMutation(function () {
-				var select = frag.firstChild;
-				assert.ok(select.lastChild.selected, 'New child should be selected');
+			testHelpers.afterMutation(function() {
+				var options = frag.firstChild.getElementsByTagName("option");
+				assert.ok(options[options.length - 1].selected, 'New child should be selected');
 				done();
 			});
 		});

@@ -2,8 +2,7 @@ var QUnit = require('steal-qunit');
 var testHelpers = require('../helpers');
 var canTestHelpers = require('can-test-helpers');
 
-require('can-stache-bindings');
-
+var stacheBindings = require('can-stache-bindings');
 var stache = require('can-stache');
 var MockComponent = require("../mock-component-simple-map");
 var viewCallbacks = require('can-view-callbacks');
@@ -21,6 +20,8 @@ var domData = require('can-dom-data');
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var domEvents = require('can-dom-events');
+
+stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc, enableMO, testIfRealDocument, testIfRealDocumentInDev){
 
@@ -158,28 +159,32 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		// We use the also effected span so we
 		// can test the input handlers in isolation.
-		var span = this.fixture.firstChild.lastChild;
+		var span = this.fixture.getElementsByTagName("span")[0];
 		var done = assert.async();
-		var undo = domMutate.onNodeRemoval(span, function () {
+		var undo = domMutate.onNodeDisconnected(span, function () {
+
 			undo();
+			// The span might be removed before the element.
+			setTimeout(function(){
+				// Reset domEvents
+				domEvents.addEventListener = realAddEventListener;
+				domEvents.removeEventListener = realRemoveEventListener;
 
-			// Reset domEvents
-			domEvents.addEventListener = realAddEventListener;
-			domEvents.removeEventListener = realRemoveEventListener;
+				// We should have:
+				// - Called add/remove for the event handler at least once
+				// - Called add/remove for the event handler an equal number of times
+				assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
+				assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
 
-			// We should have:
-			// - Called add/remove for the event handler at least once
-			// - Called add/remove for the event handler an equal number of times
-			assert.ok(hasAddedBindingListener, 'An event listener should have been added for the binding');
-			assert.ok(hasRemovedBindingListener, 'An event listener should have been removed for the binding');
+				var message = bindingListenerCount + ' event listeners were added but not removed';
+				if (removeEventListener < 0) {
+					message = 'Event listeners were removed more than necessary';
+				}
 
-			var message = bindingListenerCount + ' event listeners were added but not removed';
-			if (removeEventListener < 0) {
-				message = 'Event listeners were removed more than necessary';
-			}
+				assert.equal(bindingListenerCount, 0, message);
+				done();
+			},1);
 
-			assert.equal(bindingListenerCount, 0, message);
-			done();
 		});
 		viewModel.set('isShowing', false);
 	});
@@ -727,6 +732,23 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		var map = new SimpleMap({});
 		template(map);
 		assert.equal(teardown(), 1, 'warning shown');
+	});
+
+	QUnit.test("events should not create viewmodels (#540)", function(assert) {
+		var ta = this.fixture;
+
+		var template = stache("<div id='click-me' on:click='func()'></div>");
+		var frag = template({
+			func: function(){
+				assert.ok(true, "func ran");
+			}
+		});
+
+		ta.appendChild(frag);
+		var el = doc.getElementById("click-me");
+		domEvents.dispatch(el, "click");
+
+		assert.equal(el[canSymbol.for("can.viewModel")], undefined, "el does not have a viewmodel");
 	});
 
 	QUnit.test("events should not create viewmodels (#540)", function(assert) {

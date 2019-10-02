@@ -13,7 +13,6 @@
 // - initializeValues - A helper that initializes a data binding.
 var Bind = require('can-bind');
 var expression = require('can-stache/src/expression');
-var viewCallbacks = require('can-view-callbacks');
 var canViewModel = require('can-view-model');
 var stacheKey = require('can-stache-key');
 var ObservationRecorder = require('can-observation-recorder');
@@ -32,9 +31,11 @@ var queues = require("can-queues");
 var SettableObservable = require("can-simple-observable/setter/setter");
 var AttributeObservable = require("can-attribute-observable");
 var makeCompute = require("can-view-scope/make-compute-like");
-var ViewNodeList = require("can-view-nodelist");
 
 var canEventQueue = require("can-event-queue/map/map");
+
+// Contains all of the stache bindings that will be exported.
+var bindings = new Map();
 
 // Contains all of the stache bindings that will be exported.
 var bindings = new Map();
@@ -50,7 +51,8 @@ var onMatchStr = "on:",
 	attributeBindingStr = "attribute",
 	scopeBindingStr = "scope",
 	viewModelOrAttributeBindingStr = "viewModelOrAttribute",
-	viewModelSymbol = canSymbol.for("can.viewModel");
+	viewModelSymbol = canSymbol.for("can.viewModel"),
+	preventDataBindingsSymbol = canSymbol.for("can.preventDataBindings");
 
 var throwOnlyOneTypeOfBindingError = function() {
 	throw new Error("can-stache-bindings - you can not have contextual bindings ( this:from='value' ) and key bindings ( prop:from='value' ) on one element.");
@@ -401,7 +403,7 @@ var behaviors = {
 	// This is called when an individual data binding attribute is placed on an element.
 	// For example `{^value}="name"`.
 	data: function(el, attrData) {
-		if (domData.get(el, "preventDataBindings")) {
+		if (el[preventDataBindingsSymbol] === true || domData.get(el, "preventDataBindings")) {
 			return;
 		}
 		var viewModel,
@@ -478,16 +480,14 @@ var behaviors = {
 				attributeDisposal = undefined;
 			}
 		};
-		if (attrData.nodeList) {
-			ViewNodeList.register([], tearItAllDown, attrData.nodeList, false);
-		}
+
 
 
 		// Listen for changes
 		teardown = dataBinding.binding.stop.bind(dataBinding.binding);
 
 		attributeDisposal = domMutate.onNodeAttributeChange(el, attributeListener);
-		removedDisposal = domMutate.onNodeRemoval(el, function() {
+		removedDisposal = domMutate.onNodeDisconnected(el, function() {
 			var doc = el.ownerDocument;
 			var ownerNode = doc.contains ? doc : doc.documentElement;
 			if (!ownerNode || ownerNode.contains(el) === false) {
@@ -631,7 +631,7 @@ var behaviors = {
 		// Bind the handler defined above to the element we're currently processing and the event name provided in this
 		// attribute name (can-click="foo")
 		attributesDisposal = domMutate.onNodeAttributeChange(el, attributesHandler);
-		removalDisposal = domMutate.onNodeRemoval(el, removalHandler);
+		removalDisposal = domMutate.onNodeDisconnected(el, removalHandler);
 		if (!bindingContext && bindingContextObservable) {
 			// on value changes of the observation, rebind the listener to the new context
 			removeObservation = function () {
@@ -1087,8 +1087,9 @@ var makeDataBinding = function(node, bindingContext, bindingSettings) {
 		parent: parentObservable,
 		parentToChild: parentToChild,
 		priority: bindingContext.parentNodeList ? bindingContext.parentNodeList.nesting + 1 : undefined,
-		queue: "domUI",
-		sticky: siblingBindingData.parent.syncSibling ? "childSticksToParent" : undefined
+		queue: "dom",
+		sticky: siblingBindingData.parent.syncSibling ? "childSticksToParent" : undefined,
+		element: bindingContext.element
 	};
 
 	//!steal-remove-start
@@ -1155,6 +1156,5 @@ var canStacheBindings = {
 };
 
 canStacheBindings[canSymbol.for("can.callbackMap")] = bindings;
-viewCallbacks.attrs(canStacheBindings);
 
 module.exports = canStacheBindings;
