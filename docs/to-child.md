@@ -1,11 +1,11 @@
 @function can-stache-bindings.toChild key:from
 @parent can-stache-bindings.syntaxes
 
-@description One-way bind a value in the parent scope to the [can-component.prototype.ViewModel ViewModel] or element.
+@description One-way bind a value in the parent scope to the [can-stache-element StacheElement], [can-component.prototype.ViewModel can-component ViewModel], or element.
 
 @signature `childProp:from="key"`
 
-  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
+  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in the [can-stache-element StacheElement] or [can-component.prototype.view-model can-component ViewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```html
   <my-element someProp:from="value" />
@@ -14,7 +14,7 @@
   > __Note:__ If [can-stache.key] is an object, changes to the object’s properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
   @param {String} childProp The name of the property to set in the
-  component’s viewmodel.
+  [can-stache-element StacheElement] or [can-component.prototype.ViewModel can-component ViewModel].
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression whose resulting value is used to set as `childProp`.
 
@@ -28,7 +28,7 @@
 
 @signature `vm:childProp:from="key"`
 
-  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in [can-component.prototype.view-model viewModel]. It also updates `childProp` with the value of `key` when `key` changes.
+  Imports [can-stache.key] in the [can-view-scope scope] to `childProp` in the [can-stache-element StacheElement] or [can-component.prototype.view-model can-component ViewModel]. It also updates `childProp` with the value of `key` when `key` changes.
 
   ```html
   <my-element vm:childProp:from="key" />

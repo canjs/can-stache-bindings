@@ -198,7 +198,7 @@ class MyDemo extends StacheElement {
         <h2>Data</h2>
         <ul>
             {{# for(submission of this.submissions) }}
-                <li>{{submission}}</li>
+                <li>{{ submission }}</li>
             {{/ for }}
         </ul>
     `;
@@ -241,7 +241,7 @@ import { ObservableArray, StacheElement } from "can";
 class RandomNumberGenerator extends StacheElement {
     connected() {
         const interval = setInterval( () => {
-            this.dispatch({type: "number", value: Math.random()})
+            this.dispatch({ type: "number", value: Math.random() });
         }, 1000);
 
         return () => {
@@ -258,7 +258,7 @@ class MyDemo extends StacheElement {
         <h2>Numbers</h2>
         <ul>
             {{# for(number of this.numbers) }}
-                <li>{{number}}</li>
+                <li>{{ number }}</li>
             {{/ for }}
         </ul>
     `;
@@ -314,7 +314,7 @@ class MyDemo extends StacheElement {
         <h2>Numbers</h2>
         <ul>
             {{# for(number of this.numbers) }}
-                <li>{{number}}</li>
+                <li>{{ number }}</li>
             {{/ for }}
         </ul>
     `;
@@ -354,7 +354,7 @@ class MyDemo extends StacheElement {
         {{# for(todo of this.todos) }}
             <div on:complete:by:todo="this.shake(scope.element)">
                 <input type="checkbox" checked:bind="todo.complete" />
-                {{todo.name}}
+                {{ todo.name }}
             </div>
         {{/ for }}
     `;
@@ -363,8 +363,8 @@ class MyDemo extends StacheElement {
         todos: {
             get default() {
                 return [
-                    new ObservableObject({name: "animate", complete: false}),
-                    new ObservableObject({name: "celebrate", complete: true})
+                    new ObservableObject({ name: "animate", complete: false }),
+                    new ObservableObject({ name: "celebrate", complete: true })
                 ];
             }
         }
@@ -465,13 +465,11 @@ percentage-slider {
 import { StacheElement } from "can";
 
 class PercentageSlider extends StacheElement {
-    static view = `<div class="percent" style="width: {{this.percent}}%"></div>`;
+    static view = `<div class="percent" style="width: {{ this.percent }}%"></div>`;
 
-    static get props() {
-        return {
-            percent: Number
-        };
-    }
+    static props = {
+        percent: Number
+    };
 }
 
 customElements.define("percentage-slider", PercentageSlider);
@@ -520,7 +518,7 @@ import { StacheElement } from "can";
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>Name: {{this.name}}</p>
+        <p>Name: {{ this.name }}</p>
         <p>Update name when “change” fires: <input value:to="this.name" /></p>
     `;
 
@@ -546,7 +544,7 @@ import { StacheElement } from "can";
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>Name: {{this.name}}</p>
+        <p>Name: {{ this.name }}</p>
         <p>Update name when “change” fires: <input value:to="this.name" /></p>
     `;
 
@@ -570,7 +568,7 @@ import { StacheElement } from "can";
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>Name: {{this.name}}</p>
+        <p>Name: {{ this.name }}</p>
         <p>Update name as you type: <input on:input:value:to="this.name" /></p>
     `;
 
@@ -670,7 +668,7 @@ customElements.define("random-number-generator", RandomNumberGenerator);
 class MyDemo extends StacheElement {
     static view = `
         <random-number-generator number:to="this.randomNumber" />
-        <h1>Your random number is {{this.randomNumber}}</h1>
+        <h1>Your random number is {{ this.randomNumber }}</h1>
     `;
 
     static props = {
@@ -703,7 +701,7 @@ import { StacheElement } from "can";
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>Name is currently: {{this.name}}</p>
+        <p>Name is currently: {{ this.name }}</p>
         <p><input value:bind="this.name" /></p>
     `;
 
@@ -728,7 +726,7 @@ import { StacheElement } from "can";
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>Name is currently: {{this.name}}</p>
+        <p>Name is currently: {{ this.name }}</p>
         <p><input on:input:value:bind="this.name" /></p>
     `;
 
@@ -777,7 +775,7 @@ customElements.define("name-editor", NameEditor);
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>Name is currently: {{this.name}}</p>
+        <p>Name is currently: {{ this.name }}</p>
         <p><name-editor fullName:bind="this.name" /></p>
         <p><button on:click="this.name = 'Captain Marvel'">Set name as Captain Marvel</button>
     `;
@@ -894,7 +892,7 @@ import { ObservableObject, StacheElement } from "can";
 const isVisibleSymbol = Symbol("isVisible");
 
 class InView extends StacheElement {
-    static view = `{{content(context)}}`;
+    static view = `{{ content(context) }}`;
 
     connected() {
         function dispatchEvents() {
@@ -922,13 +920,13 @@ customElements.define("in-view", InView);
 
 class MyDemo extends StacheElement {
     static view = `
-        {{<viewContent}}
+        {{< viewContent }}
             {{# for(item of this.items) }}
                 <div on:inview="this.getData(item)">
-                    {{item.data}}
+                    {{ item.data }}
                 </div>
             {{/ for }}
-        {{/viewContent}}
+        {{/ viewContent }}
         <in-view content:from="viewContent" context:from="this" />
     `;
 
@@ -937,7 +935,7 @@ class MyDemo extends StacheElement {
             get default() {
                 const items = [];
                 for (let i = 0; i < 400; i++) {
-                    items.push(new ObservableObject({data: "unloaded"}));
+                    items.push(new ObservableObject({ data: "unloaded" }));
                 }
                 return items;
             }
@@ -1008,8 +1006,8 @@ class MyDemo extends StacheElement {
                     {{# case("green") }}
                             <div class="light green"
                                 on:inserted="this.shake(scope.element)">Green Light</div>
-                    {{/case}}
-            {{/switch}}
+                    {{/ case }}
+            {{/ switch }}
         </div>
     `;
 
@@ -1018,7 +1016,7 @@ class MyDemo extends StacheElement {
     };
 
     nextState() {
-        const states = {red: "yellow", yellow: "green", green: "red"};
+        const states = { red: "yellow", yellow: "green", green: "red" };
         this.state = states[this.state];
     }
 
@@ -1170,14 +1168,14 @@ customElements.define("name-editor", NameEditor);
 
 class MyDemo extends StacheElement {
     static view = `
-        <p>First: {{this.name.first}}, Last: {{this.name.last}}</p>
+        <p>First: {{ this.name.first }}, Last: {{ this.name.last }}</p>
         <name-editor name:from="this.name" />
     `;
 
     static props = {
         name: {
             get default() {
-                return new ObservableObject({first: "Justin", last: "Meyer"});
+                return new ObservableObject({ first: "Justin", last: "Meyer" });
             }
         }
     };
@@ -1203,7 +1201,7 @@ import { StacheElement, type } from "can";
 
 class ChildComponent extends StacheElement {
     static view = `
-        <p>Child Name: {{this.childName}}</p>
+        <p>Child Name: {{ this.childName }}</p>
         <input value:bind="this.childName" />
     `;
 
@@ -1216,7 +1214,7 @@ customElements.define("child-element", ChildComponent);
 
 class ParentComponent extends StacheElement {
     static view = `
-        <p>Parent Name: {{this.parentName}}</p>
+        <p>Parent Name: {{ this.parentName }}</p>
         <child-element childName:bind="this.parentName" />
     `;
 

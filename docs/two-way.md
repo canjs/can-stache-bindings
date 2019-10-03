@@ -1,11 +1,11 @@
 @function can-stache-bindings.twoWay key:bind
 @parent can-stache-bindings.syntaxes
 
-@description Two-way bind a value in the [can-component.prototype.view-model viewModel] or the element to the parent scope.
+@description Two-way bind a value in the [can-stache-element StacheElement], [can-component.prototype.ViewModel can-component ViewModel], or element to the parent scope.
 
 @signature `childProp:bind="key"`
 
-  Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
+  Two-way binds `childProp` in the  [can-stache-element StacheElement] or [can-component.prototype.ViewModel can-component ViewModel] to
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated `key` will be updated
   and vice-versa.
 
@@ -21,7 +21,7 @@
 
 
 
-  @param {String} childProp The name of the property of the viewModel to two-way bind.
+  @param {String} childProp The name of the property of the [can-stache-element StacheElement] or [can-component.prototype.ViewModel can-component ViewModel] to two-way bind.
 
   @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key A call expression whose value will be used to two-way bind in the parent scope.
 
@@ -41,7 +41,7 @@
 
 @signature `vm:childProp:bind="key"`
 
-  Two-way binds `childProp` in the  [can-component.prototype.ViewModel ViewModel] to
+  Two-way binds `childProp` in the  [can-stache-element StacheElement] or [can-component.prototype.ViewModel can-component ViewModel] to
   [can-stache.key] in the parent [can-view-scope scope].  If `childProp` is updated, `key` will be updated
   and vice-versa.
 
@@ -75,12 +75,12 @@ Parameters are the same as [can-stache-bindings.twoWay#child_prop_bind__key_ chi
 
 ## Initialization
 
-When a binding is being initialized, the behavior of what the viewModel and scope properties
+When a binding is being initialized, the behavior of what the component and scope properties
 are set to depends on their initial values:
 
-- If the viewModel value is `defined` and the scope is `undefined`, scope will be set to the viewModel value.
-- If the viewModel value is `undefined` and the scope is `not undefined`, viewModel will be set to the scope value.
-- If both the viewModel and scope are `not undefined`, viewModel will be set to the scope value.
+- If the component’s property value is **not** `undefined` and the scope’s property is `undefined`, scope will be set to the component’s property value.
+- If the component’s property value is `undefined` and the scope’s property is **not** `undefined`, component’s property will be set to the scope value.
+- If both the component and scope properties are **not** `undefined`, component’s property will be set to the scope value.
 
 ## Use
 

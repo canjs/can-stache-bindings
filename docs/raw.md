@@ -1,7 +1,7 @@
 @function can-stache-bindings.raw key:raw
 @parent can-stache-bindings.syntaxes
 
-@description One-way bind a string value to the [can-component.prototype.ViewModel ViewModel] or element.
+@description One-way bind a string value to the [can-stache-element StacheElement], [can-component.prototype.ViewModel can-component ViewModel], or element.
 
 @signature `childProp:raw="value"`
 

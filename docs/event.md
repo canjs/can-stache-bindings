@@ -5,9 +5,11 @@
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+If the element is a [can-stache-element], listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
+If the element is a [can-component], listens to an event on the [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+
+For all other elements, listens for a DOM event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
 ```html
 <my-element on:show="doSomething()" />
@@ -27,23 +29,24 @@ is fired. The following [can-stache/keys/scope] key values are also supported:
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT='KEY = VALUE'`
 
-  Listen to an event and set a property value.  The following sets the `priority` property when
+  Listen to an event and set a property value. The following sets the `priority` property when
   a button is clicked:
 
   ```html
   <my-demo></my-demo>
   <script type="module">
   import { StacheElement } from "can";
+
   class MyDemo extends StacheElement {
     static view = `
-      <p>Priority: {{this.priority}}</p>
+      <p>Priority: {{ this.priority }}</p>
       <button on:click="this.priority = 0">Urgent</button>
       <button on:click="this.priority = 1">Critical</button>
       <button on:click="this.priority = 10">Fahgettaboudit</button>
     `;
 
     static props = {
-      priority: {default: null}
+      priority: Number
     };
   }
   customElements.define("my-demo", MyDemo);
@@ -80,9 +83,11 @@ is fired.
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT:KEY:to='SCOPE_VALUE'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
+If the element is a [can-stache-element], listens to an event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
+If the element is a [can-component], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
+
+For all other elements, listens for a DOM event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
 
 ```html
 <my-element on:show:value:to="myScopeProp" />
