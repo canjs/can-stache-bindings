@@ -5,12 +5,14 @@
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT='CALL_EXPRESSION'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+If the element is a [can-stache-element], listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and calls the [can-stache/expressions/call] when that event occurs.
+If the element is a [can-component], listens to an event on the [can-component::ViewModel ViewModel] and calls the [can-stache/expressions/call] when that event occurs.
+
+For all other elements, listens for a DOM event on the element and calls the [can-stache/expressions/call] when that event occurs.
 
 ```html
-<my-component on:show="doSomething()"/>
+<my-element on:show="doSomething()" />
 ```
 
 @param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
@@ -27,25 +29,27 @@ is fired. The following [can-stache/keys/scope] key values are also supported:
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT='KEY = VALUE'`
 
-  Listen to an event and set a property value.  The following sets the `priority` property when
+  Listen to an event and set a property value. The following sets the `priority` property when
   a button is clicked:
 
   ```html
   <my-demo></my-demo>
-  <script type='module'>
-  import {Component} from "can";
-  Component.extend({
-    tag: "my-demo",
-    view: `
-      <p>Priority: {{this.priority}}</p>
+  <script type="module">
+  import { StacheElement } from "can";
+
+  class MyDemo extends StacheElement {
+    static view = `
+      <p>Priority: {{ this.priority }}</p>
       <button on:click="this.priority = 0">Urgent</button>
       <button on:click="this.priority = 1">Critical</button>
       <button on:click="this.priority = 10">Fahgettaboudit</button>
-    `,
-    ViewModel: {
-      priority: {default: null}
-    }
-  });
+    `;
+
+    static props = {
+      priority: Number
+    };
+  }
+  customElements.define("my-demo", MyDemo);
   </script>
   ```
   @codepen
@@ -79,12 +83,14 @@ is fired.
 
 @signature `on:VIEW_MODEL_OR_DOM_EVENT:KEY:to='SCOPE_VALUE'`
 
-If the element has a [can-component::ViewModel ViewModel], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
+If the element is a [can-stache-element], listens to an event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
 
-If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
+If the element is a [can-component], listens to an event on the [can-component::ViewModel ViewModel] and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
+
+For all other elements, listens for a DOM event on the element and binds the element’s value to the `SCOPE_VALUE` when that event occurs.
 
 ```html
-<my-component on:show:value:to="myScopeProp"/>
+<my-element on:show:value:to="myScopeProp" />
 ```
 
 @param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
@@ -96,7 +102,7 @@ If the element does **not** have a [can-component::ViewModel ViewModel], listens
 Listens to an event on the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
 
 ```html
-<my-component on:show:by:this="doSomething()"/>
+<my-element on:show:by:this="doSomething()" />
 ```
 
 @param {String} SCOPE_EVENT a scope event.
@@ -108,7 +114,7 @@ Listens to an event on the [can-view-scope scope] and calls the [can-stache/expr
 Listens to an event on a property of the [can-view-scope scope] and calls the [can-stache/expressions/call] when that event occurs.
 
 ```html
-<my-component on:show:by:obj="doSomething()"/>
+<my-element on:show:by:obj="doSomething()" />
 ```
 
 @param {String} SCOPE_PROP_EVENT an event triggered by a scope property.
