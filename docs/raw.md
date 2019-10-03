@@ -8,7 +8,7 @@
   Sets the string value `"value"` to `childProp` in [can-component.prototype.view-model viewModel].
 
   ```html
-  <my-component someProp:raw="35"/>
+  <my-element someProp:raw="35" />
   ```
 
   @param {String} childProp The name of the property to set in the
@@ -25,6 +25,6 @@
 The two uses below are equivalent:
 
 ```html
-<player-scores scores:from="'37'"/>
-<player-scores scores:raw="37"/>
+<player-scores scores:from="'37'" />
+<player-scores scores:raw="37" />
 ```

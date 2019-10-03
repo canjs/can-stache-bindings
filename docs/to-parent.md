@@ -9,13 +9,13 @@ Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can
 `key` with the value of `childProp` when `childProp` changes.
 
 ```html
-<my-component someProp:to="value"/>
+<my-element someProp:to="value" />
 ```
 
-> __Note:__ If [can-stache.key] is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+> __Note:__ If [can-stache.key] is an object, changes to the object’s properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 @param {String} childProp The name of the property to export from the
-child component's viewmodel. Use `this:to` or `.:to` to export the entire viewModel.
+child component’s viewmodel. Use `this:to` or `.:to` to export the entire viewModel.
 
 @param {can-stache/expressions/literal|can-stache/expressions/key-lookup|can-stache/expressions/call|can-stache/expressions/helper} key An expression that will be used to set in the parent scope.
 
@@ -25,7 +25,7 @@ child component's viewmodel. Use `this:to` or `.:to` to export the entire viewMo
   `key` with the value of `child-prop` when `child-prop` changes.
 
   ```html
-  <input value:to="name"/>
+  <input value:to="name" />
   ```
 
   @param {String} child-prop The name of the element’s property or attribute to export.
@@ -38,10 +38,10 @@ Exports `childProp` in the [can-component.prototype.ViewModel ViewModel] to [can
 `key` with the value of `childProp` when `childProp` changes.
 
 ```html
-<my-component vm:someProp:to="value"/>
+<my-element vm:someProp:to="value" />
 ```
 
-> __Note:__ If [can-stache.key] is an object, changes to the object's properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
+> __Note:__ If [can-stache.key] is an object, changes to the object’s properties will still be visible to the component. Objects are passed by reference. See [can-stache-bindings#OneWayBindingWithObjects One Way Binding With Objects].
 
 Parameters are the same as [can-stache-bindings.toParent#childProp_to__key_ childProp:to="key"]
 
@@ -51,7 +51,7 @@ Parameters are the same as [can-stache-bindings.toParent#childProp_to__key_ chil
   `key` with the value of `child-prop` when `child-prop` changes.
 
   ```html
-  <input el:value:to="name"/>
+  <input el:value:to="name" />
   ```
 
 Parameters are the same as [can-stache-bindings.toParent#child_prop_to__key_ child-prop:to="key"]
@@ -63,7 +63,7 @@ If the element has a [can-component::ViewModel ViewModel], listens to an event o
 If the element does **not** have a [can-component::ViewModel ViewModel], listens to an event on the element and binds binds the element’s value to the SCOPE_VALUE when that event occurs.
 
 ```html
-<my-component on:show:value:to="myScopeProp"/>
+<my-element on:show:value:to="myScopeProp" />
 ```
 
 @param {String} VIEW_MODEL_OR_DOM_EVENT A viewModel or DOM event.
