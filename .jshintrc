@@ -49,5 +49,6 @@
 	"mootools": true,
 	"browser": true,
 	"phantom": true,
-	"node": true
+	"node": true,
+	"esversion": 6
 }

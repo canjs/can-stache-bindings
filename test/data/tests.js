@@ -7,6 +7,8 @@ var SimpleMap = require("can-simple-map");
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var globals = require('can-globals');
+var ObservableObject = require('can-observable-object');
+var canTestHelpers = require('can-test-helpers');
 
 stache.addBindings(stacheBindings);
 
@@ -111,5 +113,24 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 		});
 
 		domMutateNode.removeChild.call(d, d.documentElement);
+	});
+
+	canTestHelpers.dev.devOnlyTest('Explain that <input> elements always set properties to Strings', function(assert) {
+		class Foo extends ObservableObject {
+			static get props() {
+				return {
+					num: Number
+				};
+			}
+		}
+
+		var template = stache('<input type="text" value:bind="this.num">');
+		var viewModel = new Foo();
+
+		try {
+			template(viewModel);
+		} catch (error) {
+			assert.equal(error.message, '<input> elements always set properties to Strings, use string-to-any converter to get the right value type: (value:bind="string-to-any(this.num)")');
+		}
 	});
 });
