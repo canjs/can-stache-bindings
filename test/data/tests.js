@@ -8,9 +8,6 @@ var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var globals = require('can-globals');
 var ObservableObject = require('can-observable-object');
-var canTestHelpers = require('can-test-helpers');
-
-var devOnlyTest = steal.isEnv("production") ? QUnit.skip : QUnit.test;
 
 stache.addBindings(stacheBindings);
 
@@ -116,25 +113,6 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 
 		domMutateNode.removeChild.call(d, d.documentElement);
 	});
-
-	// canTestHelpers.dev.devOnlyTest('Explain that <input> elements always set properties to Strings', function(assert) {
-	// 	assert.expect(1);
-	// 	class Foo extends ObservableObject {
-	// 		static get props() {
-	// 			return {
-	// 				num: Number
-	// 			};
-	// 		}
-	// 	}
-
-	// 	try {
-	// 		stache('<input type="text" value:bind="this.num">')(new Foo());
-	// 		assert.ok(true);
-	// 	}
-	// 	catch (e) {
-	// 		assert.ok(true, e.message);
-	// 	}
-	// });
 });
 
 testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, devOnlyTest){
