@@ -444,20 +444,20 @@ var behaviors = {
 
 		//!steal-remove-start
 		if (process.env.NODE_ENV !== 'production') {
-			try {
-				started = true;
-				dataBinding.binding.start();
-			} catch (e) {
-				if (el.nodeName === 'INPUT') {
-					throw new Error('<input> elements always set properties to Strings, use string-to-any converter to get the right value type: (' + dataBinding.siblingBindingData.bindingAttributeName + '="string-to-any(' + dataBinding.siblingBindingData.parent.name + ')")');
+			if (el.nodeName === 'INPUT') {
+				try {
+					dataBinding.binding.start();
+					started = true;
+				} catch (error) {
+					throw new Error('<input> elements always set properties to Strings. ' + error.message);
 				}
 			}
 		}
 		//!steal-remove-end
 
 		if (!started) {
-			started = true;
 			dataBinding.binding.start();
+			started = true;
 		}
 
 		var attributeListener = function(ev) {

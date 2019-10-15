@@ -10,6 +10,8 @@ var globals = require('can-globals');
 var ObservableObject = require('can-observable-object');
 var canTestHelpers = require('can-test-helpers');
 
+var devOnlyTest = steal.isEnv("production") ? QUnit.skip : QUnit.test;
+
 stache.addBindings(stacheBindings);
 
 testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, testIfRealDocument){
@@ -115,7 +117,29 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 		domMutateNode.removeChild.call(d, d.documentElement);
 	});
 
-	canTestHelpers.dev.devOnlyTest('Explain that <input> elements always set properties to Strings', function(assert) {
+	// canTestHelpers.dev.devOnlyTest('Explain that <input> elements always set properties to Strings', function(assert) {
+	// 	assert.expect(1);
+	// 	class Foo extends ObservableObject {
+	// 		static get props() {
+	// 			return {
+	// 				num: Number
+	// 			};
+	// 		}
+	// 	}
+
+	// 	try {
+	// 		stache('<input type="text" value:bind="this.num">')(new Foo());
+	// 		assert.ok(true);
+	// 	}
+	// 	catch (e) {
+	// 		assert.ok(true, e.message);
+	// 	}
+	// });
+});
+
+testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, devOnlyTest){
+	devOnlyTest('Explain that <input> elements always set properties to Strings', function(assert) {
+		assert.expect(1);
 		class Foo extends ObservableObject {
 			static get props() {
 				return {
@@ -124,13 +148,12 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 			}
 		}
 
-		var template = stache('<input type="text" value:bind="this.num">');
-		var viewModel = new Foo();
-
 		try {
-			template(viewModel);
-		} catch (error) {
-			assert.equal(error.message, '<input> elements always set properties to Strings, use string-to-any converter to get the right value type: (value:bind="string-to-any(this.num)")');
+			stache('<input type="text" value:bind="this.num">')(new Foo());
+			assert.ok(true);
+		}
+		catch (e) {
+			assert.equal(e.message, '<input> elements always set properties to Strings.  is not of type Number. Property num is using "type: Number". Use "num: type.convert(Number)" to automatically convert values to Numbers when setting the "num" property.');
 		}
 	});
 });
