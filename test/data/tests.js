@@ -131,7 +131,7 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 			assert.ok(true);
 		}
 		catch (e) {
-			assert.equal(e.message, '<input> elements always set properties to Strings.  is not of type Number. Property num is using "type: Number". Use "num: type.convert(Number)" to automatically convert values to Numbers when setting the "num" property.');
+			assert.equal(e.message, '"" (string) is not of type Number. Property num is using "type: Number". Use "num: type.convert(Number)" to automatically convert values to Numbers when setting the "num" property. <input> elements always set properties to Strings.');
 		}
 	});
 });

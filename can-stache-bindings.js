@@ -449,7 +449,7 @@ var behaviors = {
 					dataBinding.binding.start();
 					started = true;
 				} catch (error) {
-					throw new Error('<input> elements always set properties to Strings. ' + error.message);
+					throw new Error(error.message + ' <input> elements always set properties to Strings.');
 				}
 			}
 		}
