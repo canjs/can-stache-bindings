@@ -645,12 +645,18 @@ var behaviors = {
 			try {
 				canEventQueue.on.call(bindingContext, event, handler);
 			} catch (error) {
-				var msg = 'can-stache-bindings - Unable to bind "' + event + '"';
-				msg += ': "complete" is a property on a plain object "';
-				msg += JSON.stringify(bindingContext);
-				msg += '". Bindning is available with observable objects only.';
-				msg += ' For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_';
-				throw new Error(msg);
+				var keys = Object.keys(bindingContext);
+				var prop = keys[0];
+				if (/Unable to bind/.test(error.message)) {
+					var msg = 'can-stache-bindings - Unable to bind "' + event + '"';
+					msg += ': "' + prop  + '" is a property on a plain object "';
+					msg += JSON.stringify(bindingContext);
+					msg += '". Binding is available with observable objects only.';
+					msg += ' For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_';
+					throw new Error(msg);
+				} else {
+					throw error;
+				}
 			}
 		}
 	}

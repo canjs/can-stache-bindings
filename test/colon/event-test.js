@@ -779,7 +779,7 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 		try {
 			template(vm);
 		} catch (error) {
-			assert.equal(error.message, 'can-stache-bindings - Unable to bind "complete": "complete" is a property on a plain object "{"complete":false}". Bindning is available with observable objects only. For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_');
+			assert.equal(error.message, 'can-stache-bindings - Unable to bind "complete": "complete" is a property on a plain object "{"complete":false}". Binding is available with observable objects only. For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_');
 		}
 	});
 });
