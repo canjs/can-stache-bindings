@@ -7,6 +7,7 @@ var SimpleMap = require("can-simple-map");
 var domMutate = require('can-dom-mutate');
 var domMutateNode = require('can-dom-mutate/node');
 var globals = require('can-globals');
+var ObservableObject = require('can-observable-object');
 
 stache.addBindings(stacheBindings);
 
@@ -111,5 +112,26 @@ testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO
 		});
 
 		domMutateNode.removeChild.call(d, d.documentElement);
+	});
+});
+
+testHelpers.makeTests("can-stache-bindings - data", function(name, doc, enableMO, devOnlyTest){
+	devOnlyTest('Explain that <input> elements always set properties to Strings', function(assert) {
+		assert.expect(1);
+		class Foo extends ObservableObject {
+			static get props() {
+				return {
+					num: Number
+				};
+			}
+		}
+
+		try {
+			stache('<input type="text" value:bind="this.num">')(new Foo());
+			assert.ok(true);
+		}
+		catch (e) {
+			assert.equal(e.message, '"" (string) is not of type Number. Property num is using "type: Number". Use "num: type.convert(Number)" to automatically convert values to Numbers when setting the "num" property. <input> elements always set properties to Strings.');
+		}
 	});
 });

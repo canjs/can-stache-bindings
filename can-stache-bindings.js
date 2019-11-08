@@ -439,7 +439,26 @@ var behaviors = {
 		}
 		//!steal-remove-end
 
-		dataBinding.binding.start();
+		// Flag to prevent start binding twice in dev mode
+		var started = false;
+
+		//!steal-remove-start
+		if (process.env.NODE_ENV !== 'production') {
+			if (el.nodeName === 'INPUT') {
+				try {
+					dataBinding.binding.start();
+					started = true;
+				} catch (error) {
+					throw new Error(error.message + ' <input> elements always set properties to Strings.');
+				}
+			}
+		}
+		//!steal-remove-end
+
+		if (!started) {
+			dataBinding.binding.start();
+			started = true;
+		}
 
 		var attributeListener = function(ev) {
 			var attrName = ev.attributeName,

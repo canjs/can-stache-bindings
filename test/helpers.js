@@ -59,7 +59,6 @@ var helpers = {
 	},
 	makeTests: function(name, makeTest) {
 		var noop = function(){};
-
 		helpers.makeQUnitModule(name+" - dom", document, true);
 		makeTest(name+" - dom", document, true, QUnit.test, noop);
 		makeTest(name+" - dom - dev only", document, true, noop, canTestHelpers.dev.devOnlyTest);
