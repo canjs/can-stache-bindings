@@ -767,4 +767,19 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 
 		assert.equal(el[canSymbol.for("can.viewModel")], undefined, "el does not have a viewmodel");
 	});
+
+	QUnit.test("Improve error message when unable to bind", function(assert) {
+		var vm = new SimpleMap({
+			todo: {
+				complete: false
+			}
+		});
+		vm.handle = function() {} ;
+		var template = stache('<div on:complete:by:todo="handle()"></div>');
+		try {
+			template(vm);
+		} catch (error) {
+			assert.equal(error.message, 'can-stache-bindings - Unable to bind "complete": "complete" is a property on a plain object "{"complete":false}". Binding is available with observable objects only. For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_');
+		}
+	});
 });

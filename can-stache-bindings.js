@@ -661,7 +661,20 @@ var behaviors = {
 			};
 			canReflect.onValue(bindingContextObservable, updateListener);
 		} else {
-			canEventQueue.on.call(bindingContext, event, handler);
+			try {
+				canEventQueue.on.call(bindingContext, event, handler);
+			} catch (error) {
+				if (/Unable to bind/.test(error.message)) {
+					var msg = 'can-stache-bindings - Unable to bind "' + event + '"';
+					msg += ': "' + event  + '" is a property on a plain object "';
+					msg += JSON.stringify(bindingContext);
+					msg += '". Binding is available with observable objects only.';
+					msg += ' For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_';
+					throw new Error(msg);
+				} else {
+					throw error;
+				}
+			}
 		}
 	}
 };
