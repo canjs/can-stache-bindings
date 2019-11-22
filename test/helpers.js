@@ -5,6 +5,7 @@ var domMutateNode = require('can-dom-mutate/node');
 var domData = require('can-dom-data');
 var makeDocument = require('can-vdom/make-document/make-document');
 var canTestHelpers = require('can-test-helpers');
+var queues = require('can-queues');
 
 var helpers = {
 	makeQUnitModule: function(name, doc, enableMO){
@@ -83,6 +84,14 @@ var helpers = {
 			domEvents.addEventListener = realAddEventListener;
 			domEvents.removeEventListener = realRemoveEventListener;
 		};
+	},
+
+	// restore can-queues to its default state
+	// this is useful for cleaning up an error that is thrown inside of a batch
+	cleanupQueues: function () {
+		while(queues.batch.isCollecting()) {
+			queues.batch.stop();
+		}
 	}
 };
 
