@@ -46,7 +46,7 @@
     "can-reflect-dependencies": "^1.0.0",
     "can-simple-map": "^4.0.0",
     "can-simple-observable": "^2.0.0",
-    "can-stache": "^5.0.0",
+    "can-stache": "^5.1.0",
     "can-stache-key": "^1.0.0",
     "can-symbol": "^1.0.0",
     "can-view-callbacks": "^5.0.0",
