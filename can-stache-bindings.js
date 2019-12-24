@@ -37,9 +37,6 @@ var canEventQueue = require("can-event-queue/map/map");
 // Contains all of the stache bindings that will be exported.
 var bindings = new Map();
 
-// Contains all of the stache bindings that will be exported.
-var bindings = new Map();
-
 var onMatchStr = "on:",
 	vmMatchStr = "vm:",
 	elMatchStr = "el:",
