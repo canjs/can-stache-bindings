@@ -50,7 +50,7 @@
     "can-stache-key": "^1.0.0",
     "can-symbol": "^1.0.0",
     "can-view-callbacks": "^5.0.0",
-    "can-view-live": "^5.0.0",
+    "can-view-live": "^5.0.4",
     "can-view-model": "^4.0.0",
     "can-view-scope": "^4.13.0"
   },
