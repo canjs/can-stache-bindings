@@ -887,10 +887,13 @@ var getObservableFrom = {
 					//!steal-remove-end
 				}
 			});
-		} else {
-			return new AttributeObservable(bindingContext.element, bindingData.name, {}, bindingData.event);
-		}
+		} 
 
+		if (bindingContext.element.nodeName.toLowerCase() === 'can-slot') {
+			return new SimpleObservable(undefined);
+		}
+		
+		return new AttributeObservable(bindingContext.element, bindingData.name, {}, bindingData.event);
 	}
 };
 

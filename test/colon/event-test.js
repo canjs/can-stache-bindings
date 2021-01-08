@@ -782,4 +782,28 @@ testHelpers.makeTests("can-stache-bindings - colon - event", function(name, doc,
 			assert.equal(error.message, 'can-stache-bindings - Unable to bind "complete": "complete" is a property on a plain object "{"complete":false}". Binding is available with observable objects only. For more details check https://canjs.com/doc/can-stache-bindings.html#Callafunctionwhenaneventhappensonavalueinthescope_animation_');
 		}
 	});
+
+	QUnit.test('Focus event does not bind to can-slot', function(assert) {
+		var ta = this.fixture;
+
+		var vm = new SimpleMap({
+			foo: false,
+			bar: 'bar'
+		});
+
+		var template = stache('<can-slot id="slot" focused:from="foo">{{bar}}</can-slot>' );
+
+		var frag = template(vm);
+
+		ta.appendChild(frag);
+
+		var el = doc.getElementById("slot");
+
+		el.focus = function() {
+			assert.ok(false);
+		};
+		
+		vm.set('foo', true);
+		assert.ok(true);
+	});
 });
