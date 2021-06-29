@@ -312,7 +312,7 @@ var behaviors = {
 	viewModel: function(el, tagData, makeViewModel, initialViewModelData, options) {
 
 		if(typeof options === "boolean") {
-			options = {staticDataBindingsOnly: options}
+			options = {staticDataBindingsOnly: options};
 		} else if(typeof options === "undefined") {
 			options = {};
 		}
