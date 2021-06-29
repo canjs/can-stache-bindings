@@ -309,7 +309,15 @@ var behaviors = {
 	// Returns:
 	// - `function` - a function that tears all the bindings down. Component
 	// wants all the bindings active so cleanup can be done during a component being removed.
-	viewModel: function(el, tagData, makeViewModel, initialViewModelData, staticDataBindingsOnly) {
+	viewModel: function(el, tagData, makeViewModel, initialViewModelData, options) {
+
+		if(typeof options === "boolean") {
+			options = {staticDataBindingsOnly: options}
+		} else if(typeof options === "undefined") {
+			options = {};
+		}
+		var staticDataBindingsOnly = options.staticDataBindingsOnly;
+		var makeDataBindingFn = options.makeDataBinding || makeDataBinding;
 
 		var attributeViewModelBindings = assign({}, initialViewModelData),
 
@@ -326,14 +334,16 @@ var behaviors = {
 				alreadyUpdatedChild: true,
 				// force viewModel bindings in cases when it is ambiguous whether you are binding
 				// on viewModel or an attribute (:to, :from, :bind)
-				favorViewModel: true
+				favorViewModel: true,
+				makeDataBinding: makeDataBindingFn,
+				getSiblingBindingData: options.getSiblingBindingData || getSiblingBindingData
 			},
 			dataBindings = [];
 
 		// For each attribute, we create a dataBinding object.
 		// These look like: `{binding, siblingBindingData}`
 		canReflect.eachListLike(el.attributes || [], function(node) {
-			var dataBinding = makeDataBinding(node, bindingContext, bindingSettings);
+			var dataBinding = makeDataBindingFn(node, bindingContext, bindingSettings);
 
 			if (dataBinding) {
 				dataBindings.push(dataBinding);
@@ -425,7 +435,8 @@ var behaviors = {
 			name: attrData.attributeName,
 			value: el.getAttribute(attrData.attributeName),
 		}, bindingContext, {
-			syncChildWithParent: false
+			syncChildWithParent: false,
+			getSiblingBindingData: getSiblingBindingData
 		});
 
 		//!steal-remove-start
@@ -468,7 +479,8 @@ var behaviors = {
 
 				if(value !== null  ) {
 					var dataBinding = makeDataBinding({name: attrName, value: value}, bindingContext, {
-						syncChildWithParent: false
+						syncChildWithParent: false,
+						getSiblingBindingData: getSiblingBindingData
 					});
 					if(dataBinding) {
 						// The viewModel is created, so call callback immediately.
@@ -1075,7 +1087,7 @@ function getSiblingBindingData(node, bindingSettings) {
 //   - binding: canBinding
 var makeDataBinding = function(node, bindingContext, bindingSettings) {
 	// Get information about the binding.
-	var siblingBindingData = getSiblingBindingData( node, bindingSettings );
+	var siblingBindingData = bindingSettings.getSiblingBindingData( node, bindingSettings );
 	if (!siblingBindingData) {
 		return;
 	}
